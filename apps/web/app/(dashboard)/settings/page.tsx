@@ -27,18 +27,7 @@ import {
 import { useCurrentUser } from '@/lib/use-current-user';
 import { fetcher } from '@/lib/fetcher';
 import { toast } from 'sonner';
-import type { UserRole } from '@obralink/shared';
-
-interface User {
-  id: string;
-  clerk_user_id: string;
-  organization_id: string;
-  role: UserRole;
-  full_name: string;
-  email: string;
-  avatar_url: string | null;
-  created_at: string;
-}
+import type { User, UserRole } from '@obralink/shared';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Admin',
@@ -199,7 +188,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{user.full_name}</span>
                           {isCurrentUser && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs" aria-label="Tu usuario">
                               Tú
                             </Badge>
                           )}
@@ -216,8 +205,13 @@ export default function SettingsPage() {
                   <TableCell>
                     <Select
                       value={user.role}
-                      onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
+                      onValueChange={(value) => {
+                        if (value === 'admin' || value === 'supervisor' || value === 'architect') {
+                          handleRoleChange(user.id, value);
+                        }
+                      }}
                       disabled={isUpdating || isCurrentUser}
+                      aria-busy={isUpdating}
                     >
                       <SelectTrigger className="w-[140px]">
                         <SelectValue>

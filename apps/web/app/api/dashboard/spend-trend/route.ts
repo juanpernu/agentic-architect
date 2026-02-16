@@ -12,12 +12,19 @@ export async function GET() {
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-  const { data, error } = await db
+  let query = db
     .from('receipts')
-    .select('total_amount, receipt_date, projects!inner(organization_id)')
+    .select('total_amount, receipt_date, projects!inner(organization_id, architect_id)')
     .eq('projects.organization_id', ctx.orgId)
     .eq('status', 'confirmed')
     .gte('receipt_date', sixMonthsAgo.toISOString().split('T')[0]);
+
+  // Architects only see their own projects' trends
+  if (ctx.role === 'architect') {
+    query = query.eq('projects.architect_id', ctx.dbUserId);
+  }
+
+  const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

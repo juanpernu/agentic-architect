@@ -14,19 +14,34 @@ export async function GET() {
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const startOfWeek = weekStart.toISOString();
 
+  // Build architect filter for project-scoped queries
+  const architectFilter = ctx.role === 'architect' ? ctx.dbUserId : null;
+
+  let projectsQuery = db.from('projects').select('id', { count: 'exact', head: true })
+    .eq('organization_id', ctx.orgId).eq('status', 'active');
+  if (architectFilter) projectsQuery = projectsQuery.eq('architect_id', architectFilter);
+
+  let monthlySpendQuery = db.from('receipts').select('total_amount, projects!inner(organization_id, architect_id)')
+    .eq('projects.organization_id', ctx.orgId)
+    .eq('status', 'confirmed')
+    .gte('receipt_date', startOfMonth);
+  if (architectFilter) monthlySpendQuery = monthlySpendQuery.eq('projects.architect_id', architectFilter);
+
+  let weeklyReceiptsQuery = db.from('receipts').select('id, projects!inner(organization_id, architect_id)', { count: 'exact', head: true })
+    .eq('projects.organization_id', ctx.orgId)
+    .gte('created_at', startOfWeek);
+  if (architectFilter) weeklyReceiptsQuery = weeklyReceiptsQuery.eq('projects.architect_id', architectFilter);
+
+  let pendingReviewQuery = db.from('receipts').select('id, projects!inner(organization_id, architect_id)', { count: 'exact', head: true })
+    .eq('projects.organization_id', ctx.orgId)
+    .eq('status', 'pending');
+  if (architectFilter) pendingReviewQuery = pendingReviewQuery.eq('projects.architect_id', architectFilter);
+
   const [projects, monthlySpend, weeklyReceipts, pendingReview] = await Promise.all([
-    db.from('projects').select('id', { count: 'exact', head: true })
-      .eq('organization_id', ctx.orgId).eq('status', 'active'),
-    db.from('receipts').select('total_amount, projects!inner(organization_id)')
-      .eq('projects.organization_id', ctx.orgId)
-      .eq('status', 'confirmed')
-      .gte('receipt_date', startOfMonth),
-    db.from('receipts').select('id, projects!inner(organization_id)', { count: 'exact', head: true })
-      .eq('projects.organization_id', ctx.orgId)
-      .gte('created_at', startOfWeek),
-    db.from('receipts').select('id, projects!inner(organization_id)', { count: 'exact', head: true })
-      .eq('projects.organization_id', ctx.orgId)
-      .eq('status', 'pending'),
+    projectsQuery,
+    monthlySpendQuery,
+    weeklyReceiptsQuery,
+    pendingReviewQuery,
   ]);
 
   const totalMonthlySpend = (monthlySpend.data ?? [])

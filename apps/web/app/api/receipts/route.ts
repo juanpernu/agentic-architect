@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get('project_id');
   const status = searchParams.get('status');
+  const limit = searchParams.get('limit');
 
   const db = getDb();
 
@@ -26,6 +27,11 @@ export async function GET(req: NextRequest) {
   // Architects only see own receipts
   if (ctx.role === 'architect') {
     query = query.eq('uploaded_by', ctx.dbUserId);
+  }
+
+  if (limit) {
+    const n = parseInt(limit, 10);
+    if (!isNaN(n) && n > 0) query = query.limit(n);
   }
 
   const { data, error } = await query;

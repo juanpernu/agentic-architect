@@ -1,64 +1,46 @@
-'use client';
-
-import useSWR from 'swr';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight } from 'lucide-react';
+import { getAuthContext } from '@/lib/auth';
+import { getDb } from '@/lib/supabase';
+import type { ReceiptStatus } from '@obralink/shared';
 
-interface Receipt {
+interface RecentReceipt {
   id: string;
-  vendor: string;
+  vendor: string | null;
   total_amount: number;
   receipt_date: string;
-  status: 'pending' | 'confirmed' | 'rejected';
-  project: {
-    id: string;
-    name: string;
-  };
+  status: ReceiptStatus;
+  project: { id: string; name: string };
 }
 
-export function RecentReceipts() {
-  const { data, error, isLoading } = useSWR<Receipt[]>('/api/receipts', fetcher);
+async function fetchRecentReceipts(): Promise<RecentReceipt[]> {
+  const ctx = await getAuthContext();
+  if (!ctx) return [];
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Comprobantes Recientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
+  const db = getDb();
+
+  let query = db
+    .from('receipts')
+    .select('id, vendor, total_amount, receipt_date, status, project:projects!project_id(id, name)')
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  // Architects only see own receipts
+  if (ctx.role === 'architect') {
+    query = query.eq('uploaded_by', ctx.dbUserId);
   }
 
-  if (error || !data) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Comprobantes Recientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            Error cargando comprobantes
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const { data } = await query;
+  return (data as unknown as RecentReceipt[]) ?? [];
+}
 
-  const recentReceipts = data.slice(0, 5);
+export async function RecentReceipts() {
+  const receipts = await fetchRecentReceipts();
 
-  if (recentReceipts.length === 0) {
+  if (receipts.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -87,7 +69,7 @@ export function RecentReceipts() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentReceipts.map((receipt) => (
+          {receipts.map((receipt) => (
             <Link
               key={receipt.id}
               href={`/receipts/${receipt.id}`}

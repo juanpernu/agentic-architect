@@ -1,52 +1,14 @@
 'use client';
 
-import useSWR from 'swr';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { SpendByProject } from '@obralink/shared';
 
-interface SpendByProject {
-  project_id: string;
-  project_name: string;
-  total_spend: number;
-}
+const currencyTickFormatter = (value: number) => formatCurrency(value);
+const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
 
-export function SpendByProjectChart() {
-  const { data, error, isLoading } = useSWR<SpendByProject[]>(
-    '/api/dashboard/spend-by-project',
-    fetcher
-  );
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Gasto por Proyecto</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[300px] w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Gasto por Proyecto</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            Error cargando datos
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+export function SpendByProjectChart({ data }: { data: SpendByProject[] }) {
   if (data.length === 0) {
     return (
       <Card>
@@ -67,7 +29,7 @@ export function SpendByProjectChart() {
       <CardHeader>
         <CardTitle>Gasto por Proyecto</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent role="img" aria-label="Gráfico de barras: gasto por proyecto">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -79,10 +41,10 @@ export function SpendByProjectChart() {
             <YAxis
               className="text-xs"
               tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              tickFormatter={(value) => formatCurrency(Number(value))}
+              tickFormatter={currencyTickFormatter}
             />
             <Tooltip
-              formatter={(value) => formatCurrency(Number(value))}
+              formatter={currencyTooltipFormatter}
               contentStyle={{
                 backgroundColor: 'hsl(var(--background))',
                 border: '1px solid hsl(var(--border))',

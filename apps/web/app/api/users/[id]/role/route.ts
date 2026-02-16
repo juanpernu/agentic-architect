@@ -7,7 +7,7 @@ const VALID_ROLES = ['admin', 'supervisor', 'architect'] as const;
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
@@ -15,7 +15,15 @@ export async function PATCH(
   // Only admins can change roles
   if (ctx.role !== 'admin') return forbidden();
 
-  const { id } = await context.params;
+  // Guard incomplete session metadata
+  if (!ctx.dbUserId) {
+    return NextResponse.json(
+      { error: 'Sesión incompleta. Por favor, cerrá sesión y volvé a iniciar.' },
+      { status: 500 }
+    );
+  }
+
+  const { id } = await params;
 
   // Prevent changing own role to avoid locking yourself out
   if (id === ctx.dbUserId) {
@@ -29,7 +37,7 @@ export async function PATCH(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
   const { role } = body;
