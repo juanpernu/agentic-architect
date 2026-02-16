@@ -54,15 +54,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (project?.architect_id !== ctx.dbUserId) return forbidden();
   }
 
-  const updateData: Record<string, unknown> = {};
-  if (body.name) updateData.name = body.name;
-  if (body.address !== undefined) updateData.address = body.address;
-  if (body.status) updateData.status = body.status;
-  if (body.architect_id !== undefined) updateData.architect_id = body.architect_id;
+  const updateFields: Record<string, unknown> = {};
+  if (body.name) updateFields.name = body.name;
+  if (body.address !== undefined) updateFields.address = body.address;
+  if (body.status) updateFields.status = body.status;
+  if (body.architect_id !== undefined) updateFields.architect_id = body.architect_id;
 
   const { data, error } = await db
     .from('projects')
-    .update(updateData)
+    .update(updateFields)
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .select()
