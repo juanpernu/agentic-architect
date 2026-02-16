@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Project, CreateProjectInput, UpdateProjectInput, ProjectStatus } from '@architech/shared';
+import type { Project, CreateProjectInput, UpdateProjectInput, ProjectStatus, ProjectColor } from '@architech/shared';
 
 interface OrgUser {
   id: string;
@@ -44,11 +44,13 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
     address: string;
     status: ProjectStatus;
     architect_id: string;
+    color: ProjectColor | '';
   }>({
     name: '',
     address: '',
     status: 'active',
     architect_id: '',
+    color: '',
   });
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         address: project.address ?? '',
         status: project.status,
         architect_id: project.architect_id ?? '',
+        color: project.color ?? '',
       });
     } else {
       setFormData({
@@ -65,6 +68,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         address: '',
         status: 'active',
         architect_id: '',
+        color: '',
       });
     }
   }, [project, open]);
@@ -79,6 +83,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         address: formData.address || undefined,
         status: formData.status,
         architect_id: formData.architect_id || undefined,
+        color: formData.color || undefined,
       };
 
       const response = await fetch(
@@ -198,6 +203,41 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Color (opcional)</Label>
+            <div className="flex gap-2 flex-wrap">
+              {(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const).map(
+                (c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() =>
+                      setFormData({ ...formData, color: formData.color === c ? '' : c })
+                    }
+                    className={`h-8 w-8 rounded-full transition-all ${
+                      formData.color === c
+                        ? 'ring-2 ring-offset-2 ring-foreground scale-110'
+                        : 'hover:scale-110'
+                    }`}
+                    style={{
+                      backgroundColor: {
+                        red: '#ef4444',
+                        blue: '#3b82f6',
+                        green: '#22c55e',
+                        yellow: '#eab308',
+                        purple: '#a855f7',
+                        orange: '#f97316',
+                        pink: '#ec4899',
+                        teal: '#14b8a6',
+                      }[c],
+                    }}
+                    aria-label={`Color ${c}`}
+                  />
+                )
+              )}
+            </div>
           </div>
 
           <DialogFooter>
