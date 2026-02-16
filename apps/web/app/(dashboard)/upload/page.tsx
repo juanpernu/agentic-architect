@@ -34,7 +34,8 @@ export default function UploadPage() {
   }, [previewUrl]);
 
   const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
+    // On iOS, camera captures may report as image/heic or have no type
+    if (file.type && !file.type.startsWith('image/')) {
       toast.error('Por favor selecciona una imagen válida');
       return;
     }
@@ -230,7 +231,7 @@ export default function UploadPage() {
               <input
                 ref={cameraInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/*"
                 capture="environment"
                 onChange={handleFileInputChange}
                 className="hidden"
