@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       address: body.address ?? null,
       status: body.status ?? 'active',
       architect_id: body.architect_id ?? null,
+      color: body.color ?? null,
     })
     .select()
     .single();

@@ -59,6 +59,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.address !== undefined) updateFields.address = body.address;
   if (body.status) updateFields.status = body.status;
   if (body.architect_id !== undefined) updateFields.architect_id = body.architect_id;
+  if (body.color !== undefined) updateFields.color = body.color;
 
   const { data, error } = await db
     .from('projects')
