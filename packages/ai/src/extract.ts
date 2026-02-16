@@ -71,6 +71,7 @@ export async function extractReceiptData(imageBase64: string, mimeType: Supporte
     if (error instanceof Error && error.message === 'No text response from Claude Vision') {
       throw error;
     }
+    console.error('[extractReceiptData] Anthropic API error:', error);
     throw new Error('Failed to extract receipt data', { cause: error });
   }
 }

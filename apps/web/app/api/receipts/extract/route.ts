@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Extraction failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const cause = error instanceof Error && error.cause
+      ? (error.cause instanceof Error ? error.cause.message : String(error.cause))
+      : undefined;
+    return NextResponse.json({ error: message, ...(cause && { detail: cause }) }, { status: 500 });
   }
 }
