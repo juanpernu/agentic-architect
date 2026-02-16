@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { Project, CreateProjectInput, UpdateProjectInput, ProjectStatus, ProjectColor } from '@architech/shared';
 
 interface OrgUser {
@@ -78,13 +79,13 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
     setIsSubmitting(true);
 
     try {
-      const payload: CreateProjectInput | UpdateProjectInput = {
+      const payload = {
         name: formData.name,
         address: formData.address || undefined,
         status: formData.status,
         architect_id: formData.architect_id || undefined,
-        color: formData.color || undefined,
-      };
+        color: formData.color || null,
+      } satisfies Omit<CreateProjectInput | UpdateProjectInput, 'color'> & { color: ProjectColor | null };
 
       const response = await fetch(
         project ? `/api/projects/${project.id}` : '/api/projects',
@@ -222,16 +223,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                         : 'hover:scale-110'
                     }`}
                     style={{
-                      backgroundColor: {
-                        red: '#ef4444',
-                        blue: '#3b82f6',
-                        green: '#22c55e',
-                        yellow: '#eab308',
-                        purple: '#a855f7',
-                        orange: '#f97316',
-                        pink: '#ec4899',
-                        teal: '#14b8a6',
-                      }[c],
+                      backgroundColor: PROJECT_COLOR_HEX[c],
                     }}
                     aria-label={`Color ${c}`}
                   />

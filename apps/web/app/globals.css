@@ -163,3 +163,11 @@
 .stagger-children > *:nth-child(8) { animation-delay: 350ms; }
 .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
 .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-up,
+  .stagger-children > * {
+    animation: none;
+  }
+}

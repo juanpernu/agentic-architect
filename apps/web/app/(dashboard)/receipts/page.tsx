@@ -33,17 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Project } from '@architech/shared';
-
-const PROJECT_BADGE_STYLES: Record<string, { bg: string; text: string }> = {
-  red: { bg: '#fef2f2', text: '#b91c1c' },
-  blue: { bg: '#eff6ff', text: '#1d4ed8' },
-  green: { bg: '#f0fdf4', text: '#15803d' },
-  yellow: { bg: '#fefce8', text: '#a16207' },
-  purple: { bg: '#faf5ff', text: '#7e22ce' },
-  orange: { bg: '#fff7ed', text: '#c2410c' },
-  pink: { bg: '#fdf2f8', text: '#be185d' },
-  teal: { bg: '#f0fdfa', text: '#0f766e' },
-};
+import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
   const router = useRouter();

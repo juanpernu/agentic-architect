@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -39,17 +40,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
-
-const PROJECT_COLORS: Record<string, string> = {
-  red: '#ef4444',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  yellow: '#eab308',
-  purple: '#a855f7',
-  orange: '#f97316',
-  pink: '#ec4899',
-  teal: '#14b8a6',
-};
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -139,7 +129,7 @@ export default function ProjectDetailPage() {
             {project.color && (
               <span
                 className="inline-block h-3 w-3 rounded-full shrink-0"
-                style={{ backgroundColor: PROJECT_COLORS[project.color] }}
+                style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
               />
             )}
             {project.name}
