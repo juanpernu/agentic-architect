@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Camera, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,6 +11,57 @@ import { ReceiptReview } from '@/components/receipt-review';
 import type { ExtractionResult } from '@architech/shared';
 
 type UploadStep = 'upload' | 'processing' | 'review';
+
+const API_SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+/**
+ * Normalizes an image file to JPEG if its type is not supported by the AI API
+ * (e.g., HEIC from iOS camera). Uses canvas to decode and re-encode.
+ * Returns the original file if it's already a supported type.
+ */
+function normalizeImageToJpeg(file: File): Promise<File> {
+  if (API_SUPPORTED_TYPES.includes(file.type)) {
+    return Promise.resolve(file);
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error('No se pudo crear el contexto de canvas'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(url);
+          if (!blob) {
+            reject(new Error('No se pudo convertir la imagen'));
+            return;
+          }
+          const name = file.name.replace(/\.[^.]+$/, '.jpg');
+          resolve(new File([blob], name, { type: 'image/jpeg' }));
+        },
+        'image/jpeg',
+        0.92
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('No se pudo decodificar la imagen'));
+    };
+
+    img.src = url;
+  });
+}
 
 export default function UploadPage() {
   const searchParams = useSearchParams();
@@ -63,15 +114,18 @@ export default function UploadPage() {
     e.preventDefault();
   };
 
-  const processReceipt = async () => {
+  const processReceipt = useCallback(async () => {
     if (!selectedFile) return;
 
     setStep('processing');
 
     try {
-      // Step 1: Upload image to storage
+      // Normalize HEIC/unsupported formats to JPEG before upload and extraction
+      const normalizedFile = await normalizeImageToJpeg(selectedFile);
+
+      // Step 1: Upload normalized image to storage
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append('file', normalizedFile);
 
       const uploadResponse = await fetch('/api/receipts/upload', {
         method: 'POST',
@@ -86,50 +140,35 @@ export default function UploadPage() {
       setImageUrl(image_url);
       setStoragePath(storage_path);
 
-      // Step 2: Convert to base64 for AI extraction
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const base64 = reader.result as string;
-          const base64Data = base64.split(',')[1];
+      // Step 2: Convert normalized file to base64 for AI extraction
+      const arrayBuffer = await normalizedFile.arrayBuffer();
+      const base64Data = btoa(
+        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
 
-          const extractResponse = await fetch('/api/receipts/extract', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              image_base64: base64Data,
-              mime_type: selectedFile.type,
-            }),
-          });
+      const extractResponse = await fetch('/api/receipts/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_base64: base64Data,
+          mime_type: normalizedFile.type,
+        }),
+      });
 
-          if (!extractResponse.ok) {
-            throw new Error('Error al analizar el comprobante');
-          }
+      if (!extractResponse.ok) {
+        throw new Error('Error al analizar el comprobante');
+      }
 
-          const result: ExtractionResult = await extractResponse.json();
-          setExtractionResult(result);
-          setStep('review');
-        } catch (error) {
-          toast.error(
-            error instanceof Error ? error.message : 'Error al procesar el comprobante'
-          );
-          setStep('upload');
-        }
-      };
-
-      reader.onerror = () => {
-        toast.error('Error al leer el archivo');
-        setStep('upload');
-      };
-
-      reader.readAsDataURL(selectedFile);
+      const result: ExtractionResult = await extractResponse.json();
+      setExtractionResult(result);
+      setStep('review');
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Error al procesar el comprobante'
       );
       setStep('upload');
     }
-  };
+  }, [selectedFile]);
 
   const handleDiscard = () => {
     setSelectedFile(null);
@@ -197,7 +236,7 @@ export default function UploadPage() {
                       Selecciona o arrastra una imagen
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Soporta JPG, PNG y WebP
+                      JPG, PNG, WebP y fotos de cámara
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -223,14 +262,14 @@ export default function UploadPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/*"
                 onChange={handleFileInputChange}
                 className="hidden"
               />
               <input
                 ref={cameraInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/*"
                 capture="environment"
                 onChange={handleFileInputChange}
                 className="hidden"
