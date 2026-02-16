@@ -107,7 +107,7 @@ export function OrgSettingsForm() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/svg+xml"
+            accept="image/jpeg,image/png,image/webp"
             className="hidden"
             onChange={handleLogoUpload}
           />

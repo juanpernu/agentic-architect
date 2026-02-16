@@ -3,7 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { randomUUID } from 'crypto';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function POST(req: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'File must be an image (JPEG, PNG, WebP, SVG)' }, { status: 400 });
+    return NextResponse.json({ error: 'File must be an image (JPEG, PNG, WebP)' }, { status: 400 });
   }
 
   if (file.size > MAX_SIZE) {
@@ -24,6 +24,14 @@ export async function POST(req: NextRequest) {
   }
 
   const db = getDb();
+
+  // Get current logo path for cleanup
+  const { data: currentOrg } = await db
+    .from('organizations')
+    .select('logo_url')
+    .eq('id', ctx.orgId)
+    .single();
+
   const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? 'png';
   const path = `org-logos/${ctx.orgId}/${randomUUID()}.${ext}`;
 
@@ -34,6 +42,11 @@ export async function POST(req: NextRequest) {
     .upload(path, buffer, { contentType: file.type, upsert: false });
 
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
+
+  // Remove old logo file if exists
+  if (currentOrg?.logo_url) {
+    await db.storage.from('receipts').remove([currentOrg.logo_url]);
+  }
 
   // Save logo path to organization
   const { data, error: updateError } = await db

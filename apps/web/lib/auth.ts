@@ -19,6 +19,16 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   // Fast path: metadata exists from webhook sync
   if (dbUserIdFromMetadata) {
+    // Verify user is still active (lightweight check)
+    const db = getDb();
+    const { data: activeCheck } = await db
+      .from('users')
+      .select('is_active')
+      .eq('id', dbUserIdFromMetadata)
+      .single();
+
+    if (activeCheck?.is_active === false) return null;
+
     return {
       userId,
       orgId,
