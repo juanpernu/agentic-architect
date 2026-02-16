@@ -28,6 +28,7 @@ Array of items, each with:
 - quantity: number (default 1 if not explicit)
 - unit_price: price per unit
 - subtotal: line total
+IMPORTANT: Numbers in parentheses next to items like "(21)", "(10.5)", "(27)" are IVA aliquot percentages, NOT quantities. Column headers often show "(%IVA)" to indicate this. Do NOT use these as the item quantity.
 
 ## Totals
 - net_amount: subtotal neto gravado (before tax)
