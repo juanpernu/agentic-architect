@@ -6,6 +6,12 @@ import { randomUUID } from 'crypto';
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
+const EXT_MAP: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
 export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
@@ -13,54 +19,55 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData();
   const file = formData.get('file') as File | null;
-  if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+  if (!file) return NextResponse.json({ error: 'No se proporcionó un archivo' }, { status: 400 });
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'File must be an image (JPEG, PNG, WebP)' }, { status: 400 });
+    return NextResponse.json({ error: 'El archivo debe ser una imagen (JPEG, PNG, WebP)' }, { status: 400 });
   }
 
   if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: 'File size must be under 2MB' }, { status: 400 });
+    return NextResponse.json({ error: 'El archivo debe pesar menos de 2MB' }, { status: 400 });
   }
 
   const db = getDb();
 
-  // Get current logo path for cleanup
-  const { data: currentOrg } = await db
-    .from('organizations')
-    .select('logo_url')
-    .eq('id', ctx.orgId)
-    .single();
-
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? 'png';
+  const ext = EXT_MAP[file.type] ?? 'png';
   const path = `org-logos/${ctx.orgId}/${randomUUID()}.${ext}`;
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await db.storage
-    .from('receipts')
+    .from('org-assets')
     .upload(path, buffer, { contentType: file.type, upsert: false });
 
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
 
-  // Remove old logo file if exists
-  if (currentOrg?.logo_url) {
-    await db.storage.from('receipts').remove([currentOrg.logo_url]);
-  }
+  // Save logo path to organization, then clean up old file
+  const { data: updatedOrg, error: updateError } = await db
+    .from('organizations')
+    .select('logo_url')
+    .eq('id', ctx.orgId)
+    .single();
 
-  // Save logo path to organization
-  const { data, error: updateError } = await db
+  const oldLogoUrl = updatedOrg?.logo_url;
+
+  const { data, error: saveError } = await db
     .from('organizations')
     .update({ logo_url: path })
     .eq('id', ctx.orgId)
     .select()
     .single();
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (saveError) return NextResponse.json({ error: saveError.message }, { status: 500 });
+
+  // Remove old logo file after DB update (minimizes orphan risk)
+  if (oldLogoUrl && oldLogoUrl !== path) {
+    await db.storage.from('org-assets').remove([oldLogoUrl]);
+  }
 
   // Generate signed URL for immediate preview
   const { data: signedData } = await db.storage
-    .from('receipts')
+    .from('org-assets')
     .createSignedUrl(path, 3600);
 
   return NextResponse.json({

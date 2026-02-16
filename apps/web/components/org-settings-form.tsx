@@ -7,9 +7,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Building2, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Organization } from '@architech/shared';
+
+function OrgSettingsFormSkeleton() {
+  return (
+    <div className="rounded-lg border bg-card p-6 mb-8">
+      <Skeleton className="h-6 w-32 mb-4" />
+      <div className="flex items-center gap-4 mb-6">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <Skeleton className="h-8 w-28" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function OrgSettingsForm() {
   const { data: org, mutate } = useSWR<Organization>('/api/organization', fetcher);
@@ -18,7 +39,7 @@ export function OrgSettingsForm() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!org) return null;
+  if (!org) return <OrgSettingsFormSkeleton />;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

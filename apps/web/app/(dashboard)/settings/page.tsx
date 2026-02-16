@@ -282,7 +282,8 @@ export default function SettingsPage() {
                   </TableCell>
                   <TableCell>
                     <Switch
-                      checked={user.is_active !== false}
+                      aria-label={`${user.is_active ? 'Desactivar' : 'Activar'} a ${user.full_name}`}
+                      checked={user.is_active}
                       onCheckedChange={(checked) => handleStatusToggle(user.id, checked)}
                       disabled={togglingUserId === user.id || isCurrentUser}
                     />

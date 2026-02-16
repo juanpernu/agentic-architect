@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
+import { getAuthContext, unauthorized, forbidden, invalidateIsActiveCache } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 
 export async function PATCH(
@@ -9,6 +9,13 @@ export async function PATCH(
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  if (!ctx.dbUserId) {
+    return NextResponse.json(
+      { error: 'Sesión incompleta. Por favor, cerrá sesión y volvé a iniciar.' },
+      { status: 500 }
+    );
+  }
 
   const { id } = await params;
 
@@ -45,6 +52,9 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+
+  // Bust the is_active cache so the change takes effect immediately
+  invalidateIsActiveCache(id);
 
   return NextResponse.json(data);
 }
