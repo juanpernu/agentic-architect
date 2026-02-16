@@ -21,12 +21,22 @@ import {
 } from '@/components/ui/select';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ROLE_LABELS } from '@/lib/role-constants';
+import type { UserRole } from '@architech/shared';
 
 export function InviteUserDialog() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('architect');
+  const [role, setRole] = useState<string>('architect');
   const [sending, setSending] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      setEmail('');
+      setRole('architect');
+    }
+  };
 
   const handleInvite = async () => {
     if (!email.trim()) return;
@@ -40,8 +50,14 @@ export function InviteUserDialog() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Error al enviar invitación');
+        let message = 'Error al enviar invitación';
+        try {
+          const err = await res.json();
+          message = err.error || message;
+        } catch {
+          // non-JSON error response
+        }
+        throw new Error(message);
       }
 
       toast.success(`Invitación enviada a ${email}`);
@@ -56,7 +72,7 @@ export function InviteUserDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="h-4 w-4 mr-2" />
@@ -67,7 +83,7 @@ export function InviteUserDialog() {
         <DialogHeader>
           <DialogTitle>Invitar usuario</DialogTitle>
           <DialogDescription>
-            Se enviará un email de invitación a la organización.
+            Se enviará un email de invitación a la organización. El rol se puede ajustar después desde Ajustes.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
@@ -88,9 +104,9 @@ export function InviteUserDialog() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="supervisor">Supervisor</SelectItem>
-                <SelectItem value="architect">Arquitecto</SelectItem>
+                {(Object.entries(ROLE_LABELS) as [UserRole, string][]).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
