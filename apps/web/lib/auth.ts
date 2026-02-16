@@ -33,12 +33,16 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   // Try to find existing user
   const { data: existingUser } = await db
     .from('users')
-    .select('id, role')
+    .select('id, role, is_active')
     .eq('clerk_user_id', userId)
     .eq('organization_id', orgId)
     .single();
 
   if (existingUser) {
+    if (existingUser.is_active === false) {
+      return null;
+    }
+
     return {
       userId,
       orgId,
