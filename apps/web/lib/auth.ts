@@ -71,8 +71,37 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   }
 
   // Get user info from Clerk session for the insert
-  const fullName = (sessionClaims as Record<string, unknown>)?.name as string ?? 'Usuario';
-  const email = (sessionClaims as Record<string, unknown>)?.email as string ?? '';
+  let fullName = 'Usuario';
+  let email = '';
+
+  // Try session claims first (fastest)
+  const claims = sessionClaims as Record<string, unknown>;
+  if (claims?.name && typeof claims.name === 'string' && claims.name.trim()) {
+    fullName = claims.name.trim();
+  } else if (
+    (typeof claims?.firstName === 'string' && claims.firstName) ||
+    (typeof claims?.lastName === 'string' && claims.lastName)
+  ) {
+    const first = typeof claims.firstName === 'string' ? claims.firstName : '';
+    const last = typeof claims.lastName === 'string' ? claims.lastName : '';
+    fullName = `${first} ${last}`.trim() || 'Usuario';
+  }
+  if (claims?.email && typeof claims.email === 'string') {
+    email = claims.email;
+  }
+
+  // If name is still default, fetch from Clerk API (slow but accurate)
+  if (fullName === 'Usuario') {
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server');
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(userId);
+      fullName = `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() || 'Usuario';
+      email = email || clerkUser.emailAddresses?.[0]?.emailAddress ?? '';
+    } catch (e) {
+      console.error('Failed to fetch Clerk user for bootstrap:', e);
+    }
+  }
 
   const { data: newUser } = await db
     .from('users')
