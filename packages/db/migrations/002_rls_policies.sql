@@ -7,8 +7,8 @@ ALTER TABLE receipt_items ENABLE ROW LEVEL SECURITY;
 
 -- Helper function: get current user's org_id from JWT
 CREATE OR REPLACE FUNCTION auth.get_org_id()
-RETURNS UUID AS $$
-  SELECT (auth.jwt() -> 'app_metadata' ->> 'organization_id')::UUID;
+RETURNS TEXT AS $$
+  SELECT auth.jwt() -> 'app_metadata' ->> 'organization_id';
 $$ LANGUAGE sql STABLE;
 
 -- Helper function: get current user's role
@@ -100,6 +100,21 @@ CREATE POLICY "Org members can upload receipts"
     )
   );
 
+-- Receipts: admin/supervisor can update any in org, architect can update own
+CREATE POLICY "Update receipts by role"
+  ON receipts FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM projects
+      WHERE projects.id = receipts.project_id
+      AND projects.organization_id = auth.get_org_id()
+    )
+    AND (
+      auth.get_user_role() IN ('admin', 'supervisor')
+      OR uploaded_by = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::TEXT)
+    )
+  );
+
 -- Receipts: only admin can delete
 CREATE POLICY "Admin can delete receipts"
   ON receipts FOR DELETE
@@ -112,13 +127,15 @@ CREATE POLICY "Admin can delete receipts"
     )
   );
 
--- Receipt Items: inherit access from parent receipt
+-- Receipt Items: org-scoped via receipt → project chain
 CREATE POLICY "View receipt items via receipt access"
   ON receipt_items FOR SELECT
   USING (
     EXISTS (
       SELECT 1 FROM receipts
+      JOIN projects ON projects.id = receipts.project_id
       WHERE receipts.id = receipt_items.receipt_id
+      AND projects.organization_id = auth.get_org_id()
     )
   );
 
@@ -127,8 +144,33 @@ CREATE POLICY "Insert receipt items with receipt"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM receipts
+      JOIN projects ON projects.id = receipts.project_id
       WHERE receipts.id = receipt_items.receipt_id
+      AND projects.organization_id = auth.get_org_id()
     )
+  );
+
+CREATE POLICY "Update receipt items via receipt access"
+  ON receipt_items FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM receipts
+      JOIN projects ON projects.id = receipts.project_id
+      WHERE receipts.id = receipt_items.receipt_id
+      AND projects.organization_id = auth.get_org_id()
+    )
+  );
+
+CREATE POLICY "Delete receipt items via receipt access"
+  ON receipt_items FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM receipts
+      JOIN projects ON projects.id = receipts.project_id
+      WHERE receipts.id = receipt_items.receipt_id
+      AND projects.organization_id = auth.get_org_id()
+    )
+    AND auth.get_user_role() = 'admin'
   );
 
 -- Supabase Storage bucket for receipt images

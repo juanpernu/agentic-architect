@@ -53,11 +53,16 @@ export async function POST(req: Request) {
       if (!org) break;
 
       // Upsert organization
-      await db.from('organizations').upsert({
+      const { error: orgError } = await db.from('organizations').upsert({
         id: org.id,
         name: org.name,
         slug: org.slug,
       }, { onConflict: 'id' });
+
+      if (orgError) {
+        console.error('Failed to upsert organization:', orgError);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      }
 
       // Upsert user
       const roleMap: Record<string, string> = {
@@ -65,14 +70,19 @@ export async function POST(req: Request) {
         'org:member': 'architect',
       };
 
-      await db.from('users').upsert({
+      const { error: userError } = await db.from('users').upsert({
         clerk_user_id: data.id as string,
         organization_id: org.id,
         role: roleMap[orgMemberships![0].role] ?? 'architect',
         full_name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
         email: (data.email_addresses as Array<{ email_address: string }>)?.[0]?.email_address ?? '',
-        avatar_url: data.image_url as string ?? null,
+        avatar_url: (data.image_url as string | undefined) ?? null,
       }, { onConflict: 'clerk_user_id' });
+
+      if (userError) {
+        console.error('Failed to upsert user:', userError);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      }
 
       break;
     }
@@ -90,10 +100,15 @@ export async function POST(req: Request) {
         'org:member': 'architect',
       };
 
-      await db.from('users')
+      const { error: roleError } = await db.from('users')
         .update({ role: roleMap[role] ?? 'architect' })
         .eq('clerk_user_id', userData.user_id)
         .eq('organization_id', orgData.id);
+
+      if (roleError) {
+        console.error('Failed to update user role:', roleError);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      }
 
       break;
     }

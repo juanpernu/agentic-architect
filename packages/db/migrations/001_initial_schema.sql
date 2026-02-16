@@ -4,8 +4,9 @@ CREATE TYPE project_status AS ENUM ('active', 'paused', 'completed');
 CREATE TYPE receipt_status AS ENUM ('pending', 'confirmed', 'rejected');
 
 -- Organizations
+-- NOTE: id is TEXT because Clerk org IDs are strings (e.g. "org_xxxx"), not UUIDs
 CREATE TABLE organizations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -16,7 +17,7 @@ CREATE TABLE organizations (
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   clerk_user_id TEXT UNIQUE NOT NULL,
-  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   role user_role NOT NULL DEFAULT 'architect',
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -30,7 +31,7 @@ CREATE INDEX idx_users_org_id ON users(organization_id);
 -- Projects
 CREATE TABLE projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   address TEXT,
   status project_status NOT NULL DEFAULT 'active',
