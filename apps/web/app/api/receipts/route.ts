@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
 
   if (supplierData?.name) {
     if (supplierData.cuit) {
-      const { data: supplier } = await db
+      const { data: supplier, error: supplierError } = await db
         .from('suppliers')
         .upsert(
           {
@@ -94,9 +94,12 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single();
 
+      if (supplierError) {
+        console.error('[POST /api/receipts] Supplier upsert failed:', supplierError.message);
+      }
       if (supplier) supplierId = supplier.id;
     } else {
-      const { data: supplier } = await db
+      const { data: supplier, error: supplierError } = await db
         .from('suppliers')
         .insert({
           organization_id: ctx.orgId,
@@ -107,6 +110,9 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single();
 
+      if (supplierError) {
+        console.error('[POST /api/receipts] Supplier insert failed:', supplierError.message);
+      }
       if (supplier) supplierId = supplier.id;
     }
   }

@@ -67,7 +67,7 @@ export async function extractReceiptData(imageBase64: string, mimeType: Supporte
   try {
     const response = await client.messages.create({
       model: DEFAULT_MODEL,
-      max_tokens: 1024,
+      max_tokens: 4096,
       messages: [
         {
           role: 'user',
