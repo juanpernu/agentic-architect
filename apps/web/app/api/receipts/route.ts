@@ -79,10 +79,11 @@ export async function POST(req: NextRequest) {
       if (digits.length === 11) {
         supplierData.cuit = `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`;
       }
-    }
-    // Validate CUIT format if provided
-    if (supplierData.cuit && !CUIT_REGEX.test(supplierData.cuit as string)) {
-      return NextResponse.json({ error: 'Invalid CUIT format. Expected: XX-XXXXXXXX-X' }, { status: 400 });
+      // If CUIT is still invalid after normalization, discard it rather than blocking
+      if (!CUIT_REGEX.test(supplierData.cuit as string)) {
+        console.warn('[POST /api/receipts] Discarding invalid CUIT:', supplierData.cuit);
+        supplierData.cuit = null;
+      }
     }
 
     if (supplierData.cuit) {

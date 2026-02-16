@@ -3,8 +3,11 @@ export const EXTRACTION_PROMPT = `You are a receipt/invoice data extractor speci
 Analyze this image and extract the following structured data:
 
 ## Supplier (proveedor/emisor — the business that SOLD the goods/services)
-IMPORTANT: Argentine receipts have TWO entities. The SUPPLIER (emisor) is the one who issued the receipt — usually printed at the TOP. The RECEIVER (receptor/cliente) is the buyer — usually printed BELOW the receipt metadata. You MUST extract only the SUPPLIER, NOT the receiver.
-- name: business name or razón social of the EMISOR
+CRITICAL: Argentine receipts contain TWO different businesses with similar data (CUIT, name, address, fiscal condition):
+1. The EMISOR (supplier/seller) — appears FIRST, at the very TOP of the receipt, BEFORE the receipt type/number/date section.
+2. The RECEPTOR (buyer/client) — appears AFTER the receipt type/number/date section, often preceded by a dashed line separator.
+You MUST extract ONLY the EMISOR (first entity at the top). The receptor section must be completely IGNORED — do not use any data from it.
+- name: business name or razón social of the EMISOR (the FIRST business name on the receipt)
 - responsible_person: name of the responsible person if shown
 - cuit: CUIT number (format: XX-XXXXXXXX-X)
 - iibb: Ingresos Brutos number
