@@ -5,3 +5,4 @@ dist
 .env.local
 .turbo
 .DS_Store
+.worktrees
