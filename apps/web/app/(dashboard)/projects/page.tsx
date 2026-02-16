@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { Building2, Plus, Search } from 'lucide-react';
+import { Building2, MapPin, Plus, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -119,7 +119,7 @@ export default function ProjectsPage() {
       )}
 
       {!isLoading && filteredProjects && filteredProjects.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
           {filteredProjects.map((project) => (
             <Link key={project.id} href={`/projects/${project.id}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
@@ -130,6 +130,12 @@ export default function ProjectsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {project.address && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{project.address}</span>
+                    </div>
+                  )}
                   <div className="text-sm text-muted-foreground">
                     <span className="font-medium">Arquitecto:</span>{' '}
                     {project.architect?.full_name ?? 'Sin asignar'}
