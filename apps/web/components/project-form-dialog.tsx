@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mutate } from 'swr';
+import useSWR, { mutate } from 'swr';
 import { toast } from 'sonner';
+import { fetcher } from '@/lib/fetcher';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,12 @@ import {
 } from '@/components/ui/select';
 import type { Project, CreateProjectInput, UpdateProjectInput, ProjectStatus } from '@obralink/shared';
 
+interface OrgUser {
+  id: string;
+  full_name: string | null;
+  email: string;
+}
+
 interface ProjectFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,6 +37,7 @@ interface ProjectFormDialogProps {
 }
 
 export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDialogProps) {
+  const { data: users = [] } = useSWR<OrgUser[]>(open ? '/api/users' : null, fetcher);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<{
     name: string;
@@ -183,8 +191,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Sin asignar</SelectItem>
-                {/* TODO: Load architects from API */}
-                <SelectItem value="placeholder">Cargar arquitectos desde API</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.full_name ?? user.email}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
