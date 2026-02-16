@@ -45,6 +45,7 @@ import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project } f
 
 interface ReceiptReviewProps {
   imageUrl: string;
+  storagePath: string;
   extractionResult: ExtractionResult;
   preSelectedProjectId?: string;
   onDiscard: () => void;
@@ -59,6 +60,7 @@ interface EditableItem extends ExtractionItem {
 
 export function ReceiptReview({
   imageUrl,
+  storagePath,
   extractionResult,
   preSelectedProjectId,
   onDiscard,
@@ -207,7 +209,7 @@ export function ReceiptReview({
         vendor: vendor || null,
         total_amount: parseFloat(total) || calculatedTotal,
         receipt_date: date,
-        image_url: imageUrl,
+        image_url: storagePath,
         ai_raw_response: { ...extractionResult },
         ai_confidence: confidence,
         items: items.map(({ description, quantity, unit_price }) => ({

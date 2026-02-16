@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
-import { getDb } from '@/lib/supabase';
+import { getDb, getSignedImageUrl } from '@/lib/supabase';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -17,6 +17,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .single();
 
   if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  // Generate signed URL for the receipt image
+  if (data.image_url) {
+    data.image_url = await getSignedImageUrl(data.image_url);
+  }
+
   return NextResponse.json(data);
 }
 

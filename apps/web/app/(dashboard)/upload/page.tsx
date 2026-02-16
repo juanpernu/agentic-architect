@@ -22,6 +22,7 @@ export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>('');
+  const [storagePath, setStoragePath] = useState<string>('');
   const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null);
 
   useEffect(() => {
@@ -81,8 +82,9 @@ export default function UploadPage() {
         throw new Error('Error al subir la imagen');
       }
 
-      const { image_url } = await uploadResponse.json();
+      const { image_url, storage_path } = await uploadResponse.json();
       setImageUrl(image_url);
+      setStoragePath(storage_path);
 
       // Step 2: Convert to base64 for AI extraction
       const reader = new FileReader();
@@ -133,6 +135,7 @@ export default function UploadPage() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setImageUrl('');
+    setStoragePath('');
     setExtractionResult(null);
     setStep('upload');
   };
@@ -141,6 +144,7 @@ export default function UploadPage() {
     return (
       <ReceiptReview
         imageUrl={imageUrl}
+        storagePath={storagePath}
         extractionResult={extractionResult}
         preSelectedProjectId={projectId ?? undefined}
         onDiscard={handleDiscard}

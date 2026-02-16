@@ -37,10 +37,15 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { data: urlData } = db.storage.from('receipts').getPublicUrl(path);
+  // Generate a signed URL for immediate preview (1 hour)
+  const { data: signedData, error: signedError } = await db.storage
+    .from('receipts')
+    .createSignedUrl(path, 3600);
+
+  if (signedError) return NextResponse.json({ error: signedError.message }, { status: 500 });
 
   return NextResponse.json({
-    image_url: urlData.publicUrl,
+    image_url: signedData.signedUrl,
     storage_path: path,
   });
 }

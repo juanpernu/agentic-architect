@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
-import { getDb } from '@/lib/supabase';
+import { getDb, getSignedImageUrl } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -36,7 +36,18 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data ?? []);
+
+  // Generate signed URLs for receipt images
+  const receipts = data ?? [];
+  await Promise.all(
+    receipts.map(async (receipt: Record<string, unknown>) => {
+      if (receipt.image_url) {
+        receipt.image_url = await getSignedImageUrl(receipt.image_url as string);
+      }
+    })
+  );
+
+  return NextResponse.json(receipts);
 }
 
 export async function POST(req: NextRequest) {

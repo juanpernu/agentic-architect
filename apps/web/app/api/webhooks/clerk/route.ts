@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { getDb } from '@/lib/supabase';
-import type { UserRole } from '@obralink/shared';
+import type { UserRole } from '@architech/shared';
 
 // S4: Narrow event types to handled cases
 type WebhookEventType =

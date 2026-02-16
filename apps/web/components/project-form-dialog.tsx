@@ -181,16 +181,16 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
           <div className="space-y-2">
             <Label htmlFor="architect_id">Arquitecto</Label>
             <Select
-              value={formData.architect_id}
+              value={formData.architect_id || '__none__'}
               onValueChange={(value) =>
-                setFormData({ ...formData, architect_id: value })
+                setFormData({ ...formData, architect_id: value === '__none__' ? '' : value })
               }
             >
               <SelectTrigger id="architect_id" className="w-full">
                 <SelectValue placeholder="Seleccionar arquitecto (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin asignar</SelectItem>
+                <SelectItem value="__none__">Sin asignar</SelectItem>
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.full_name ?? user.email}
