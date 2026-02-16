@@ -24,10 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Switch } from '@/components/ui/switch';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { fetcher } from '@/lib/fetcher';
 import { toast } from 'sonner';
+import { OrgSettingsForm } from '@/components/org-settings-form';
+import { InviteUserDialog } from '@/components/invite-user-dialog';
 import type { User, UserRole } from '@architech/shared';
 
 function getInitials(fullName: string): string {
@@ -52,6 +55,7 @@ export default function SettingsPage() {
   const { user: clerkUser } = useUser();
   const { data: users, error, mutate } = useSWR<User[]>('/api/users', fetcher);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     setUpdatingUserId(userId);
@@ -81,6 +85,35 @@ export default function SettingsPage() {
       mutate(); // Revalidate on error
     } finally {
       setUpdatingUserId(null);
+    }
+  };
+
+  const handleStatusToggle = async (userId: string, newStatus: boolean) => {
+    setTogglingUserId(userId);
+    try {
+      const response = await fetch(`/api/users/${userId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: newStatus }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar el estado');
+      }
+
+      const updatedUser = await response.json();
+      mutate(
+        users?.map((u) => (u.id === userId ? updatedUser : u)),
+        false
+      );
+
+      toast.success(newStatus ? 'Usuario activado' : 'Usuario desactivado');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al actualizar el estado');
+      mutate();
+    } finally {
+      setTogglingUserId(null);
     }
   };
 
@@ -148,7 +181,12 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 animate-slide-up">
-      <PageHeader title="Ajustes" description="Gestiona tu equipo y configuración" />
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader title="Ajustes" description="Gestiona tu equipo y configuración" />
+        <InviteUserDialog />
+      </div>
+
+      <OrgSettingsForm />
 
       <div className="rounded-lg border bg-card">
         <Table>
@@ -158,6 +196,7 @@ export default function SettingsPage() {
               <TableHead className="hidden md:table-cell">Email</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead className="hidden lg:table-cell">Fecha de registro</TableHead>
+              <TableHead className="w-[80px]">Activo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -244,6 +283,14 @@ export default function SettingsPage() {
                     <span className="text-sm text-muted-foreground">
                       {formatDate(user.created_at)}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <Switch
+                      aria-label={`${user.is_active ? 'Desactivar' : 'Activar'} a ${user.full_name}`}
+                      checked={user.is_active}
+                      onCheckedChange={(checked) => handleStatusToggle(user.id, checked)}
+                      disabled={togglingUserId === user.id || isCurrentUser}
+                    />
                   </TableCell>
                 </TableRow>
               );

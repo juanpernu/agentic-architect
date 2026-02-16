@@ -6,6 +6,16 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
+  address_street: string | null;
+  address_locality: string | null;
+  address_province: string | null;
+  address_postal_code: string | null;
+  phone: string | null;
+  logo_url: string | null;
+  website: string | null;
+  contact_email: string | null;
+  social_instagram: string | null;
+  social_linkedin: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +28,7 @@ export interface User {
   full_name: string;
   email: string;
   avatar_url: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
