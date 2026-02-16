@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReceiptReview } from '@/components/receipt-review';
+import { CameraCapture } from '@/components/camera-capture';
 import type { ExtractionResult } from '@architech/shared';
 
 type UploadStep = 'upload' | 'processing' | 'review';
@@ -67,9 +68,9 @@ export default function UploadPage() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('project_id');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<UploadStep>('upload');
+  const [showCamera, setShowCamera] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -179,6 +180,18 @@ export default function UploadPage() {
     setStep('upload');
   };
 
+  if (showCamera) {
+    return (
+      <CameraCapture
+        onCapture={(file) => {
+          setShowCamera(false);
+          handleFileSelect(file);
+        }}
+        onClose={() => setShowCamera(false)}
+      />
+    );
+  }
+
   if (step === 'review' && extractionResult && imageUrl) {
     return (
       <ReceiptReview
@@ -249,7 +262,7 @@ export default function UploadPage() {
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        cameraInputRef.current?.click();
+                        setShowCamera(true);
                       }}
                       className="md:hidden"
                     >
@@ -263,14 +276,6 @@ export default function UploadPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleFileInputChange}
-                className="hidden"
-              />
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
                 onChange={handleFileInputChange}
                 className="hidden"
               />
