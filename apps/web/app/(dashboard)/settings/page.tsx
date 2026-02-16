@@ -147,7 +147,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div>
+    <div className="p-6 animate-slide-up">
       <PageHeader title="Ajustes" description="Gestiona tu equipo y configuración" />
 
       <div className="rounded-lg border bg-card">
