@@ -6,11 +6,13 @@ import useSWR from 'swr';
 import { Receipt, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import type { ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -29,24 +31,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Receipt as ReceiptType, Project } from '@obralink/shared';
-
-interface ReceiptWithDetails extends ReceiptType {
-  project: {
-    id: string;
-    name: string;
-  };
-  uploader: {
-    id: string;
-    full_name: string;
-  };
-}
+import type { Project } from '@obralink/shared';
 
 export default function ReceiptsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const { data: receipts, isLoading: isLoadingReceipts, error } = useSWR<ReceiptWithDetails[]>(
     '/api/receipts',
@@ -63,7 +56,9 @@ export default function ReceiptsPage() {
       projectFilter === 'all' || receipt.project_id === projectFilter;
     const matchesStatus =
       statusFilter === 'all' || receipt.status === statusFilter;
-    return matchesSearch && matchesProject && matchesStatus;
+    const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
+    const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
+    return matchesSearch && matchesProject && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
   if (error) {
@@ -118,6 +113,29 @@ export default function ReceiptsPage() {
         </Select>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="date-from" className="text-sm whitespace-nowrap">Desde</Label>
+          <Input
+            id="date-from"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-full sm:w-[160px]"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="date-to" className="text-sm whitespace-nowrap">Hasta</Label>
+          <Input
+            id="date-to"
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-full sm:w-[160px]"
+          />
+        </div>
+      </div>
+
       {isLoadingReceipts && <LoadingTable rows={8} />}
 
       {!isLoadingReceipts && filteredReceipts?.length === 0 && (
@@ -125,7 +143,7 @@ export default function ReceiptsPage() {
           icon={Receipt}
           title="No hay comprobantes"
           description={
-            searchQuery || projectFilter !== 'all' || statusFilter !== 'all'
+            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || dateFrom || dateTo
               ? 'No se encontraron comprobantes con los filtros seleccionados'
               : 'Los comprobantes cargados aparecerán aquí'
           }
@@ -152,6 +170,9 @@ export default function ReceiptsPage() {
                     key={receipt.id}
                     className="cursor-pointer"
                     onClick={() => router.push(`/receipts/${receipt.id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/receipts/${receipt.id}`); }}
+                    tabIndex={0}
+                    role="link"
                   >
                     <TableCell className="font-medium">
                       {receipt.vendor ?? 'Sin proveedor'}

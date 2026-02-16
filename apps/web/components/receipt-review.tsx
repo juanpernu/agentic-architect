@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import { toast } from 'sonner';
@@ -207,7 +207,7 @@ export function ReceiptReview({
         total_amount: parseFloat(total) || calculatedTotal,
         receipt_date: date,
         image_url: imageUrl,
-        ai_raw_response: extractionResult as any,
+        ai_raw_response: { ...extractionResult },
         ai_confidence: confidence,
         items: items.map(({ description, quantity, unit_price }) => ({
           description,
@@ -223,8 +223,8 @@ export function ReceiptReview({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? 'Error al confirmar comprobante');
+        const errorBody = await response.json();
+        throw new Error(errorBody.error ?? 'Error al confirmar comprobante');
       }
 
       const createdReceipt = await response.json();
@@ -311,6 +311,10 @@ export function ReceiptReview({
                     <div
                       className="flex items-center justify-between p-2 rounded border mt-1 cursor-pointer hover:bg-muted/50"
                       onClick={() => startEditing('vendor', vendor)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') startEditing('vendor', vendor); }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Editar proveedor"
                     >
                       <span className={vendor ? '' : 'text-muted-foreground'}>
                         {vendor || 'Sin proveedor'}
@@ -342,6 +346,10 @@ export function ReceiptReview({
                     <div
                       className="flex items-center justify-between p-2 rounded border mt-1 cursor-pointer hover:bg-muted/50"
                       onClick={() => startEditing('date', date)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') startEditing('date', date); }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Editar fecha"
                     >
                       <span className={date ? '' : 'text-muted-foreground'}>
                         {date ? new Date(date).toLocaleDateString('es-AR') : 'Sin fecha'}
@@ -374,6 +382,10 @@ export function ReceiptReview({
                     <div
                       className="flex items-center justify-between p-2 rounded border mt-1 cursor-pointer hover:bg-muted/50"
                       onClick={() => startEditing('total', total)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') startEditing('total', total); }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Editar total"
                     >
                       <span className="font-semibold">
                         {formatCurrency(parseFloat(total) || 0)}

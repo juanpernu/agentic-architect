@@ -83,8 +83,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? 'Error al guardar proyecto');
+        const errorBody = await response.json();
+        throw new Error(errorBody.error ?? 'Error al guardar proyecto');
       }
 
       toast.success(

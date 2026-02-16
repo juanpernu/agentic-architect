@@ -16,6 +16,8 @@ import {
 import { toast } from 'sonner';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { useCurrentUser } from '@/lib/use-current-user';
+import type { ReceiptDetail } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -44,23 +46,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { Receipt as ReceiptType, ReceiptItem } from '@obralink/shared';
-
-interface ReceiptDetail extends ReceiptType {
-  project: {
-    id: string;
-    name: string;
-  };
-  uploader: {
-    id: string;
-    full_name: string;
-  };
-  receipt_items: ReceiptItem[];
-}
 
 export default function ReceiptDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { isAdmin } = useCurrentUser();
   const receiptId = params.id as string;
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -80,8 +70,8 @@ export default function ReceiptDetailPage() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? 'Error al eliminar comprobante');
+        const errorBody = await response.json();
+        throw new Error(errorBody.error ?? 'Error al eliminar comprobante');
       }
 
       toast.success('Comprobante eliminado con éxito');
@@ -145,14 +135,16 @@ export default function ReceiptDetailPage() {
         title={`Comprobante ${receipt.vendor ?? 'sin proveedor'}`}
         description={`${new Date(receipt.receipt_date).toLocaleDateString('es-AR')}`}
         action={
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar
-          </Button>
+          isAdmin ? (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar
+            </Button>
+          ) : undefined
         }
       />
 

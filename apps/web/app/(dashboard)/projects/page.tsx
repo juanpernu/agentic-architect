@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Building2, Plus, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { useCurrentUser } from '@/lib/use-current-user';
+import type { ProjectWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -26,17 +28,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
-import type { Project, ProjectStatus } from '@obralink/shared';
-
-interface ProjectWithDetails extends Project {
-  architect: {
-    id: string;
-    full_name: string;
-  } | null;
-  total_spend: number;
-}
 
 export default function ProjectsPage() {
+  const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -70,10 +64,12 @@ export default function ProjectsPage() {
         title="Proyectos"
         description="Gestiona tus proyectos de construcción"
         action={
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="mr-2" />
-            Nuevo Proyecto
-          </Button>
+          isAdminOrSupervisor ? (
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="mr-2" />
+              Nuevo Proyecto
+            </Button>
+          ) : undefined
         }
       />
 
@@ -112,7 +108,7 @@ export default function ProjectsPage() {
               : 'Comienza creando tu primer proyecto'
           }
           action={
-            !searchQuery && statusFilter === 'all' ? (
+            !searchQuery && statusFilter === 'all' && isAdminOrSupervisor ? (
               <Button onClick={() => setShowCreateDialog(true)}>
                 <Plus className="mr-2" />
                 Crear Proyecto
@@ -130,9 +126,7 @@ export default function ProjectsPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-lg">{project.name}</CardTitle>
-                    <StatusBadge
-                      status={project.status as ProjectStatus}
-                    />
+                    <StatusBadge status={project.status} />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">

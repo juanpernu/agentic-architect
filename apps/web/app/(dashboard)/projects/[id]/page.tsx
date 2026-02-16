@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
-import { Building2, Edit, Trash2, Upload, MapPin, User, Calendar } from 'lucide-react';
+import { Building2, Edit, Trash2, Upload, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { useCurrentUser } from '@/lib/use-current-user';
+import type { ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -36,30 +38,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
-import type { Project, Receipt } from '@obralink/shared';
-
-interface ProjectDetail extends Project {
-  architect: {
-    id: string;
-    full_name: string;
-    email: string;
-  } | null;
-}
-
-interface ReceiptWithDetails extends Receipt {
-  project: {
-    id: string;
-    name: string;
-  };
-  uploader: {
-    id: string;
-    full_name: string;
-  };
-}
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { isAdmin, isAdminOrSupervisor } = useCurrentUser();
   const projectId = params.id as string;
 
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -86,8 +69,8 @@ export default function ProjectDetailPage() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? 'Error al eliminar proyecto');
+        const errorBody = await response.json();
+        throw new Error(errorBody.error ?? 'Error al eliminar proyecto');
       }
 
       toast.success('Proyecto eliminado con éxito');
@@ -142,24 +125,28 @@ export default function ProjectDetailPage() {
         title={project.name}
         description={project.address ?? 'Sin dirección'}
         action={
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowEditDialog(true)}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Editar
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </Button>
-          </div>
+          (isAdminOrSupervisor) ? (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEditDialog(true)}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+              </Button>
+              {isAdmin && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
+                </Button>
+              )}
+            </div>
+          ) : undefined
         }
       />
 
@@ -257,6 +244,9 @@ export default function ProjectDetailPage() {
                   key={receipt.id}
                   className="cursor-pointer"
                   onClick={() => router.push(`/receipts/${receipt.id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/receipts/${receipt.id}`); }}
+                  tabIndex={0}
+                  role="link"
                 >
                   <TableCell className="font-medium">
                     {receipt.vendor ?? 'Sin proveedor'}

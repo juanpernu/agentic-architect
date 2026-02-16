@@ -16,6 +16,7 @@ export default function UploadPage() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('project_id');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<UploadStep>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -178,6 +179,10 @@ export default function UploadPage() {
                 onDragOver={handleDragOver}
                 className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
+                role="button"
+                aria-label="Seleccionar imagen para subir"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
               >
                 <div className="flex flex-col items-center gap-4">
                   <div className="rounded-full bg-primary/10 p-4">
@@ -192,7 +197,7 @@ export default function UploadPage() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button type="button">
+                    <Button type="button" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
                       <Upload className="mr-2 h-4 w-4" />
                       Seleccionar Archivo
                     </Button>
@@ -201,10 +206,7 @@ export default function UploadPage() {
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (fileInputRef.current) {
-                          fileInputRef.current.setAttribute('capture', 'environment');
-                          fileInputRef.current.click();
-                        }
+                        cameraInputRef.current?.click();
                       }}
                       className="md:hidden"
                     >
@@ -218,6 +220,14 @@ export default function UploadPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
                 onChange={handleFileInputChange}
                 className="hidden"
               />
