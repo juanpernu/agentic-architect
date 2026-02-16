@@ -1,11 +1,59 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { clerkClient } from '@clerk/nextjs/server';
 import { getDb } from '@/lib/supabase';
+import type { UserRole } from '@obralink/shared';
+
+// S4: Narrow event types to handled cases
+type WebhookEventType =
+  | 'user.created'
+  | 'user.updated'
+  | 'organizationMembership.created'
+  | 'organizationMembership.updated';
 
 interface ClerkWebhookEvent {
-  type: string;
+  type: WebhookEventType | string;
   data: Record<string, unknown>;
+}
+
+// S2: Deduplicate roleMap to module scope
+const CLERK_ROLE_MAP: Record<string, UserRole> = {
+  'org:admin': 'admin',
+  'org:member': 'architect',
+};
+
+/**
+ * Syncs user metadata back to Clerk's publicMetadata.
+ * This enables the fast path in useCurrentUser() hook.
+ * C1 fix: includes idempotency guard to prevent infinite webhook loops.
+ */
+async function syncMetadataToClerk(
+  clerkUserId: string,
+  dbUserId: string,
+  role: UserRole,
+  currentPublicMetadata?: Record<string, unknown>
+): Promise<void> {
+  // C1: Skip if metadata already matches — prevents user.updated re-trigger loop
+  if (
+    currentPublicMetadata?.role === role &&
+    currentPublicMetadata?.db_user_id === dbUserId
+  ) {
+    return;
+  }
+
+  try {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(clerkUserId, {
+      publicMetadata: {
+        role,
+        db_user_id: dbUserId,
+      },
+    });
+  } catch (error) {
+    // Log but don't fail the webhook — DB sync is the critical path
+    console.error('Failed to sync metadata to Clerk:', error);
+  }
 }
 
 export async function POST(req: Request) {
@@ -64,51 +112,62 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
 
-      // Upsert user
-      const roleMap: Record<string, string> = {
-        'org:admin': 'admin',
-        'org:member': 'architect',
-      };
+      const mappedRole = CLERK_ROLE_MAP[orgMemberships![0].role] ?? 'architect';
+      const clerkUserId = data.id as string;
 
-      const { error: userError } = await db.from('users').upsert({
-        clerk_user_id: data.id as string,
-        organization_id: org.id,
-        role: roleMap[orgMemberships![0].role] ?? 'architect',
-        full_name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
-        email: (data.email_addresses as Array<{ email_address: string }>)?.[0]?.email_address ?? '',
-        avatar_url: (data.image_url as string | undefined) ?? null,
-      }, { onConflict: 'clerk_user_id' });
+      const { data: upsertedUser, error: userError } = await db.from('users')
+        .upsert({
+          clerk_user_id: clerkUserId,
+          organization_id: org.id,
+          role: mappedRole,
+          full_name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
+          email: (data.email_addresses as Array<{ email_address: string }>)?.[0]?.email_address ?? '',
+          avatar_url: (data.image_url as string | undefined) ?? null,
+        }, { onConflict: 'clerk_user_id' })
+        .select('id, role')
+        .single();
 
-      if (userError) {
+      if (userError || !upsertedUser) {
         console.error('Failed to upsert user:', userError);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
+
+      // C1: Pass current publicMetadata for idempotency check
+      const currentPublicMetadata = data.public_metadata as Record<string, unknown> | undefined;
+      await syncMetadataToClerk(
+        clerkUserId,
+        upsertedUser.id,
+        upsertedUser.role as UserRole,
+        currentPublicMetadata
+      );
 
       break;
     }
 
     case 'organizationMembership.created':
     case 'organizationMembership.updated': {
-      // Handle role changes
       const data = event.data;
       const orgData = data.organization as { id: string; name: string; slug: string };
       const userData = data.public_user_data as { user_id: string };
       const role = data.role as string;
 
-      const roleMap: Record<string, string> = {
-        'org:admin': 'admin',
-        'org:member': 'architect',
-      };
+      const mappedRole = CLERK_ROLE_MAP[role] ?? 'architect';
+      const clerkUserId = userData.user_id;
 
-      const { error: roleError } = await db.from('users')
-        .update({ role: roleMap[role] ?? 'architect' })
-        .eq('clerk_user_id', userData.user_id)
-        .eq('organization_id', orgData.id);
+      const { data: updatedUser, error: roleError } = await db.from('users')
+        .update({ role: mappedRole })
+        .eq('clerk_user_id', clerkUserId)
+        .eq('organization_id', orgData.id)
+        .select('id, role')
+        .single();
 
-      if (roleError) {
-        console.error('Failed to update user role:', roleError);
-        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      // I3: User may not exist yet if user.created webhook hasn't been processed
+      if (roleError || !updatedUser) {
+        console.warn('User not found for membership update (may arrive before user.created):', clerkUserId);
+        break;
       }
+
+      await syncMetadataToClerk(clerkUserId, updatedUser.id, updatedUser.role as UserRole);
 
       break;
     }
