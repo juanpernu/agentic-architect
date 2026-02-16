@@ -1,11 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone output for containerized deployments (Vercel/Docker)
   output: 'standalone',
-  experimental: {
-    // Disable static page generation for build
-    ppr: false,
-  },
 };
 
 export default nextConfig;

@@ -19,8 +19,10 @@ const statusLabels: Record<string, string> = {
   rejected: 'Rechazado',
 };
 
+type Status = 'active' | 'paused' | 'completed' | 'pending' | 'confirmed' | 'rejected';
+
 interface StatusBadgeProps {
-  status: string;
+  status: Status;
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
