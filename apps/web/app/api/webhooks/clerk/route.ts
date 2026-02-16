@@ -1,11 +1,35 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { clerkClient } from '@clerk/nextjs/server';
 import { getDb } from '@/lib/supabase';
 
 interface ClerkWebhookEvent {
   type: string;
   data: Record<string, unknown>;
+}
+
+/**
+ * Syncs user metadata back to Clerk's publicMetadata.
+ * This enables the fast path in useCurrentUser() hook.
+ */
+async function syncMetadataToClerk(
+  clerkUserId: string,
+  dbUserId: string,
+  role: string
+): Promise<void> {
+  try {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(clerkUserId, {
+      publicMetadata: {
+        role,
+        db_user_id: dbUserId,
+      },
+    });
+  } catch (error) {
+    // Log but don't fail the webhook - DB sync is the critical path
+    console.error('Failed to sync metadata to Clerk:', error);
+  }
 }
 
 export async function POST(req: Request) {
@@ -70,19 +94,28 @@ export async function POST(req: Request) {
         'org:member': 'architect',
       };
 
-      const { error: userError } = await db.from('users').upsert({
-        clerk_user_id: data.id as string,
-        organization_id: org.id,
-        role: roleMap[orgMemberships![0].role] ?? 'architect',
-        full_name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
-        email: (data.email_addresses as Array<{ email_address: string }>)?.[0]?.email_address ?? '',
-        avatar_url: (data.image_url as string | undefined) ?? null,
-      }, { onConflict: 'clerk_user_id' });
+      const mappedRole = roleMap[orgMemberships![0].role] ?? 'architect';
+      const clerkUserId = data.id as string;
 
-      if (userError) {
+      const { data: upsertedUser, error: userError } = await db.from('users')
+        .upsert({
+          clerk_user_id: clerkUserId,
+          organization_id: org.id,
+          role: mappedRole,
+          full_name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
+          email: (data.email_addresses as Array<{ email_address: string }>)?.[0]?.email_address ?? '',
+          avatar_url: (data.image_url as string | undefined) ?? null,
+        }, { onConflict: 'clerk_user_id' })
+        .select('id, role')
+        .single();
+
+      if (userError || !upsertedUser) {
         console.error('Failed to upsert user:', userError);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
+
+      // Sync metadata back to Clerk for fast path in useCurrentUser()
+      await syncMetadataToClerk(clerkUserId, upsertedUser.id, upsertedUser.role);
 
       break;
     }
@@ -100,15 +133,23 @@ export async function POST(req: Request) {
         'org:member': 'architect',
       };
 
-      const { error: roleError } = await db.from('users')
-        .update({ role: roleMap[role] ?? 'architect' })
-        .eq('clerk_user_id', userData.user_id)
-        .eq('organization_id', orgData.id);
+      const mappedRole = roleMap[role] ?? 'architect';
+      const clerkUserId = userData.user_id;
 
-      if (roleError) {
+      const { data: updatedUser, error: roleError } = await db.from('users')
+        .update({ role: mappedRole })
+        .eq('clerk_user_id', clerkUserId)
+        .eq('organization_id', orgData.id)
+        .select('id, role')
+        .single();
+
+      if (roleError || !updatedUser) {
         console.error('Failed to update user role:', roleError);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
+
+      // Sync metadata back to Clerk for fast path in useCurrentUser()
+      await syncMetadataToClerk(clerkUserId, updatedUser.id, updatedUser.role);
 
       break;
     }
