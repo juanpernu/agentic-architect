@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, FolderKanban, Receipt, Upload, Settings } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -16,6 +17,11 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isAdmin } = useCurrentUser();
+
+  const visibleNavItems = navItems.filter(
+    (item) => item.href !== '/settings' || isAdmin
+  );
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
@@ -23,7 +29,7 @@ export function Sidebar() {
         <h1 className="text-xl font-bold">ObraLink</h1>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
