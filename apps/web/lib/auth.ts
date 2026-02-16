@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { UserRole } from '@obralink/shared';
+import { getDb } from '@/lib/supabase';
 
 export interface AuthContext {
   userId: string;
@@ -14,11 +15,84 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   if (!userId || !orgId) return null;
 
   const metadata = sessionClaims?.metadata as Record<string, string> | undefined;
+  const dbUserIdFromMetadata = metadata?.db_user_id;
+
+  // Fast path: metadata exists from webhook sync
+  if (dbUserIdFromMetadata) {
+    return {
+      userId,
+      orgId,
+      role: (metadata?.role as UserRole) ?? 'architect',
+      dbUserId: dbUserIdFromMetadata,
+    };
+  }
+
+  // Slow path: DB lookup/bootstrap (when webhook hasn't synced yet)
+  const db = getDb();
+
+  // Try to find existing user
+  const { data: existingUser } = await db
+    .from('users')
+    .select('id, role')
+    .eq('clerk_user_id', userId)
+    .eq('organization_id', orgId)
+    .single();
+
+  if (existingUser) {
+    return {
+      userId,
+      orgId,
+      role: existingUser.role as UserRole,
+      dbUserId: existingUser.id,
+    };
+  }
+
+  // Auto-create: first user in org = admin, rest = architect
+  const { count } = await db
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', orgId);
+
+  const role: UserRole = count === 0 ? 'admin' : 'architect';
+
+  // Ensure organization exists
+  const { data: existingOrg } = await db
+    .from('organizations')
+    .select('id')
+    .eq('id', orgId)
+    .single();
+
+  if (!existingOrg) {
+    await db.from('organizations').insert({
+      id: orgId,
+      name: orgId,
+      slug: orgId,
+    });
+  }
+
+  // Get user info from Clerk session for the insert
+  const fullName = (sessionClaims as Record<string, unknown>)?.name as string ?? 'Usuario';
+  const email = (sessionClaims as Record<string, unknown>)?.email as string ?? '';
+
+  const { data: newUser } = await db
+    .from('users')
+    .insert({
+      clerk_user_id: userId,
+      organization_id: orgId,
+      role,
+      full_name: fullName,
+      email,
+    })
+    .select('id, role')
+    .single();
+
+  if (!newUser) return null;
+
   return {
     userId,
     orgId,
-    role: (metadata?.role as UserRole) ?? 'architect',
-    dbUserId: metadata?.db_user_id ?? '',
+    role: newUser.role as UserRole,
+    dbUserId: newUser.id,
   };
 }
 
