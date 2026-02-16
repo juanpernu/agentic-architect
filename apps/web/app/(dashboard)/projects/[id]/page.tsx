@@ -40,6 +40,17 @@ import {
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 
+const PROJECT_COLORS: Record<string, string> = {
+  red: '#ef4444',
+  blue: '#3b82f6',
+  green: '#22c55e',
+  yellow: '#eab308',
+  purple: '#a855f7',
+  orange: '#f97316',
+  pink: '#ec4899',
+  teal: '#14b8a6',
+};
+
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -123,7 +134,17 @@ export default function ProjectDetailPage() {
   return (
     <div className="p-6 animate-slide-up">
       <PageHeader
-        title={project.name}
+        title={
+          <span className="flex items-center gap-2">
+            {project.color && (
+              <span
+                className="inline-block h-3 w-3 rounded-full shrink-0"
+                style={{ backgroundColor: PROJECT_COLORS[project.color] }}
+              />
+            )}
+            {project.name}
+          </span>
+        }
         description={project.address ?? 'Sin dirección'}
         action={
           (isAdminOrSupervisor) ? (

@@ -29,6 +29,17 @@ import {
 } from '@/components/ui/card';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 
+const PROJECT_COLORS: Record<string, string> = {
+  red: '#ef4444',
+  blue: '#3b82f6',
+  green: '#22c55e',
+  yellow: '#eab308',
+  purple: '#a855f7',
+  orange: '#f97316',
+  pink: '#ec4899',
+  teal: '#14b8a6',
+};
+
 export default function ProjectsPage() {
   const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,7 +136,15 @@ export default function ProjectsPage() {
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {project.color && (
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: PROJECT_COLORS[project.color] }}
+                        />
+                      )}
+                      {project.name}
+                    </CardTitle>
                     <StatusBadge status={project.status} />
                   </div>
                 </CardHeader>
