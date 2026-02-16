@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data, error } = await db
     .from('receipts')
-    .select('*, project:projects!inner(id, name, organization_id), uploader:users!uploaded_by(id, full_name), receipt_items(*)')
+    .select('*, project:projects!inner(id, name, color, organization_id), uploader:users!uploaded_by(id, full_name), receipt_items(*)')
     .eq('id', id)
     .eq('project.organization_id', ctx.orgId)
     .single();

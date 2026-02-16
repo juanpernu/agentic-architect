@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
@@ -202,8 +203,14 @@ export default function ReceiptDetailPage() {
               <CardContent>
                 <Link
                   href={`/projects/${receipt.project_id}`}
-                  className="text-base font-medium text-primary hover:underline"
+                  className="inline-flex items-center gap-2 text-base font-medium text-primary hover:underline"
                 >
+                  {receipt.project.color && (
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: PROJECT_COLOR_HEX[receipt.project.color] }}
+                    />
+                  )}
                   {receipt.project.name}
                 </Link>
               </CardContent>

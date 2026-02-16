@@ -33,6 +33,7 @@ export interface ReceiptDetail extends Receipt {
   project: {
     id: string;
     name: string;
+    color: ProjectColor | null;
   };
   uploader: {
     id: string;

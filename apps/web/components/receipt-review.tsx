@@ -41,6 +41,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project } from '@architech/shared';
 
 interface ReceiptReviewProps {
@@ -434,7 +435,15 @@ export function ReceiptReview({
                     <SelectContent>
                       {projects?.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
-                          {project.name}
+                          <span className="flex items-center gap-2">
+                            {project.color && (
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
+                              />
+                            )}
+                            {project.name}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
