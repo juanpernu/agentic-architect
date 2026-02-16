@@ -2,10 +2,10 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
 import type { SpendByProject } from '@architech/shared';
 
-const currencyTickFormatter = (value: number) => formatCurrency(value);
+const currencyTickFormatter = (value: number) => formatCurrencyCompact(value);
 const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
 
 export function SpendByProjectChart({ data }: { data: SpendByProject[] }) {
@@ -31,7 +31,7 @@ export function SpendByProjectChart({ data }: { data: SpendByProject[] }) {
       </CardHeader>
       <CardContent role="img" aria-label="Gráfico de barras: gasto por proyecto">
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
+          <BarChart data={data} margin={{ left: 12, right: 12, top: 8, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="project_name"
@@ -40,6 +40,7 @@ export function SpendByProjectChart({ data }: { data: SpendByProject[] }) {
             />
             <YAxis
               className="text-xs"
+              width={60}
               tick={{ fill: 'hsl(var(--muted-foreground))' }}
               tickFormatter={currencyTickFormatter}
             />

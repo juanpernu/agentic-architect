@@ -2,7 +2,7 @@
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
 import type { SpendTrend } from '@architech/shared';
 
 const monthLabels: Record<string, string> = {
@@ -16,7 +16,7 @@ function formatMonth(month: string): string {
   return monthLabels[monthNum] || month;
 }
 
-const currencyTickFormatter = (value: number) => formatCurrency(value);
+const currencyTickFormatter = (value: number) => formatCurrencyCompact(value);
 const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
 
 export function SpendTrendChart({ data }: { data: SpendTrend[] }) {
@@ -47,7 +47,7 @@ export function SpendTrendChart({ data }: { data: SpendTrend[] }) {
       </CardHeader>
       <CardContent role="img" aria-label="Gráfico de tendencia: gasto mensual">
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
+          <LineChart data={chartData} margin={{ left: 12, right: 12, top: 8, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="monthLabel"
@@ -56,6 +56,7 @@ export function SpendTrendChart({ data }: { data: SpendTrend[] }) {
             />
             <YAxis
               className="text-xs"
+              width={60}
               tick={{ fill: 'hsl(var(--muted-foreground))' }}
               tickFormatter={currencyTickFormatter}
             />
