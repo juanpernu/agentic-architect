@@ -27,7 +27,7 @@ import {
 import { useCurrentUser } from '@/lib/use-current-user';
 import { fetcher } from '@/lib/fetcher';
 import { toast } from 'sonner';
-import type { User, UserRole } from '@obralink/shared';
+import type { User, UserRole } from '@architech/shared';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Admin',

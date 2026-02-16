@@ -1,5 +1,5 @@
 {
-  "name": "@obralink/ai",
+  "name": "@architech/ai",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39",
-    "@obralink/shared": "*"
+    "@architech/shared": "*"
   },
   "devDependencies": {
     "typescript": "^5",

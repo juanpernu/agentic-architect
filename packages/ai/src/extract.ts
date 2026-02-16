@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { ExtractionResult } from '@obralink/shared';
+import type { ExtractionResult } from '@architech/shared';
 import { EXTRACTION_PROMPT } from './prompt';
 
 export type SupportedMimeType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';

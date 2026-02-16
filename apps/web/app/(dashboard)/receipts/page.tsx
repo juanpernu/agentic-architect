@@ -31,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Project } from '@obralink/shared';
+import type { Project } from '@architech/shared';
 
 export default function ReceiptsPage() {
   const router = useRouter();

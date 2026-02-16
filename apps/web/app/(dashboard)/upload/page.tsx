@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReceiptReview } from '@/components/receipt-review';
-import type { ExtractionResult } from '@obralink/shared';
+import type { ExtractionResult } from '@architech/shared';
 
 type UploadStep = 'upload' | 'processing' | 'review';
 

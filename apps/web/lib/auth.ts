@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import type { UserRole } from '@obralink/shared';
+import type { UserRole } from '@architech/shared';
 import { getDb } from '@/lib/supabase';
 
 export interface AuthContext {

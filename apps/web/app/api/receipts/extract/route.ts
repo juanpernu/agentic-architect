@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
-import { extractReceiptData } from '@obralink/ai';
+import { extractReceiptData } from '@architech/ai';
 
 export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();

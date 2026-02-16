@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/format';
 import { ArrowRight } from 'lucide-react';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-import type { ReceiptStatus } from '@obralink/shared';
+import type { ReceiptStatus } from '@architech/shared';
 
 interface RecentReceipt {
   id: string;

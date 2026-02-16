@@ -3,7 +3,7 @@ import { KPICard } from '@/components/ui/kpi-card';
 import { formatCurrency } from '@/lib/format';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-import type { DashboardStats } from '@obralink/shared';
+import type { DashboardStats } from '@architech/shared';
 
 async function fetchStats(): Promise<DashboardStats | null> {
   const ctx = await getAuthContext();

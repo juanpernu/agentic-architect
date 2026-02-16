@@ -1,4 +1,4 @@
-import type { Project, Receipt, ReceiptItem } from '@obralink/shared';
+import type { Project, Receipt, ReceiptItem } from '@architech/shared';
 
 export interface ProjectWithDetails extends Project {
   architect: {

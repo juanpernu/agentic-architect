@@ -41,7 +41,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project } from '@obralink/shared';
+import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project } from '@architech/shared';
 
 interface ReceiptReviewProps {
   imageUrl: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@obralink/db",
+  "name": "@architech/db",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",
