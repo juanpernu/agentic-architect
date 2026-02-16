@@ -13,7 +13,7 @@ export async function GET() {
 
   const { data, error } = await db
     .from('users')
-    .select('id, clerk_user_id, organization_id, role, full_name, email, avatar_url, created_at')
+    .select('id, clerk_user_id, organization_id, role, full_name, email, avatar_url, is_active, created_at')
     .eq('organization_id', ctx.orgId)
     .order('created_at', { ascending: false });
 
