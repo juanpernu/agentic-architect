@@ -1,0 +1,191 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
+import { Receipt, Search } from 'lucide-react';
+import { fetcher } from '@/lib/fetcher';
+import { formatCurrency } from '@/lib/format';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { LoadingTable } from '@/components/ui/loading-skeleton';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import type { Receipt as ReceiptType, Project } from '@obralink/shared';
+
+interface ReceiptWithDetails extends ReceiptType {
+  project: {
+    id: string;
+    name: string;
+  };
+  uploader: {
+    id: string;
+    full_name: string;
+  };
+}
+
+export default function ReceiptsPage() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const { data: receipts, isLoading: isLoadingReceipts, error } = useSWR<ReceiptWithDetails[]>(
+    '/api/receipts',
+    fetcher
+  );
+
+  const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
+
+  const filteredReceipts = receipts?.filter((receipt) => {
+    const matchesSearch = (receipt.vendor ?? '')
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesProject =
+      projectFilter === 'all' || receipt.project_id === projectFilter;
+    const matchesStatus =
+      statusFilter === 'all' || receipt.status === statusFilter;
+    return matchesSearch && matchesProject && matchesStatus;
+  });
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <PageHeader title="Comprobantes" />
+        <div className="text-red-600">Error al cargar comprobantes</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <PageHeader
+        title="Comprobantes"
+        description="Visualiza todos los comprobantes cargados"
+      />
+
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por proveedor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={projectFilter} onValueChange={setProjectFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Proyecto" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los proyectos</SelectItem>
+            {projects?.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="confirmed">Confirmado</SelectItem>
+            <SelectItem value="rejected">Rechazado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {isLoadingReceipts && <LoadingTable rows={8} />}
+
+      {!isLoadingReceipts && filteredReceipts?.length === 0 && (
+        <EmptyState
+          icon={Receipt}
+          title="No hay comprobantes"
+          description={
+            searchQuery || projectFilter !== 'all' || statusFilter !== 'all'
+              ? 'No se encontraron comprobantes con los filtros seleccionados'
+              : 'Los comprobantes cargados aparecerán aquí'
+          }
+        />
+      )}
+
+      {!isLoadingReceipts && filteredReceipts && filteredReceipts.length > 0 && (
+        <Card>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Proveedor</TableHead>
+                  <TableHead>Proyecto</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Cargado por</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReceipts.map((receipt) => (
+                  <TableRow
+                    key={receipt.id}
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/receipts/${receipt.id}`)}
+                  >
+                    <TableCell className="font-medium">
+                      {receipt.vendor ?? 'Sin proveedor'}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className="text-primary hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/projects/${receipt.project_id}`);
+                        }}
+                      >
+                        {receipt.project.name}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(receipt.receipt_date).toLocaleDateString('es-AR')}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {formatCurrency(receipt.total_amount)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={receipt.status} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {receipt.uploader.full_name}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
