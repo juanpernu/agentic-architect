@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Project, CreateProjectInput, UpdateProjectInput, ProjectStatus } from '@obralink/shared';
+import type { Project, CreateProjectInput, UpdateProjectInput, ProjectStatus } from '@architech/shared';
 
 interface OrgUser {
   id: string;

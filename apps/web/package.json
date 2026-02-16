@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.4",
-    "@obralink/db": "*",
-    "@obralink/shared": "*",
+    "@architech/db": "*",
+    "@architech/shared": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.564.0",

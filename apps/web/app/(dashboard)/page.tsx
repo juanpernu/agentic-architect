@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-import type { SpendByProject, SpendTrend } from '@obralink/shared';
+import type { SpendByProject, SpendTrend } from '@architech/shared';
 
 // Client chart components loaded dynamically to avoid Recharts SSR issues
 import { SpendByProjectChart } from '@/components/dashboard/spend-by-project-chart';

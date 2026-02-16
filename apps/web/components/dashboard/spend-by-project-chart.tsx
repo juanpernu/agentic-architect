@@ -3,7 +3,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/format';
-import type { SpendByProject } from '@obralink/shared';
+import type { SpendByProject } from '@architech/shared';
 
 const currencyTickFormatter = (value: number) => formatCurrency(value);
 const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));

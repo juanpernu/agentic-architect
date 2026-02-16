@@ -3,7 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
-import type { UserRole } from '@obralink/shared';
+import type { UserRole } from '@architech/shared';
 
 interface MeResponse {
   role: UserRole;

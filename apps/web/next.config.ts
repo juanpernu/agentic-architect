@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@obralink/shared', '@obralink/db', '@obralink/ai'],
+  transpilePackages: ['@architech/shared', '@architech/db', '@architech/ai'],
   images: {
     remotePatterns: [
       {

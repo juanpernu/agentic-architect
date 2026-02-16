@@ -1,5 +1,5 @@
 {
-  "name": "obralink",
+  "name": "architech",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-import { UserRole } from '@obralink/shared';
+import { UserRole } from '@architech/shared';
 
 const VALID_ROLES = ['admin', 'supervisor', 'architect'] as const;
 

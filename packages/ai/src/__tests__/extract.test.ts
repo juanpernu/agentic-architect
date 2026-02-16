@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseExtractionResponse, validateExtractionResult } from '../extract';
-import type { ExtractionResult } from '@obralink/shared';
+import type { ExtractionResult } from '@architech/shared';
 
 describe('parseExtractionResponse', () => {
   it('parses valid JSON extraction response', () => {
