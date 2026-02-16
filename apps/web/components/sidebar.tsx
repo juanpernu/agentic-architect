@@ -6,6 +6,8 @@ import { LayoutDashboard, FolderKanban, Receipt, Upload, Settings } from 'lucide
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,7 +19,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, role, fullName } = useCurrentUser();
 
   const visibleNavItems = navItems.filter(
     (item) => item.href !== '/settings' || isAdmin
@@ -46,7 +48,18 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="border-t p-4">
-        <UserButton />
+        <div className="flex items-center gap-3">
+          <UserButton />
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-sm font-medium truncate" title={fullName}>{fullName}</span>
+            <Badge
+              variant="secondary"
+              className={cn('w-fit text-xs', ROLE_COLORS[role])}
+            >
+              {ROLE_LABELS[role]}
+            </Badge>
+          </div>
+        </div>
       </div>
     </aside>
   );

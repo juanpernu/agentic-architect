@@ -25,21 +25,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { fetcher } from '@/lib/fetcher';
 import { toast } from 'sonner';
 import type { User, UserRole } from '@architech/shared';
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Admin',
-  supervisor: 'Supervisor',
-  architect: 'Arquitecto',
-};
-
-const ROLE_COLORS: Record<UserRole, string> = {
-  admin: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
-  supervisor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  architect: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-};
 
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/);

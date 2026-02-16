@@ -23,8 +23,13 @@ export function useCurrentUser() {
 
   const role: UserRole = clerkRole ?? data?.role ?? 'architect';
 
+  const fullName = user
+    ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Usuario'
+    : 'Usuario';
+
   return {
     role,
+    fullName,
     isLoaded: isLoaded && (!!clerkRole || !!data),
     isAdmin: role === 'admin',
     isAdminOrSupervisor: role === 'admin' || role === 'supervisor',
