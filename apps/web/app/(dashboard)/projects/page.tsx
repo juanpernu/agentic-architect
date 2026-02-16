@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { Building2, Plus, Search } from 'lucide-react';
+import { Building2, MapPin, Plus, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { ProjectWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -119,17 +120,31 @@ export default function ProjectsPage() {
       )}
 
       {!isLoading && filteredProjects && filteredProjects.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
           {filteredProjects.map((project) => (
             <Link key={project.id} href={`/projects/${project.id}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {project.color && (
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
+                        />
+                      )}
+                      {project.name}
+                    </CardTitle>
                     <StatusBadge status={project.status} />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {project.address && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{project.address}</span>
+                    </div>
+                  )}
                   <div className="text-sm text-muted-foreground">
                     <span className="font-medium">Arquitecto:</span>{' '}
                     {project.architect?.full_name ?? 'Sin asignar'}

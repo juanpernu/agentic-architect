@@ -180,7 +180,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div>
+    <div className="p-6 animate-slide-up">
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Ajustes" description="Gestiona tu equipo y configuración" />
         <InviteUserDialog />

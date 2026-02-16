@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/format';
 import type { ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Project } from '@architech/shared';
+import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
   const router = useRouter();
@@ -71,7 +73,7 @@ export default function ReceiptsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 animate-slide-up">
       <PageHeader
         title="Comprobantes"
         description="Visualiza todos los comprobantes cargados"
@@ -178,15 +180,32 @@ export default function ReceiptsPage() {
                       {receipt.vendor ?? 'Sin proveedor'}
                     </TableCell>
                     <TableCell>
-                      <span
-                        className="text-primary hover:underline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/projects/${receipt.project_id}`);
-                        }}
-                      >
-                        {receipt.project.name}
-                      </span>
+                      {receipt.project.color && PROJECT_BADGE_STYLES[receipt.project.color] ? (
+                        <Badge
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                          style={{
+                            backgroundColor: PROJECT_BADGE_STYLES[receipt.project.color].bg,
+                            color: PROJECT_BADGE_STYLES[receipt.project.color].text,
+                            borderColor: 'transparent',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/projects/${receipt.project_id}`);
+                          }}
+                        >
+                          {receipt.project.name}
+                        </Badge>
+                      ) : (
+                        <span
+                          className="text-primary hover:underline cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/projects/${receipt.project_id}`);
+                          }}
+                        >
+                          {receipt.project.name}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {new Date(receipt.receipt_date).toLocaleDateString('es-AR')}

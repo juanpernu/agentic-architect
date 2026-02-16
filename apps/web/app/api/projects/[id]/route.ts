@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 
 const VALID_STATUSES = ['active', 'paused', 'completed'];
+const VALID_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -13,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data, error } = await db
     .from('projects')
-    .select('*, architect:users!architect_id(id, full_name, email)')
+    .select('*, architect:users!architect_id(id, full_name, email, avatar_url)')
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .single();
@@ -41,6 +42,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 });
   }
 
+  if (body.color !== undefined && body.color !== null && !VALID_COLORS.includes(body.color as string)) {
+    return NextResponse.json({ error: `color must be one of: ${VALID_COLORS.join(', ')}` }, { status: 400 });
+  }
+
   const db = getDb();
 
   // Supervisors can only update their own projects
@@ -59,6 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.address !== undefined) updateFields.address = body.address;
   if (body.status) updateFields.status = body.status;
   if (body.architect_id !== undefined) updateFields.architect_id = body.architect_id;
+  if (body.color !== undefined) updateFields.color = body.color;
 
   const { data, error } = await db
     .from('projects')

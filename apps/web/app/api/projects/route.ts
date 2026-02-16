@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 
+const VALID_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
+
 export async function GET() {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
@@ -48,6 +50,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 });
   }
 
+  if (body.color && !VALID_COLORS.includes(body.color as string)) {
+    return NextResponse.json({ error: `color must be one of: ${VALID_COLORS.join(', ')}` }, { status: 400 });
+  }
+
   const db = getDb();
 
   const { data, error } = await db
@@ -58,6 +64,7 @@ export async function POST(req: NextRequest) {
       address: body.address ?? null,
       status: body.status ?? 'active',
       architect_id: body.architect_id ?? null,
+      color: body.color ?? null,
     })
     .select()
     .single();

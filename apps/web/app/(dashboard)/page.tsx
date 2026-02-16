@@ -83,17 +83,17 @@ async function SpendTrendSection() {
 
 export default function DashboardPage() {
   return (
-    <>
+    <div className="p-6">
       <PageHeader
         title="Dashboard"
         description="Resumen de tus proyectos"
       />
 
-      <div className="space-y-6">
+      <div className="space-y-6 animate-slide-up">
         {/* KPIs Section */}
         <Suspense
           fallback={
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="rounded-lg border p-6 space-y-3">
                   <Skeleton className="h-4 w-3/4" />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
         </Suspense>
 
         {/* Charts Section */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 stagger-children">
           <Suspense
             fallback={
               <Card>
@@ -159,6 +159,6 @@ export default function DashboardPage() {
           <RecentReceipts />
         </Suspense>
       </div>
-    </>
+    </div>
   );
 }
