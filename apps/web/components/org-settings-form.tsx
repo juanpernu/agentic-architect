@@ -111,7 +111,7 @@ export function OrgSettingsForm() {
       {/* Logo */}
       <div className="flex items-center gap-4 mb-6">
         <Avatar className="h-16 w-16">
-          <AvatarImage src={logoPreview ?? undefined} alt={org.name} />
+          <AvatarImage src={logoPreview ?? org.logo_url ?? undefined} alt={org.name} />
           <AvatarFallback><Building2 className="h-8 w-8" /></AvatarFallback>
         </Avatar>
         <div>

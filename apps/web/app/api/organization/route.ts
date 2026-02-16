@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
-import { getDb } from '@/lib/supabase';
+import { getDb, getPublicFileUrl } from '@/lib/supabase';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -14,6 +14,11 @@ export async function GET() {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (data.logo_url) {
+    data.logo_url = getPublicFileUrl('org-assets', data.logo_url);
+  }
+
   return NextResponse.json(data);
 }
 
@@ -64,5 +69,10 @@ export async function PATCH(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (data.logo_url) {
+    data.logo_url = getPublicFileUrl('org-assets', data.logo_url);
+  }
+
   return NextResponse.json(data);
 }

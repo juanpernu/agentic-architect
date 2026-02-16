@@ -8,6 +8,15 @@ export function getDb() {
  * Generate a signed URL for a receipt image stored in Supabase Storage.
  * Handles both storage paths and legacy full public URLs.
  */
+/**
+ * Generate a public URL for a file stored in a public Supabase Storage bucket.
+ */
+export function getPublicFileUrl(bucket: string, path: string): string {
+  const db = getDb();
+  const { data } = db.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export async function getSignedImageUrl(imageUrl: string): Promise<string> {
   // If it's already a full URL (legacy), extract the storage path
   const path = imageUrl.includes('/storage/v1/object/public/receipts/')
