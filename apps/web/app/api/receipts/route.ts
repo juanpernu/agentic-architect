@@ -67,15 +67,79 @@ export async function POST(req: NextRequest) {
 
   const db = getDb();
 
-  // Insert receipt
+  // Upsert supplier if provided
+  let supplierId: string | null = null;
+  const supplierData = body.supplier as Record<string, unknown> | undefined;
+
+  const CUIT_REGEX = /^\d{2}-\d{7,8}-\d$/;
+  if (supplierData?.name) {
+    // Validate CUIT format if provided
+    if (supplierData.cuit && !CUIT_REGEX.test(supplierData.cuit as string)) {
+      return NextResponse.json({ error: 'Invalid CUIT format. Expected: XX-XXXXXXXX-X' }, { status: 400 });
+    }
+
+    if (supplierData.cuit) {
+      const { data: supplier, error: supplierError } = await db
+        .from('suppliers')
+        .upsert(
+          {
+            organization_id: ctx.orgId,
+            name: supplierData.name,
+            responsible_person: supplierData.responsible_person ?? null,
+            cuit: supplierData.cuit,
+            iibb: supplierData.iibb ?? null,
+            street: supplierData.street ?? null,
+            locality: supplierData.locality ?? null,
+            province: supplierData.province ?? null,
+            postal_code: supplierData.postal_code ?? null,
+            activity_start_date: supplierData.activity_start_date ?? null,
+            fiscal_condition: supplierData.fiscal_condition ?? null,
+          },
+          { onConflict: 'organization_id,cuit' }
+        )
+        .select('id')
+        .single();
+
+      if (supplierError) {
+        console.error('[POST /api/receipts] Supplier upsert failed:', supplierError.message);
+      }
+      if (supplier) supplierId = supplier.id;
+    } else {
+      const { data: supplier, error: supplierError } = await db
+        .from('suppliers')
+        .insert({
+          organization_id: ctx.orgId,
+          name: supplierData.name as string,
+          responsible_person: (supplierData.responsible_person as string) ?? null,
+          fiscal_condition: (supplierData.fiscal_condition as string) ?? null,
+        })
+        .select('id')
+        .single();
+
+      if (supplierError) {
+        console.error('[POST /api/receipts] Supplier insert failed:', supplierError.message);
+      }
+      if (supplier) supplierId = supplier.id;
+    }
+  }
+
+  // Insert receipt with new fields
   const { data: receipt, error: receiptError } = await db
     .from('receipts')
     .insert({
       project_id: body.project_id,
       uploaded_by: ctx.dbUserId,
-      vendor: body.vendor,
+      vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
+      supplier_id: supplierId,
       total_amount: body.total_amount,
       receipt_date: body.receipt_date,
+      receipt_time: body.receipt_time ?? null,
+      receipt_type: body.receipt_type ?? null,
+      receipt_code: body.receipt_code ?? null,
+      receipt_number: body.receipt_number ?? null,
+      net_amount: body.net_amount ?? null,
+      iva_rate: body.iva_rate ?? null,
+      iva_amount: body.iva_amount ?? null,
       image_url: body.image_url,
       ai_raw_response: body.ai_raw_response ?? {},
       ai_confidence: body.ai_confidence ?? 0,
@@ -84,7 +148,13 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (receiptError) return NextResponse.json({ error: receiptError.message }, { status: 500 });
+  if (receiptError) {
+    // Cleanup orphaned supplier if it was newly inserted (no CUIT = no upsert reuse)
+    if (supplierId && !supplierData?.cuit) {
+      await db.from('suppliers').delete().eq('id', supplierId);
+    }
+    return NextResponse.json({ error: receiptError.message }, { status: 500 });
+  }
 
   // Insert receipt items if provided
   if ((body.items as unknown[])?.length > 0) {
@@ -97,7 +167,6 @@ export async function POST(req: NextRequest) {
 
     const { error: itemsError } = await db.from('receipt_items').insert(items);
     if (itemsError) {
-      // Cleanup orphaned receipt on items failure
       await db.from('receipts').delete().eq('id', receipt.id);
       return NextResponse.json({ error: itemsError.message }, { status: 500 });
     }

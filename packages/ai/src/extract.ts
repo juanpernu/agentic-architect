@@ -7,27 +7,52 @@ export type SupportedMimeType = 'image/jpeg' | 'image/png' | 'image/gif' | 'imag
 const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
 
 export function parseExtractionResponse(raw: string): ExtractionResult {
-  // Strip markdown code fences if present
   const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   const parsed = JSON.parse(cleaned);
 
+  const address = parsed.supplier?.address ?? {};
+
   return {
-    vendor: parsed.vendor ?? null,
-    date: parsed.date ?? null,
-    total: parsed.total ?? null,
+    supplier: {
+      name: parsed.supplier?.name ?? null,
+      responsible_person: parsed.supplier?.responsible_person ?? null,
+      cuit: parsed.supplier?.cuit ?? null,
+      iibb: parsed.supplier?.iibb ?? null,
+      address: {
+        street: address.street ?? null,
+        locality: address.locality ?? null,
+        province: address.province ?? null,
+        postal_code: address.postal_code ?? null,
+      },
+      activity_start_date: parsed.supplier?.activity_start_date ?? null,
+      fiscal_condition: parsed.supplier?.fiscal_condition ?? null,
+    },
+    receipt: {
+      code: parsed.receipt?.code ?? null,
+      type: parsed.receipt?.type ?? null,
+      number: parsed.receipt?.number ?? null,
+      date: parsed.receipt?.date ?? null,
+      time: parsed.receipt?.time ?? null,
+    },
     items: (parsed.items ?? []).map((item: Record<string, unknown>) => ({
       description: String(item.description ?? ''),
       quantity: Number(item.quantity ?? 1),
       unit_price: Number(item.unit_price ?? 0),
       subtotal: Number(item.subtotal ?? 0),
     })),
+    totals: {
+      net_amount: parsed.totals?.net_amount != null ? Number(parsed.totals.net_amount) : null,
+      iva_rate: parsed.totals?.iva_rate != null ? Number(parsed.totals.iva_rate) : null,
+      iva_amount: parsed.totals?.iva_amount != null ? Number(parsed.totals.iva_amount) : null,
+      total: parsed.totals?.total != null ? Number(parsed.totals.total) : null,
+    },
     confidence: Number(parsed.confidence ?? 0),
   };
 }
 
 export function validateExtractionResult(result: ExtractionResult): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  if (result.total === null || result.total === undefined) {
+  if (result.totals.total === null || result.totals.total === undefined) {
     errors.push('Total amount is required');
   }
   if (result.confidence < 0 || result.confidence > 1) {
@@ -42,7 +67,7 @@ export async function extractReceiptData(imageBase64: string, mimeType: Supporte
   try {
     const response = await client.messages.create({
       model: DEFAULT_MODEL,
-      max_tokens: 1024,
+      max_tokens: 4096,
       messages: [
         {
           role: 'user',
