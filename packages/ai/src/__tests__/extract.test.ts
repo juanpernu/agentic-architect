@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { parseExtractionResponse, validateExtractionResult } from '../extract';
 import type { ExtractionResult } from '@obralink/shared';
 
@@ -35,6 +35,13 @@ describe('parseExtractionResponse', () => {
     expect(result.vendor).toBeNull();
     expect(result.date).toBeNull();
     expect(result.confidence).toBe(0.3);
+  });
+
+  it('handles response wrapped in markdown code fences', () => {
+    const raw = '```json\n{"vendor":"Test","date":null,"total":100,"items":[],"confidence":0.5}\n```';
+    const result = parseExtractionResponse(raw);
+    expect(result.vendor).toBe('Test');
+    expect(result.total).toBe(100);
   });
 
   it('throws on invalid JSON', () => {
