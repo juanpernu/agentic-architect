@@ -25,10 +25,15 @@ IMPORTANT: Argentine receipts have TWO entities. The SUPPLIER (emisor) is the on
 ## Line items (detalle de compra)
 Array of items, each with:
 - description: item description
-- quantity: number (default 1 if not explicit)
+- quantity: number (default 1 if not explicitly shown as a separate number)
 - unit_price: price per unit
-- subtotal: line total
-IMPORTANT: Numbers in parentheses next to items like "(21)", "(10.5)", "(27)" are IVA aliquot percentages, NOT quantities. Column headers often show "(%IVA)" to indicate this. Do NOT use these as the item quantity.
+- subtotal: the IMPORTE value shown for this line
+
+CRITICAL RULES FOR LINE ITEMS:
+1. Numbers in parentheses like "(21)", "(10.5)", "(27)" are IVA aliquot percentages, NOT quantities. The column header "(%IVA)" confirms this. NEVER use these as quantity.
+2. The IMPORTE column shows the line subtotal. Use this value directly as the subtotal.
+3. If quantity and unit_price are not shown as separate explicit values on the line, set quantity=1 and unit_price=subtotal (same as the IMPORTE).
+4. NEVER invent or calculate values that are not visible on the receipt. Only report numbers you can actually read.
 
 ## Totals
 - net_amount: subtotal neto gravado (before tax)
