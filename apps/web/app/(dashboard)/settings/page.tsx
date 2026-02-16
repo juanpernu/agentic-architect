@@ -30,6 +30,7 @@ import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { fetcher } from '@/lib/fetcher';
 import { toast } from 'sonner';
 import { OrgSettingsForm } from '@/components/org-settings-form';
+import { InviteUserDialog } from '@/components/invite-user-dialog';
 import type { User, UserRole } from '@architech/shared';
 
 function getInitials(fullName: string): string {
@@ -180,7 +181,10 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Ajustes" description="Gestiona tu equipo y configuración" />
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader title="Ajustes" description="Gestiona tu equipo y configuración" />
+        <InviteUserDialog />
+      </div>
 
       <OrgSettingsForm />
 
