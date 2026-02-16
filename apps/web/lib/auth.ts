@@ -97,7 +97,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       const client = await clerkClient();
       const clerkUser = await client.users.getUser(userId);
       fullName = `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() || 'Usuario';
-      email = email || clerkUser.emailAddresses?.[0]?.emailAddress ?? '';
+      email = email || (clerkUser.emailAddresses?.[0]?.emailAddress ?? '');
     } catch (e) {
       console.error('Failed to fetch Clerk user for bootstrap:', e);
     }

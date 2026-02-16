@@ -6,8 +6,8 @@ import { LayoutDashboard, FolderKanban, Receipt, Upload, Settings } from 'lucide
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { Badge } from '@/components/ui/badge';
-import type { UserRole } from '@architech/shared';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -16,18 +16,6 @@ const navItems = [
   { href: '/upload', label: 'Cargar', icon: Upload },
   { href: '/settings', label: 'Ajustes', icon: Settings },
 ];
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Admin',
-  supervisor: 'Supervisor',
-  architect: 'Arquitecto',
-};
-
-const ROLE_COLORS: Record<UserRole, string> = {
-  admin: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
-  supervisor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  architect: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-};
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -63,7 +51,7 @@ export function Sidebar() {
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-sm font-medium truncate">{fullName}</span>
+            <span className="text-sm font-medium truncate" title={fullName}>{fullName}</span>
             <Badge
               variant="secondary"
               className={cn('w-fit text-xs', ROLE_COLORS[role])}
