@@ -73,6 +73,13 @@ export async function POST(req: NextRequest) {
 
   const CUIT_REGEX = /^\d{2}-\d{7,8}-\d$/;
   if (supplierData?.name) {
+    // Normalize CUIT: strip non-digits, then re-format with dashes
+    if (supplierData.cuit) {
+      const digits = (supplierData.cuit as string).replace(/\D/g, '');
+      if (digits.length === 11) {
+        supplierData.cuit = `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`;
+      }
+    }
     // Validate CUIT format if provided
     if (supplierData.cuit && !CUIT_REGEX.test(supplierData.cuit as string)) {
       return NextResponse.json({ error: 'Invalid CUIT format. Expected: XX-XXXXXXXX-X' }, { status: 400 });
