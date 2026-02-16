@@ -69,9 +69,9 @@ export function ReceiptReview({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
 
-  const [vendor, setVendor] = useState(extractionResult.vendor ?? '');
-  const [date, setDate] = useState(extractionResult.date ?? '');
-  const [total, setTotal] = useState(extractionResult.total?.toString() ?? '');
+  const [vendor, setVendor] = useState(extractionResult.supplier.name ?? '');
+  const [date, setDate] = useState(extractionResult.receipt.date ?? '');
+  const [total, setTotal] = useState(extractionResult.totals.total?.toString() ?? '');
   const [projectId, setProjectId] = useState(preSelectedProjectId ?? '');
   const [items, setItems] = useState<EditableItem[]>(
     extractionResult.items.map((item, index) => ({
@@ -206,12 +206,30 @@ export function ReceiptReview({
     try {
       const payload: ConfirmReceiptInput = {
         project_id: projectId,
-        vendor: vendor || null,
-        total_amount: parseFloat(total) || calculatedTotal,
-        receipt_date: date,
         image_url: storagePath,
         ai_raw_response: { ...extractionResult },
         ai_confidence: confidence,
+        supplier: {
+          name: vendor,
+          responsible_person: extractionResult.supplier.responsible_person,
+          cuit: extractionResult.supplier.cuit,
+          iibb: extractionResult.supplier.iibb,
+          street: extractionResult.supplier.address.street,
+          locality: extractionResult.supplier.address.locality,
+          province: extractionResult.supplier.address.province,
+          postal_code: extractionResult.supplier.address.postal_code,
+          activity_start_date: extractionResult.supplier.activity_start_date,
+          fiscal_condition: extractionResult.supplier.fiscal_condition,
+        },
+        receipt_type: extractionResult.receipt.type,
+        receipt_code: extractionResult.receipt.code,
+        receipt_number: extractionResult.receipt.number,
+        receipt_date: date,
+        receipt_time: extractionResult.receipt.time,
+        total_amount: parseFloat(total) || calculatedTotal,
+        net_amount: extractionResult.totals.net_amount,
+        iva_rate: extractionResult.totals.iva_rate,
+        iva_amount: extractionResult.totals.iva_amount,
         items: items.map(({ description, quantity, unit_price }) => ({
           description,
           quantity,

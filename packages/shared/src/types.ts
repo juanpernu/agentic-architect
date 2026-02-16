@@ -34,9 +34,17 @@ export interface Receipt {
   id: string;
   project_id: string;
   uploaded_by: string;
+  supplier_id: string | null;
   vendor: string | null;
   total_amount: number;
   receipt_date: string;
+  receipt_type: string | null;
+  receipt_code: string | null;
+  receipt_number: string | null;
+  receipt_time: string | null;
+  net_amount: number | null;
+  iva_rate: number | null;
+  iva_amount: number | null;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
@@ -55,12 +63,53 @@ export interface ReceiptItem {
   created_at: string;
 }
 
+export interface Supplier {
+  id: string;
+  organization_id: string;
+  name: string;
+  responsible_person: string | null;
+  cuit: string | null;
+  iibb: string | null;
+  street: string | null;
+  locality: string | null;
+  province: string | null;
+  postal_code: string | null;
+  activity_start_date: string | null;
+  fiscal_condition: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // AI Extraction types
 export interface ExtractionResult {
-  vendor: string | null;
-  date: string | null;
-  total: number | null;
+  supplier: {
+    name: string | null;
+    responsible_person: string | null;
+    cuit: string | null;
+    iibb: string | null;
+    address: {
+      street: string | null;
+      locality: string | null;
+      province: string | null;
+      postal_code: string | null;
+    };
+    activity_start_date: string | null;
+    fiscal_condition: string | null;
+  };
+  receipt: {
+    code: string | null;
+    type: string | null;
+    number: string | null;
+    date: string | null;
+    time: string | null;
+  };
   items: ExtractionItem[];
+  totals: {
+    net_amount: number | null;
+    iva_rate: number | null;
+    iva_amount: number | null;
+    total: number | null;
+  };
   confidence: number;
 }
 
@@ -88,12 +137,30 @@ export interface UpdateProjectInput {
 
 export interface ConfirmReceiptInput {
   project_id: string;
-  vendor: string | null;
-  total_amount: number;
-  receipt_date: string;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
+  supplier: {
+    name: string;
+    responsible_person?: string | null;
+    cuit?: string | null;
+    iibb?: string | null;
+    street?: string | null;
+    locality?: string | null;
+    province?: string | null;
+    postal_code?: string | null;
+    activity_start_date?: string | null;
+    fiscal_condition?: string | null;
+  };
+  receipt_type?: string | null;
+  receipt_code?: string | null;
+  receipt_number?: string | null;
+  receipt_date: string;
+  receipt_time?: string | null;
+  total_amount: number;
+  net_amount?: number | null;
+  iva_rate?: number | null;
+  iva_amount?: number | null;
   items: Omit<ExtractionItem, 'subtotal'>[];
 }
 
