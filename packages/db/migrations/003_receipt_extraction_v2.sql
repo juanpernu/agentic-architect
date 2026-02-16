@@ -35,3 +35,25 @@ ALTER TABLE receipts
   ADD COLUMN iva_amount DECIMAL(12,2);
 
 CREATE INDEX idx_receipts_supplier_id ON receipts(supplier_id);
+
+-- RLS policies for suppliers (matches pattern from 002_rls_policies.sql)
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Org members can view suppliers"
+  ON suppliers FOR SELECT
+  USING (organization_id = public.get_org_id());
+
+CREATE POLICY "Org members can insert suppliers"
+  ON suppliers FOR INSERT
+  WITH CHECK (organization_id = public.get_org_id());
+
+CREATE POLICY "Org members can update suppliers"
+  ON suppliers FOR UPDATE
+  USING (organization_id = public.get_org_id());
+
+CREATE POLICY "Admin can delete suppliers"
+  ON suppliers FOR DELETE
+  USING (
+    organization_id = public.get_org_id()
+    AND public.get_user_role() = 'admin'
+  );

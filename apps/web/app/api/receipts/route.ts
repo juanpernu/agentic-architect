@@ -71,7 +71,13 @@ export async function POST(req: NextRequest) {
   let supplierId: string | null = null;
   const supplierData = body.supplier as Record<string, unknown> | undefined;
 
+  const CUIT_REGEX = /^\d{2}-\d{7,8}-\d$/;
   if (supplierData?.name) {
+    // Validate CUIT format if provided
+    if (supplierData.cuit && !CUIT_REGEX.test(supplierData.cuit as string)) {
+      return NextResponse.json({ error: 'Invalid CUIT format. Expected: XX-XXXXXXXX-X' }, { status: 400 });
+    }
+
     if (supplierData.cuit) {
       const { data: supplier, error: supplierError } = await db
         .from('suppliers')
@@ -142,7 +148,13 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (receiptError) return NextResponse.json({ error: receiptError.message }, { status: 500 });
+  if (receiptError) {
+    // Cleanup orphaned supplier if it was newly inserted (no CUIT = no upsert reuse)
+    if (supplierId && !supplierData?.cuit) {
+      await db.from('suppliers').delete().eq('id', supplierId);
+    }
+    return NextResponse.json({ error: receiptError.message }, { status: 500 });
+  }
 
   // Insert receipt items if provided
   if ((body.items as unknown[])?.length > 0) {
