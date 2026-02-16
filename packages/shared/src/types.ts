@@ -1,5 +1,7 @@
 import type { UserRole, ProjectStatus, ReceiptStatus } from './enums';
 
+export type ProjectColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'pink' | 'teal';
+
 export interface Organization {
   id: string;
   name: string;
@@ -26,6 +28,7 @@ export interface Project {
   address: string | null;
   status: ProjectStatus;
   architect_id: string | null;
+  color: ProjectColor | null;
   created_at: string;
   updated_at: string;
 }
@@ -126,6 +129,7 @@ export interface CreateProjectInput {
   address?: string;
   status?: ProjectStatus;
   architect_id?: string;
+  color?: ProjectColor;
 }
 
 export interface UpdateProjectInput {
@@ -133,6 +137,7 @@ export interface UpdateProjectInput {
   address?: string;
   status?: ProjectStatus;
   architect_id?: string;
+  color?: ProjectColor;
 }
 
 export interface ConfirmReceiptInput {
