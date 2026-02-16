@@ -67,15 +67,67 @@ export async function POST(req: NextRequest) {
 
   const db = getDb();
 
-  // Insert receipt
+  // Upsert supplier if provided
+  let supplierId: string | null = null;
+  const supplierData = body.supplier as Record<string, unknown> | undefined;
+
+  if (supplierData?.name) {
+    if (supplierData.cuit) {
+      const { data: supplier } = await db
+        .from('suppliers')
+        .upsert(
+          {
+            organization_id: ctx.orgId,
+            name: supplierData.name,
+            responsible_person: supplierData.responsible_person ?? null,
+            cuit: supplierData.cuit,
+            iibb: supplierData.iibb ?? null,
+            street: supplierData.street ?? null,
+            locality: supplierData.locality ?? null,
+            province: supplierData.province ?? null,
+            postal_code: supplierData.postal_code ?? null,
+            activity_start_date: supplierData.activity_start_date ?? null,
+            fiscal_condition: supplierData.fiscal_condition ?? null,
+          },
+          { onConflict: 'organization_id,cuit' }
+        )
+        .select('id')
+        .single();
+
+      if (supplier) supplierId = supplier.id;
+    } else {
+      const { data: supplier } = await db
+        .from('suppliers')
+        .insert({
+          organization_id: ctx.orgId,
+          name: supplierData.name as string,
+          responsible_person: (supplierData.responsible_person as string) ?? null,
+          fiscal_condition: (supplierData.fiscal_condition as string) ?? null,
+        })
+        .select('id')
+        .single();
+
+      if (supplier) supplierId = supplier.id;
+    }
+  }
+
+  // Insert receipt with new fields
   const { data: receipt, error: receiptError } = await db
     .from('receipts')
     .insert({
       project_id: body.project_id,
       uploaded_by: ctx.dbUserId,
-      vendor: body.vendor,
+      vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
+      supplier_id: supplierId,
       total_amount: body.total_amount,
       receipt_date: body.receipt_date,
+      receipt_time: body.receipt_time ?? null,
+      receipt_type: body.receipt_type ?? null,
+      receipt_code: body.receipt_code ?? null,
+      receipt_number: body.receipt_number ?? null,
+      net_amount: body.net_amount ?? null,
+      iva_rate: body.iva_rate ?? null,
+      iva_amount: body.iva_amount ?? null,
       image_url: body.image_url,
       ai_raw_response: body.ai_raw_response ?? {},
       ai_confidence: body.ai_confidence ?? 0,
@@ -97,7 +149,6 @@ export async function POST(req: NextRequest) {
 
     const { error: itemsError } = await db.from('receipt_items').insert(items);
     if (itemsError) {
-      // Cleanup orphaned receipt on items failure
       await db.from('receipts').delete().eq('id', receipt.id);
       return NextResponse.json({ error: itemsError.message }, { status: 500 });
     }
