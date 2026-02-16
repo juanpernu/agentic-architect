@@ -10,7 +10,9 @@ export async function GET() {
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const startOfWeek = weekStart.toISOString();
 
   const [projects, monthlySpend, weeklyReceipts, pendingReview] = await Promise.all([
     db.from('projects').select('id', { count: 'exact', head: true })
@@ -19,9 +21,11 @@ export async function GET() {
       .eq('projects.organization_id', ctx.orgId)
       .eq('status', 'confirmed')
       .gte('receipt_date', startOfMonth),
-    db.from('receipts').select('id', { count: 'exact', head: true })
+    db.from('receipts').select('id, projects!inner(organization_id)', { count: 'exact', head: true })
+      .eq('projects.organization_id', ctx.orgId)
       .gte('created_at', startOfWeek),
-    db.from('receipts').select('id', { count: 'exact', head: true })
+    db.from('receipts').select('id, projects!inner(organization_id)', { count: 'exact', head: true })
+      .eq('projects.organization_id', ctx.orgId)
       .eq('status', 'pending'),
   ]);
 

@@ -37,7 +37,17 @@ export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
 
-  const body = await req.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  if (!body.project_id || !body.total_amount || !body.receipt_date || !body.image_url) {
+    return NextResponse.json({ error: 'project_id, total_amount, receipt_date, and image_url are required' }, { status: 400 });
+  }
+
   const db = getDb();
 
   // Insert receipt
@@ -60,8 +70,8 @@ export async function POST(req: NextRequest) {
   if (receiptError) return NextResponse.json({ error: receiptError.message }, { status: 500 });
 
   // Insert receipt items if provided
-  if (body.items?.length > 0) {
-    const items = body.items.map((item: { description: string; quantity: number; unit_price: number }) => ({
+  if ((body.items as unknown[])?.length > 0) {
+    const items = (body.items as Array<{ description: string; quantity: number; unit_price: number }>).map((item) => ({
       receipt_id: receipt.id,
       description: item.description,
       quantity: item.quantity,
@@ -69,7 +79,11 @@ export async function POST(req: NextRequest) {
     }));
 
     const { error: itemsError } = await db.from('receipt_items').insert(items);
-    if (itemsError) return NextResponse.json({ error: itemsError.message }, { status: 500 });
+    if (itemsError) {
+      // Cleanup orphaned receipt on items failure
+      await db.from('receipts').delete().eq('id', receipt.id);
+      return NextResponse.json({ error: itemsError.message }, { status: 500 });
+    }
   }
 
   return NextResponse.json(receipt, { status: 201 });

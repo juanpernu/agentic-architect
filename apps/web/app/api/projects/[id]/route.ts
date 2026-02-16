@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 
+const VALID_STATUSES = ['active', 'paused', 'completed'];
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
@@ -26,7 +28,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (ctx.role === 'architect') return forbidden();
 
   const { id } = await params;
-  const body = await req.json();
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  // Validate status if provided
+  if (body.status && !VALID_STATUSES.includes(body.status as string)) {
+    return NextResponse.json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 });
+  }
+
   const db = getDb();
 
   // Supervisors can only update their own projects
@@ -35,6 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .from('projects')
       .select('architect_id')
       .eq('id', id)
+      .eq('organization_id', ctx.orgId)
       .single();
     if (project?.architect_id !== ctx.dbUserId) return forbidden();
   }

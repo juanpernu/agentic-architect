@@ -23,11 +23,10 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Calculate total_spend per project
-  const projects = (data ?? []).map((p) => ({
+  const projects = (data ?? []).map(({ receipts, ...p }) => ({
     ...p,
-    total_spend: (p.receipts as Array<{ total_amount: number }>)
+    total_spend: (receipts as Array<{ total_amount: number }>)
       ?.reduce((sum: number, r: { total_amount: number }) => sum + Number(r.total_amount), 0) ?? 0,
-    receipts: undefined,
   }));
 
   return NextResponse.json(projects);
@@ -38,7 +37,17 @@ export async function POST(req: NextRequest) {
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
 
-  const body = await req.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  if (!body.name || !(body.name as string).trim()) {
+    return NextResponse.json({ error: 'name is required' }, { status: 400 });
+  }
+
   const db = getDb();
 
   const { data, error } = await db
