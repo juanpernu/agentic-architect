@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
-import { Building2, Edit, Trash2, Upload, User } from 'lucide-react';
+import { Building2, Edit, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
@@ -13,6 +13,7 @@ import type { ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -120,7 +121,7 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 animate-slide-up">
       <PageHeader
         title={project.name}
         description={project.address ?? 'Sin dirección'}
@@ -150,7 +151,7 @@ export default function ProjectDetailPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
+      <div className="grid gap-4 md:grid-cols-3 mb-6 stagger-children">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -165,18 +166,30 @@ export default function ProjectDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              <User className="inline mr-2 h-4 w-4" />
               Arquitecto
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-base font-medium">
-              {project.architect?.full_name ?? 'Sin asignar'}
-            </div>
-            {project.architect?.email && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {project.architect.email}
+            {project.architect ? (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={project.architect.avatar_url ?? undefined} alt={project.architect.full_name} />
+                  <AvatarFallback className="text-xs">
+                    {project.architect.full_name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="text-base font-medium">{project.architect.full_name}</div>
+                  <div className="text-xs text-muted-foreground">{project.architect.email}</div>
+                </div>
               </div>
+            ) : (
+              <div className="text-base font-medium text-muted-foreground">Sin asignar</div>
             )}
           </CardContent>
         </Card>

@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data, error } = await db
     .from('projects')
-    .select('*, architect:users!architect_id(id, full_name, email)')
+    .select('*, architect:users!architect_id(id, full_name, email, avatar_url)')
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .single();

@@ -13,6 +13,7 @@ export interface ProjectDetail extends Project {
     id: string;
     full_name: string;
     email: string;
+    avatar_url: string | null;
   } | null;
 }
 
