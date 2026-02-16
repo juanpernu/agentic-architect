@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Receipt,
   Trash2,
@@ -160,10 +161,13 @@ export default function ReceiptDetailPage() {
                 className="relative rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => setShowImageDialog(true)}
               >
-                <img
+                <Image
                   src={receipt.image_url}
                   alt="Comprobante"
+                  width={400}
+                  height={300}
                   className="w-full h-auto object-contain"
+                  sizes="(max-width: 1024px) 100vw, 33vw"
                 />
               </div>
               <p className="text-xs text-muted-foreground text-center mt-2">
@@ -348,10 +352,13 @@ export default function ReceiptDetailPage() {
       {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent className="max-w-4xl">
-          <img
+          <Image
             src={receipt.image_url}
             alt="Comprobante ampliado"
+            width={800}
+            height={600}
             className="w-full h-auto"
+            sizes="(max-width: 896px) 100vw, 896px"
           />
         </DialogContent>
       </Dialog>

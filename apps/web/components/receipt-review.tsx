@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import useSWR, { mutate } from 'swr';
 import { toast } from 'sonner';
 import {
@@ -274,10 +275,13 @@ export function ReceiptReview({
                 className="relative rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => setShowImageDialog(true)}
               >
-                <img
+                <Image
                   src={imageUrl}
                   alt="Comprobante"
+                  width={400}
+                  height={300}
                   className="w-full h-auto max-h-80 object-contain"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
               <p className="text-xs text-muted-foreground text-center mt-2">
@@ -539,10 +543,13 @@ export function ReceiptReview({
       {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent className="max-w-4xl">
-          <img
+          <Image
             src={imageUrl}
             alt="Comprobante ampliado"
+            width={800}
+            height={600}
             className="w-full h-auto"
+            sizes="(max-width: 896px) 100vw, 896px"
           />
         </DialogContent>
       </Dialog>
