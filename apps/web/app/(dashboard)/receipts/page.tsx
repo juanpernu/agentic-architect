@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Receipt, Search, ArrowUpDown } from 'lucide-react';
+import { Receipt, Search, ArrowUp, ArrowDown } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import type { ReceiptWithDetails } from '@/lib/api-types';
@@ -55,28 +55,32 @@ export default function ReceiptsPage() {
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
   const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
 
-  const filteredReceipts = receipts
-    ?.filter((receipt) => {
-      const matchesSearch = (receipt.vendor ?? '')
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesProject =
-        projectFilter === 'all' || receipt.project_id === projectFilter;
-      const matchesStatus =
-        statusFilter === 'all' || receipt.status === statusFilter;
-      const matchesCostCenter =
-        costCenterFilter === 'all' || receipt.cost_center_id === costCenterFilter;
-      const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
-      const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
-      return matchesSearch && matchesProject && matchesStatus && matchesCostCenter && matchesDateFrom && matchesDateTo;
-    })
-    .sort((a, b) => {
-      const cmp = a.receipt_date.localeCompare(b.receipt_date);
-      if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
-      return a.created_at.localeCompare(b.created_at);
-    });
+  const filteredReceipts = useMemo(() => {
+    return receipts
+      ?.filter((receipt) => {
+        const matchesSearch = (receipt.vendor ?? '')
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+        const matchesProject =
+          projectFilter === 'all' || receipt.project_id === projectFilter;
+        const matchesStatus =
+          statusFilter === 'all' || receipt.status === statusFilter;
+        const matchesCostCenter =
+          costCenterFilter === 'all' || receipt.cost_center_id === costCenterFilter;
+        const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
+        const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
+        return matchesSearch && matchesProject && matchesStatus && matchesCostCenter && matchesDateFrom && matchesDateTo;
+      })
+      .sort((a, b) => {
+        const cmp = a.receipt_date.localeCompare(b.receipt_date);
+        if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
+        return a.created_at.localeCompare(b.created_at);
+      });
+  }, [receipts, searchQuery, projectFilter, statusFilter, costCenterFilter, dateFrom, dateTo, sortDirection]);
 
-  const totalAmount = filteredReceipts?.reduce((sum, r) => sum + (r.total_amount ?? 0), 0) ?? 0;
+  const totalAmount = useMemo(() => {
+    return filteredReceipts?.reduce((sum, r) => sum + (r.total_amount ?? 0), 0) ?? 0;
+  }, [filteredReceipts]);
   const receiptCount = filteredReceipts?.length ?? 0;
 
   if (error) {
@@ -206,7 +210,11 @@ export default function ReceiptsPage() {
                       onClick={() => setSortDirection(d => d === 'asc' ? 'desc' : 'asc')}
                     >
                       Fecha
-                      <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+                      {sortDirection === 'asc' ? (
+                        <ArrowUp className="ml-1 h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowDown className="ml-1 h-3.5 w-3.5" />
+                      )}
                     </Button>
                   </TableHead>
                   <TableHead className="text-right">Monto</TableHead>

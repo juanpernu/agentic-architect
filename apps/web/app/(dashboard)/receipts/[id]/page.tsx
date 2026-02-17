@@ -302,9 +302,9 @@ export default function ReceiptDetailPage() {
                       <span className="text-sm font-medium">{receipt.cost_center.name}</span>
                     </div>
                   ) : isAdminOrSupervisor ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                       <Select value={selectedCostCenterId} onValueChange={setSelectedCostCenterId}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full sm:w-[220px]">
                           <SelectValue placeholder="Asignar centro de costos" />
                         </SelectTrigger>
                         <SelectContent>
