@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { fetcher } from '@/lib/fetcher';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { InviteUserDialog } from '@/components/invite-user-dialog';
 import type { User, UserRole } from '@architech/shared';
 
@@ -57,9 +57,9 @@ export default function SettingsUsersPage() {
       }
       const updatedUser = await response.json();
       mutate(users?.map((u) => (u.id === userId ? updatedUser : u)), false);
-      toast.success(`Rol actualizado a ${ROLE_LABELS[newRole]}`);
+      sileo.success({ title: `Rol actualizado a ${ROLE_LABELS[newRole]}` });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al actualizar el rol');
+      sileo.error({ title: err instanceof Error ? err.message : 'Error al actualizar el rol' });
       mutate();
     } finally {
       setUpdatingUserId(null);
@@ -80,9 +80,9 @@ export default function SettingsUsersPage() {
       }
       const updatedUser = await response.json();
       mutate(users?.map((u) => (u.id === userId ? updatedUser : u)), false);
-      toast.success(newStatus ? 'Usuario activado' : 'Usuario desactivado');
+      sileo.success({ title: newStatus ? 'Usuario activado' : 'Usuario desactivado' });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al actualizar el estado');
+      sileo.error({ title: err instanceof Error ? err.message : 'Error al actualizar el estado' });
       mutate();
     } finally {
       setTogglingUserId(null);

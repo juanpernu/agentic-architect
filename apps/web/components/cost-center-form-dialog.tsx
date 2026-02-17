@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { mutate } from 'swr';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
@@ -64,11 +64,11 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
         throw new Error(errorBody.error ?? 'Error al guardar');
       }
 
-      toast.success(costCenter ? 'Centro de costos actualizado' : 'Centro de costos creado');
+      sileo.success({ title: costCenter ? 'Centro de costos actualizado' : 'Centro de costos creado' });
       await mutate('/api/cost-centers');
       onOpenChange(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al guardar');
+      sileo.error({ title: error instanceof Error ? error.message : 'Error al guardar' });
     } finally {
       setIsSubmitting(false);
     }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import { Layers, Pencil, Trash2, ShieldAlert } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
@@ -68,11 +68,11 @@ export default function CostCentersPage() {
         const errorBody = await response.json();
         throw new Error(errorBody.error ?? 'Error al eliminar');
       }
-      toast.success('Centro de costos eliminado');
+      sileo.success({ title: 'Centro de costos eliminado' });
       await mutate('/api/cost-centers');
       setShowDeleteDialog(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al eliminar');
+      sileo.error({ title: error instanceof Error ? error.message : 'Error al eliminar' });
     } finally {
       setIsDeleting(false);
       setDeletingId(null);

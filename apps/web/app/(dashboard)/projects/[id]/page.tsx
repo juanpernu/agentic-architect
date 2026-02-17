@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
 import { Building2, Edit, Trash2, Upload } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -75,13 +75,13 @@ export default function ProjectDetailPage() {
         throw new Error(errorBody.error ?? 'Error al eliminar proyecto');
       }
 
-      toast.success('Proyecto eliminado con éxito');
+      sileo.success({ title: 'Proyecto eliminado con éxito' });
       await mutate('/api/projects');
       router.push('/projects');
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al eliminar proyecto'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al eliminar proyecto',
+      });
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }

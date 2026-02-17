@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Camera, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -87,7 +87,7 @@ export default function UploadPage() {
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
-      toast.error('Por favor selecciona una imagen válida');
+      sileo.error({ title: 'Por favor selecciona una imagen válida' });
       return;
     }
 
@@ -164,9 +164,9 @@ export default function UploadPage() {
       setExtractionResult(result);
       setStep('review');
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al procesar el comprobante'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al procesar el comprobante',
+      });
       setStep('upload');
     }
   }, [selectedFile]);
