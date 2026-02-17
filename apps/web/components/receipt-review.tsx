@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import useSWR, { mutate } from 'swr';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import {
   Check,
   X,
@@ -183,22 +183,22 @@ export function ReceiptReview({
 
   const handleConfirm = async () => {
     if (!projectId) {
-      toast.error('Debes seleccionar un proyecto');
+      sileo.error({ title: 'Debes seleccionar un proyecto' });
       return;
     }
 
     if (!vendor) {
-      toast.error('El proveedor es requerido');
+      sileo.error({ title: 'El proveedor es requerido' });
       return;
     }
 
     if (!date) {
-      toast.error('La fecha es requerida');
+      sileo.error({ title: 'La fecha es requerida' });
       return;
     }
 
     if (items.length === 0) {
-      toast.error('Debes tener al menos un ítem');
+      sileo.error({ title: 'Debes tener al menos un ítem' });
       return;
     }
 
@@ -251,7 +251,7 @@ export function ReceiptReview({
 
       const createdReceipt = await response.json();
 
-      toast.success('Comprobante confirmado con éxito');
+      sileo.success({ title: 'Comprobante confirmado con éxito' });
 
       // Refresh data
       await mutate('/api/receipts');
@@ -260,9 +260,9 @@ export function ReceiptReview({
 
       router.push(`/receipts/${createdReceipt.id}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al confirmar comprobante'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al confirmar comprobante',
+      });
       setIsSubmitting(false);
     }
   };

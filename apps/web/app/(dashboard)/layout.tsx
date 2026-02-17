@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { BottomNav } from '@/components/bottom-nav';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from 'sileo';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </main>
         <BottomNav />
-        <Toaster />
+        <Toaster position="bottom-right" options={{ fill: '#000000' }} />
       </div>
     </ClerkProvider>
   );

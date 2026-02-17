@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Building2, Upload, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import type { Organization } from '@architech/shared';
 
 function OrgSettingsFormSkeleton() {
@@ -66,9 +66,9 @@ export function OrgSettingsForm() {
 
       const updated = await res.json();
       mutate(updated, false);
-      toast.success('Configuración guardada');
+      sileo.success({ title: 'Configuración guardada' });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al guardar');
+      sileo.error({ title: err instanceof Error ? err.message : 'Error al guardar' });
     } finally {
       setSaving(false);
     }
@@ -96,9 +96,9 @@ export function OrgSettingsForm() {
       const result = await res.json();
       setLogoPreview(result.signed_url);
       mutate(result.organization, false);
-      toast.success('Logo actualizado');
+      sileo.success({ title: 'Logo actualizado' });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al subir logo');
+      sileo.error({ title: err instanceof Error ? err.message : 'Error al subir logo' });
     } finally {
       setUploading(false);
     }

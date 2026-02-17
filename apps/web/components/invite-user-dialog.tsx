@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { ROLE_LABELS } from '@/lib/role-constants';
 import type { UserRole } from '@architech/shared';
 
@@ -60,12 +60,12 @@ export function InviteUserDialog() {
         throw new Error(message);
       }
 
-      toast.success(`Invitación enviada a ${email}`);
+      sileo.success({ title: `Invitación enviada a ${email}` });
       setEmail('');
       setRole('architect');
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al enviar invitación');
+      sileo.error({ title: err instanceof Error ? err.message : 'Error al enviar invitación' });
     } finally {
       setSending(false);
     }
