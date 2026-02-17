@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import {
   Dialog,
@@ -101,9 +101,9 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         throw new Error(errorBody.error ?? 'Error al guardar proyecto');
       }
 
-      toast.success(
-        project ? 'Proyecto actualizado con éxito' : 'Proyecto creado con éxito'
-      );
+      sileo.success({
+        title: project ? 'Proyecto actualizado con éxito' : 'Proyecto creado con éxito',
+      });
 
       // Refresh projects list
       await mutate('/api/projects');
@@ -115,9 +115,9 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
       onOpenChange(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al guardar proyecto'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al guardar proyecto',
+      });
     } finally {
       setIsSubmitting(false);
     }

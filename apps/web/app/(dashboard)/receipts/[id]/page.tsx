@@ -14,7 +14,7 @@ import {
   DollarSign,
   Package,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
@@ -76,7 +76,7 @@ export default function ReceiptDetailPage() {
         throw new Error(errorBody.error ?? 'Error al eliminar comprobante');
       }
 
-      toast.success('Comprobante eliminado con éxito');
+      sileo.success({ title: 'Comprobante eliminado con éxito' });
       await mutate('/api/receipts');
       if (receipt) {
         await mutate(`/api/receipts?project_id=${receipt.project_id}`);
@@ -84,9 +84,9 @@ export default function ReceiptDetailPage() {
       }
       router.push('/receipts');
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al eliminar comprobante'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al eliminar comprobante',
+      });
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }
