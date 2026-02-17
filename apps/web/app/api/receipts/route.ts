@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('receipts')
-    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name)')
+    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), cost_center:cost_centers(id, name, color)')
     .order('created_at', { ascending: false });
 
   // Filter by org via projects
@@ -63,6 +63,13 @@ export async function POST(req: NextRequest) {
 
   if (!body.project_id || !body.total_amount || !body.receipt_date || !body.image_url) {
     return NextResponse.json({ error: 'project_id, total_amount, receipt_date, and image_url are required' }, { status: 400 });
+  }
+
+  if (!body.cost_center_id) {
+    return NextResponse.json(
+      { error: 'cost_center_id is required' },
+      { status: 400 }
+    );
   }
 
   const db = getDb();
@@ -136,6 +143,7 @@ export async function POST(req: NextRequest) {
     .from('receipts')
     .insert({
       project_id: body.project_id,
+      cost_center_id: body.cost_center_id,
       uploaded_by: ctx.dbUserId,
       vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
       supplier_id: supplierId,
