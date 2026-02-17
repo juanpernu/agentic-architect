@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-
-const VALID_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
+import { PROJECT_COLORS } from '@/lib/project-colors';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -40,8 +39,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'El nombre no puede exceder 100 caracteres' }, { status: 400 });
   }
 
-  if (body.color && !VALID_COLORS.includes(body.color as string)) {
-    return NextResponse.json({ error: `color debe ser uno de: ${VALID_COLORS.join(', ')}` }, { status: 400 });
+  if (body.color && !(PROJECT_COLORS as readonly string[]).includes(body.color as string)) {
+    return NextResponse.json({ error: `color debe ser uno de: ${PROJECT_COLORS.join(', ')}` }, { status: 400 });
   }
 
   const db = getDb();

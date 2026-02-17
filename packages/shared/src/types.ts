@@ -62,6 +62,7 @@ export interface Receipt {
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
+  cost_center_id: string | null;
   status: ReceiptStatus;
   created_at: string;
   updated_at: string;

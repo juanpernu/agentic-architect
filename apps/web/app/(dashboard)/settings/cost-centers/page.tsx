@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import { Layers, Pencil, Trash2 } from 'lucide-react';
+import { Layers, Pencil, Trash2, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetcher } from '@/lib/fetcher';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -21,9 +21,22 @@ import { CostCenterFormDialog } from '@/components/cost-center-form-dialog';
 import type { CostCenter } from '@architech/shared';
 
 export default function CostCentersPage() {
-  const { role } = useCurrentUser();
+  const { role, isAdminOrSupervisor } = useCurrentUser();
   const canManage = role === 'admin' || role === 'supervisor';
-  const { data: costCenters, error } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: costCenters, error } = useSWR<CostCenter[]>(
+    isAdminOrSupervisor ? '/api/cost-centers' : null,
+    fetcher
+  );
+
+  if (!isAdminOrSupervisor) {
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title="Acceso denegado"
+        description="No tenés permisos para ver los centros de costos."
+      />
+    );
+  }
 
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | undefined>();

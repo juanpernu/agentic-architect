@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import { PROJECT_COLOR_HEX, PROJECT_COLORS } from '@/lib/project-colors';
 import type { CostCenter, ProjectColor } from '@architech/shared';
 
 interface CostCenterFormDialogProps {
@@ -108,7 +108,7 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
           <div className="space-y-2">
             <Label>Color (opcional)</Label>
             <div className="flex gap-2 flex-wrap">
-              {(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const).map((c) => (
+              {PROJECT_COLORS.map((c) => (
                 <button
                   key={c}
                   type="button"

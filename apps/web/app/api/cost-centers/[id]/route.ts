@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-
-const VALID_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
+import { PROJECT_COLORS } from '@/lib/project-colors';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -26,8 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: 'El nombre no puede exceder 100 caracteres' }, { status: 400 });
   }
 
-  if (body.color !== undefined && body.color !== null && !VALID_COLORS.includes(body.color as string)) {
-    return NextResponse.json({ error: `color debe ser uno de: ${VALID_COLORS.join(', ')}` }, { status: 400 });
+  if (body.color !== undefined && body.color !== null && !(PROJECT_COLORS as readonly string[]).includes(body.color as string)) {
+    return NextResponse.json({ error: `color debe ser uno de: ${PROJECT_COLORS.join(', ')}` }, { status: 400 });
   }
 
   const db = getDb();
@@ -68,7 +67,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });

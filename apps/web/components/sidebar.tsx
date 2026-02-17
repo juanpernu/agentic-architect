@@ -19,7 +19,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isAdmin, role, fullName } = useCurrentUser();
+  const { role, fullName } = useCurrentUser();
 
   const visibleNavItems = navItems;
 

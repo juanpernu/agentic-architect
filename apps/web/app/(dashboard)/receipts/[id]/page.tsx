@@ -61,7 +61,7 @@ import {
 export default function ReceiptDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, isAdminOrSupervisor } = useCurrentUser();
   const receiptId = params.id as string;
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -319,7 +319,7 @@ export default function ReceiptDetailPage() {
                     )}
                     <span className="text-base font-medium">{receipt.cost_center.name}</span>
                   </div>
-                ) : isAdmin ? (
+                ) : isAdminOrSupervisor ? (
                   <div className="space-y-2">
                     <Select value={selectedCostCenterId} onValueChange={setSelectedCostCenterId}>
                       <SelectTrigger className="w-full">

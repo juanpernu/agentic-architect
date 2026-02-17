@@ -74,6 +74,22 @@ export async function POST(req: NextRequest) {
 
   const db = getDb();
 
+  // Validate cost_center_id belongs to the same org and is active
+  const { data: validCC } = await db
+    .from('cost_centers')
+    .select('id')
+    .eq('id', body.cost_center_id as string)
+    .eq('organization_id', ctx.orgId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (!validCC) {
+    return NextResponse.json(
+      { error: 'Centro de costos no válido o inactivo' },
+      { status: 400 }
+    );
+  }
+
   // Upsert supplier if provided
   let supplierId: string | null = null;
   const supplierData = body.supplier as Record<string, unknown> | undefined;

@@ -76,7 +76,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const updateFields: Record<string, unknown> = {};
-  if (body.cost_center_id !== undefined) updateFields.cost_center_id = body.cost_center_id;
+  if (body.cost_center_id !== undefined) {
+    // Validate cost_center_id belongs to the same org and is active
+    if (body.cost_center_id !== null) {
+      const { data: validCC } = await db
+        .from('cost_centers')
+        .select('id')
+        .eq('id', body.cost_center_id as string)
+        .eq('organization_id', ctx.orgId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!validCC) {
+        return NextResponse.json(
+          { error: 'Centro de costos no válido o inactivo' },
+          { status: 400 }
+        );
+      }
+    }
+    updateFields.cost_center_id = body.cost_center_id;
+  }
 
   if (Object.keys(updateFields).length === 0) {
     return NextResponse.json({ error: 'No hay campos para actualizar' }, { status: 400 });
