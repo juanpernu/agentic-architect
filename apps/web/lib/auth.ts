@@ -16,12 +16,12 @@ const MAX_CACHE_SIZE = 500;
 
 // Persist cache across HMR in dev mode
 const globalForCache = globalThis as unknown as {
-  _isActiveCache?: Map<string, { value: boolean; expiry: number }>;
+  __obralink_isActiveCache?: Map<string, { value: boolean; expiry: number }>;
 };
-if (!globalForCache._isActiveCache) {
-  globalForCache._isActiveCache = new Map();
+if (!globalForCache.__obralink_isActiveCache) {
+  globalForCache.__obralink_isActiveCache = new Map();
 }
-const isActiveCache = globalForCache._isActiveCache;
+const isActiveCache = globalForCache.__obralink_isActiveCache;
 
 function pruneExpiredEntries() {
   const now = Date.now();
@@ -43,7 +43,13 @@ async function isUserActive(dbUserId: string): Promise<boolean> {
 
   const active = data?.is_active !== false;
 
-  if (isActiveCache.size >= MAX_CACHE_SIZE) pruneExpiredEntries();
+  if (isActiveCache.size >= MAX_CACHE_SIZE) {
+    pruneExpiredEntries();
+    if (isActiveCache.size >= MAX_CACHE_SIZE) {
+      const oldestKey = isActiveCache.keys().next().value;
+      if (oldestKey !== undefined) isActiveCache.delete(oldestKey);
+    }
+  }
   isActiveCache.set(dbUserId, { value: active, expiry: Date.now() + IS_ACTIVE_CACHE_TTL });
   return active;
 }
