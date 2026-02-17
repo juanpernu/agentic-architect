@@ -6,7 +6,7 @@ import { Layers, Pencil, Trash2, ShieldAlert } from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { useCurrentUser } from '@/lib/use-current-user';
-import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import { COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
@@ -130,7 +130,7 @@ export default function CostCentersPage() {
                     {cc.color ? (
                       <span
                         className="inline-block h-3 w-3 rounded-full"
-                        style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                        style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
                       />
                     ) : (
                       <span className="inline-block h-3 w-3 rounded-full bg-muted" />

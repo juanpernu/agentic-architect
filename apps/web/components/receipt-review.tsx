@@ -41,7 +41,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import { PROJECT_COLOR_HEX, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, CostCenter } from '@architech/shared';
 
 interface ReceiptReviewProps {
@@ -472,7 +472,7 @@ export function ReceiptReview({
                             {cc.color && (
                               <span
                                 className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                                style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
                               />
                             )}
                             {cc.name}

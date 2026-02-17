@@ -18,7 +18,7 @@ import {
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
-import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import { PROJECT_COLOR_HEX, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
 import type { CostCenter } from '@architech/shared';
@@ -314,7 +314,7 @@ export default function ReceiptDetailPage() {
                     {receipt.cost_center.color && (
                       <span
                         className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: PROJECT_COLOR_HEX[receipt.cost_center.color] }}
+                        style={{ backgroundColor: COST_CENTER_COLOR_HEX[receipt.cost_center.color] }}
                       />
                     )}
                     <span className="text-base font-medium">{receipt.cost_center.name}</span>
@@ -332,7 +332,7 @@ export default function ReceiptDetailPage() {
                               {cc.color && (
                                 <span
                                   className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                                  style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
                                 />
                               )}
                               {cc.name}

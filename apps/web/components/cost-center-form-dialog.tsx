@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { PROJECT_COLOR_HEX, PROJECT_COLORS } from '@/lib/project-colors';
+import { COST_CENTER_COLOR_HEX, PROJECT_COLORS } from '@/lib/project-colors';
 import type { CostCenter, ProjectColor } from '@architech/shared';
 
 interface CostCenterFormDialogProps {
@@ -116,7 +116,7 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
                   className={`h-8 w-8 rounded-full transition-all ${
                     formData.color === c ? 'ring-2 ring-offset-2 ring-foreground scale-110' : 'hover:scale-110'
                   }`}
-                  style={{ backgroundColor: PROJECT_COLOR_HEX[c] }}
+                  style={{ backgroundColor: COST_CENTER_COLOR_HEX[c] }}
                   aria-label={`Color ${c}`}
                 />
               ))}

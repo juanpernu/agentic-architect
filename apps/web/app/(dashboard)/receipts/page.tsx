@@ -33,7 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Project } from '@architech/shared';
-import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
+import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
   const router = useRouter();
@@ -215,8 +215,8 @@ export default function ReceiptsPage() {
                           style={
                             receipt.cost_center.color
                               ? {
-                                  backgroundColor: PROJECT_BADGE_STYLES[receipt.cost_center.color].bg,
-                                  color: PROJECT_BADGE_STYLES[receipt.cost_center.color].text,
+                                  backgroundColor: COST_CENTER_BADGE_STYLES[receipt.cost_center.color].bg,
+                                  color: COST_CENTER_BADGE_STYLES[receipt.cost_center.color].text,
                                 }
                               : undefined
                           }
