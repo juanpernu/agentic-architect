@@ -12,7 +12,23 @@ export interface AuthContext {
 
 // In-memory cache for is_active checks (per serverless instance, 60s TTL)
 const IS_ACTIVE_CACHE_TTL = 60_000;
-const isActiveCache = new Map<string, { value: boolean; expiry: number }>();
+const MAX_CACHE_SIZE = 500;
+
+// Persist cache across HMR in dev mode
+const globalForCache = globalThis as unknown as {
+  __obralink_isActiveCache?: Map<string, { value: boolean; expiry: number }>;
+};
+if (!globalForCache.__obralink_isActiveCache) {
+  globalForCache.__obralink_isActiveCache = new Map();
+}
+const isActiveCache = globalForCache.__obralink_isActiveCache;
+
+function pruneExpiredEntries() {
+  const now = Date.now();
+  for (const [key, entry] of isActiveCache) {
+    if (now >= entry.expiry) isActiveCache.delete(key);
+  }
+}
 
 async function isUserActive(dbUserId: string): Promise<boolean> {
   const cached = isActiveCache.get(dbUserId);
@@ -26,6 +42,14 @@ async function isUserActive(dbUserId: string): Promise<boolean> {
     .single();
 
   const active = data?.is_active !== false;
+
+  if (isActiveCache.size >= MAX_CACHE_SIZE) {
+    pruneExpiredEntries();
+    if (isActiveCache.size >= MAX_CACHE_SIZE) {
+      const oldestKey = isActiveCache.keys().next().value;
+      if (oldestKey !== undefined) isActiveCache.delete(oldestKey);
+    }
+  }
   isActiveCache.set(dbUserId, { value: active, expiry: Date.now() + IS_ACTIVE_CACHE_TTL });
   return active;
 }

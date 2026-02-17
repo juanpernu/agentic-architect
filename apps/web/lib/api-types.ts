@@ -1,4 +1,4 @@
-import type { Project, Receipt, ReceiptItem, ProjectColor } from '@architech/shared';
+import type { Project, Receipt, ReceiptItem, ProjectColor, CostCenter } from '@architech/shared';
 
 export interface ProjectWithDetails extends Project {
   architect: {
@@ -27,6 +27,7 @@ export interface ReceiptWithDetails extends Receipt {
     id: string;
     full_name: string;
   };
+  cost_center: { id: string; name: string; color: ProjectColor | null } | null;
 }
 
 export interface ReceiptDetail extends Receipt {
@@ -40,4 +41,5 @@ export interface ReceiptDetail extends Receipt {
     full_name: string;
   };
   receipt_items: ReceiptItem[];
+  cost_center: { id: string; name: string; color: ProjectColor | null } | null;
 }

@@ -160,6 +160,7 @@ export default function ReceiptsPage() {
                 <TableRow>
                   <TableHead>Proveedor</TableHead>
                   <TableHead>Proyecto</TableHead>
+                  <TableHead className="hidden lg:table-cell">Centro de Costos</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
                   <TableHead>Estado</TableHead>
@@ -205,6 +206,25 @@ export default function ReceiptsPage() {
                         >
                           {receipt.project.name}
                         </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {receipt.cost_center ? (
+                        <Badge
+                          variant="secondary"
+                          style={
+                            receipt.cost_center.color
+                              ? {
+                                  backgroundColor: PROJECT_BADGE_STYLES[receipt.cost_center.color].bg,
+                                  color: PROJECT_BADGE_STYLES[receipt.cost_center.color].text,
+                                }
+                              : undefined
+                          }
+                        >
+                          {receipt.cost_center.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell>

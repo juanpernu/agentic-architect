@@ -62,6 +62,7 @@ export interface Receipt {
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
+  cost_center_id: string | null;
   status: ReceiptStatus;
   created_at: string;
   updated_at: string;
@@ -90,6 +91,17 @@ export interface Supplier {
   postal_code: string | null;
   activity_start_date: string | null;
   fiscal_condition: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CostCenter {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string | null;
+  color: ProjectColor | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -153,6 +165,7 @@ export interface UpdateProjectInput {
 
 export interface ConfirmReceiptInput {
   project_id: string;
+  cost_center_id: string;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
