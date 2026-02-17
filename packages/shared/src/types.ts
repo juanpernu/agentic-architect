@@ -94,6 +94,17 @@ export interface Supplier {
   updated_at: string;
 }
 
+export interface CostCenter {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string | null;
+  color: ProjectColor | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // AI Extraction types
 export interface ExtractionResult {
   supplier: {
@@ -153,6 +164,7 @@ export interface UpdateProjectInput {
 
 export interface ConfirmReceiptInput {
   project_id: string;
+  cost_center_id: string;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
