@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Receipt, Search } from 'lucide-react';
+import { Receipt, Search, ArrowUpDown } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import type { ReceiptWithDetails } from '@/lib/api-types';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
@@ -28,18 +29,21 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Project } from '@architech/shared';
-import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES } from '@/lib/project-colors';
+import type { Project, CostCenter } from '@architech/shared';
+import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [costCenterFilter, setCostCenterFilter] = useState<string>('all');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -49,19 +53,31 @@ export default function ReceiptsPage() {
   );
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
+  const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
 
-  const filteredReceipts = receipts?.filter((receipt) => {
-    const matchesSearch = (receipt.vendor ?? '')
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesProject =
-      projectFilter === 'all' || receipt.project_id === projectFilter;
-    const matchesStatus =
-      statusFilter === 'all' || receipt.status === statusFilter;
-    const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
-    const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
-    return matchesSearch && matchesProject && matchesStatus && matchesDateFrom && matchesDateTo;
-  });
+  const filteredReceipts = receipts
+    ?.filter((receipt) => {
+      const matchesSearch = (receipt.vendor ?? '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesProject =
+        projectFilter === 'all' || receipt.project_id === projectFilter;
+      const matchesStatus =
+        statusFilter === 'all' || receipt.status === statusFilter;
+      const matchesCostCenter =
+        costCenterFilter === 'all' || receipt.cost_center_id === costCenterFilter;
+      const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
+      const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
+      return matchesSearch && matchesProject && matchesStatus && matchesCostCenter && matchesDateFrom && matchesDateTo;
+    })
+    .sort((a, b) => {
+      const cmp = a.receipt_date.localeCompare(b.receipt_date);
+      if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
+      return a.created_at.localeCompare(b.created_at);
+    });
+
+  const totalAmount = filteredReceipts?.reduce((sum, r) => sum + (r.total_amount ?? 0), 0) ?? 0;
+  const receiptCount = filteredReceipts?.length ?? 0;
 
   if (error) {
     return (
@@ -113,6 +129,27 @@ export default function ReceiptsPage() {
             <SelectItem value="rejected">Rechazado</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
+          <SelectTrigger className="w-full sm:w-[220px]">
+            <SelectValue placeholder="Centro de Costos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los centros</SelectItem>
+            {costCenters?.map((cc) => (
+              <SelectItem key={cc.id} value={cc.id}>
+                <span className="flex items-center gap-2">
+                  {cc.color && (
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
+                    />
+                  )}
+                  {cc.name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -145,7 +182,7 @@ export default function ReceiptsPage() {
           icon={Receipt}
           title="No hay comprobantes"
           description={
-            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || dateFrom || dateTo
+            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || costCenterFilter !== 'all' || dateFrom || dateTo
               ? 'No se encontraron comprobantes con los filtros seleccionados'
               : 'Los comprobantes cargados aparecerán aquí'
           }
@@ -161,7 +198,17 @@ export default function ReceiptsPage() {
                   <TableHead>Proveedor</TableHead>
                   <TableHead>Proyecto</TableHead>
                   <TableHead className="hidden lg:table-cell">Centro de Costos</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="-ml-3 h-8"
+                      onClick={() => setSortDirection(d => d === 'asc' ? 'desc' : 'asc')}
+                    >
+                      Fecha
+                      <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+                    </Button>
+                  </TableHead>
                   <TableHead className="text-right">Monto</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Cargado por</TableHead>
@@ -242,6 +289,18 @@ export default function ReceiptsPage() {
                   </TableRow>
                 ))}
               </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={3} className="text-muted-foreground">
+                    {receiptCount} {receiptCount === 1 ? 'comprobante' : 'comprobantes'}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell" />
+                  <TableCell className="text-right font-semibold">
+                    {formatCurrency(totalAmount)}
+                  </TableCell>
+                  <TableCell colSpan={2} />
+                </TableRow>
+              </TableFooter>
             </Table>
           </div>
         </Card>

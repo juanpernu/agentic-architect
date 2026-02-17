@@ -27,6 +27,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -226,133 +227,115 @@ export default function ReceiptDetailPage() {
 
         {/* Right Column - Details */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Info Cards */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  <Building2 className="inline mr-2 h-4 w-4" />
-                  Proyecto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link
-                  href={`/projects/${receipt.project_id}`}
-                  className="inline-flex items-center gap-2 text-base font-medium text-primary hover:underline"
-                >
-                  {receipt.project.color && (
-                    <span
-                      className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: PROJECT_COLOR_HEX[receipt.project.color] }}
-                    />
-                  )}
-                  {receipt.project.name}
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  <User className="inline mr-2 h-4 w-4" />
-                  Cargado por
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-base font-medium">
-                  {receipt.uploader.full_name}
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {new Date(receipt.created_at).toLocaleString('es-AR')}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  <DollarSign className="inline mr-2 h-4 w-4" />
-                  Monto Total
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-primary">
-                  {formatCurrency(receipt.total_amount)}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  <Calendar className="inline mr-2 h-4 w-4" />
-                  Fecha del Comprobante
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-base font-medium">
-                  {new Date(receipt.receipt_date).toLocaleDateString('es-AR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  <Layers className="inline mr-2 h-4 w-4" />
-                  Centro de Costos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {receipt.cost_center ? (
-                  <div className="flex items-center gap-2">
-                    {receipt.cost_center.color && (
+          {/* Receipt Details */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid md:grid-cols-2 gap-x-8 gap-y-5">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-muted-foreground">
+                    <Building2 className="h-3.5 w-3.5" />
+                    Proyecto
+                  </Label>
+                  <Link
+                    href={`/projects/${receipt.project_id}`}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                  >
+                    {receipt.project.color && (
                       <span
                         className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: COST_CENTER_COLOR_HEX[receipt.cost_center.color] }}
+                        style={{ backgroundColor: PROJECT_COLOR_HEX[receipt.project.color] }}
                       />
                     )}
-                    <span className="text-base font-medium">{receipt.cost_center.name}</span>
+                    {receipt.project.name}
+                  </Link>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-muted-foreground">
+                    <User className="h-3.5 w-3.5" />
+                    Cargado por
+                  </Label>
+                  <div className="text-sm font-medium">{receipt.uploader.full_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(receipt.created_at).toLocaleString('es-AR')}
                   </div>
-                ) : isAdminOrSupervisor ? (
-                  <div className="space-y-2">
-                    <Select value={selectedCostCenterId} onValueChange={setSelectedCostCenterId}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Asignar centro de costos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {costCenters?.map((cc) => (
-                          <SelectItem key={cc.id} value={cc.id}>
-                            <span className="flex items-center gap-2">
-                              {cc.color && (
-                                <span
-                                  className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
-                                />
-                              )}
-                              {cc.name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedCostCenterId && (
-                      <Button size="sm" onClick={handleSaveCostCenter} disabled={isSavingCostCenter}>
-                        {isSavingCostCenter ? 'Guardando...' : 'Asignar'}
-                      </Button>
-                    )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-muted-foreground">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Monto Total
+                  </Label>
+                  <div className="text-lg font-bold text-primary">
+                    {formatCurrency(receipt.total_amount)}
                   </div>
-                ) : (
-                  <span className="text-muted-foreground">Sin asignar</span>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Fecha del Comprobante
+                  </Label>
+                  <div className="text-sm font-medium">
+                    {new Date(receipt.receipt_date).toLocaleDateString('es-AR', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-muted-foreground">
+                    <Layers className="h-3.5 w-3.5" />
+                    Centro de Costos
+                  </Label>
+                  {receipt.cost_center ? (
+                    <div className="flex items-center gap-2">
+                      {receipt.cost_center.color && (
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: COST_CENTER_COLOR_HEX[receipt.cost_center.color] }}
+                        />
+                      )}
+                      <span className="text-sm font-medium">{receipt.cost_center.name}</span>
+                    </div>
+                  ) : isAdminOrSupervisor ? (
+                    <div className="flex items-center gap-2">
+                      <Select value={selectedCostCenterId} onValueChange={setSelectedCostCenterId}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Asignar centro de costos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {costCenters?.map((cc) => (
+                            <SelectItem key={cc.id} value={cc.id}>
+                              <span className="flex items-center gap-2">
+                                {cc.color && (
+                                  <span
+                                    className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                                    style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
+                                  />
+                                )}
+                                {cc.name}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedCostCenterId && (
+                        <Button size="sm" onClick={handleSaveCostCenter} disabled={isSavingCostCenter}>
+                          {isSavingCostCenter ? 'Guardando...' : 'Asignar'}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Sin asignar</span>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Line Items */}
           <Card>
