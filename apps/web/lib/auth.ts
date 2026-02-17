@@ -25,6 +25,7 @@ const isActiveCache = globalForCache.__obralink_isActiveCache;
 
 function pruneExpiredEntries() {
   const now = Date.now();
+  // Deleting the current key during Map iteration is safe per ES spec
   for (const [key, entry] of isActiveCache) {
     if (now >= entry.expiry) isActiveCache.delete(key);
   }
@@ -32,7 +33,10 @@ function pruneExpiredEntries() {
 
 async function isUserActive(dbUserId: string): Promise<boolean> {
   const cached = isActiveCache.get(dbUserId);
-  if (cached && Date.now() < cached.expiry) return cached.value;
+  if (cached) {
+    if (Date.now() < cached.expiry) return cached.value;
+    isActiveCache.delete(dbUserId);
+  }
 
   const db = getDb();
   const { data } = await db
@@ -46,8 +50,13 @@ async function isUserActive(dbUserId: string): Promise<boolean> {
   if (isActiveCache.size >= MAX_CACHE_SIZE) {
     pruneExpiredEntries();
     if (isActiveCache.size >= MAX_CACHE_SIZE) {
-      const oldestKey = isActiveCache.keys().next().value;
-      if (oldestKey !== undefined) isActiveCache.delete(oldestKey);
+      const toEvict = Math.max(1, Math.floor(MAX_CACHE_SIZE * 0.1));
+      const iter = isActiveCache.keys();
+      for (let i = 0; i < toEvict; i++) {
+        const { value, done } = iter.next();
+        if (done) break;
+        isActiveCache.delete(value);
+      }
     }
   }
   isActiveCache.set(dbUserId, { value: active, expiry: Date.now() + IS_ACTIVE_CACHE_TTL });
