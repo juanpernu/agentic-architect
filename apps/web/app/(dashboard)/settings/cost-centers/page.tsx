@@ -28,6 +28,12 @@ export default function CostCentersPage() {
     fetcher
   );
 
+  const [showFormDialog, setShowFormDialog] = useState(false);
+  const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | undefined>();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   if (!isAdminOrSupervisor) {
     return (
       <EmptyState
@@ -37,12 +43,6 @@ export default function CostCentersPage() {
       />
     );
   }
-
-  const [showFormDialog, setShowFormDialog] = useState(false);
-  const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | undefined>();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = (cc: CostCenter) => {
     setEditingCostCenter(cc);
@@ -79,20 +79,20 @@ export default function CostCentersPage() {
     }
   };
 
-  if (!costCenters && !error) return <LoadingTable />;
+  let content: React.ReactNode;
 
-  if (error) {
-    return (
+  if (!costCenters && !error) {
+    content = <LoadingTable />;
+  } else if (error) {
+    content = (
       <EmptyState
         icon={Layers}
         title="Error al cargar centros de costos"
         description="Hubo un problema. Por favor, intenta de nuevo."
       />
     );
-  }
-
-  if (!costCenters || costCenters.length === 0) {
-    return (
+  } else if (!costCenters || costCenters.length === 0) {
+    content = (
       <EmptyState
         icon={Layers}
         title="No hay centros de costos"
@@ -104,60 +104,66 @@ export default function CostCentersPage() {
         }
       />
     );
+  } else {
+    content = (
+      <>
+        {canManage && (
+          <div className="flex justify-end mb-4">
+            <Button onClick={handleCreate}>Nuevo centro de costos</Button>
+          </div>
+        )}
+
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">Color</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead className="hidden md:table-cell">Descripción</TableHead>
+                {canManage && <TableHead className="w-[100px]">Acciones</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {costCenters.map((cc) => (
+                <TableRow key={cc.id}>
+                  <TableCell>
+                    {cc.color ? (
+                      <span
+                        className="inline-block h-3 w-3 rounded-full"
+                        style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                      />
+                    ) : (
+                      <span className="inline-block h-3 w-3 rounded-full bg-muted" />
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{cc.name}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">
+                    {cc.description || '—'}
+                  </TableCell>
+                  {canManage && (
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(cc)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteClick(cc.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </>
+    );
   }
 
   return (
     <>
-      {canManage && (
-        <div className="flex justify-end mb-4">
-          <Button onClick={handleCreate}>Nuevo centro de costos</Button>
-        </div>
-      )}
-
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">Color</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead className="hidden md:table-cell">Descripción</TableHead>
-              {canManage && <TableHead className="w-[100px]">Acciones</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {costCenters.map((cc) => (
-              <TableRow key={cc.id}>
-                <TableCell>
-                  {cc.color ? (
-                    <span
-                      className="inline-block h-3 w-3 rounded-full"
-                      style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
-                    />
-                  ) : (
-                    <span className="inline-block h-3 w-3 rounded-full bg-muted" />
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">{cc.name}</TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">
-                  {cc.description || '—'}
-                </TableCell>
-                {canManage && (
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(cc)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteClick(cc.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {content}
 
       <CostCenterFormDialog
         open={showFormDialog}
