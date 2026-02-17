@@ -35,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Project, CostCenter } from '@architech/shared';
-import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES, PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
   const router = useRouter();
@@ -72,7 +72,8 @@ export default function ReceiptsPage() {
     })
     .sort((a, b) => {
       const cmp = a.receipt_date.localeCompare(b.receipt_date);
-      return sortDirection === 'asc' ? cmp : -cmp;
+      if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
+      return a.created_at.localeCompare(b.created_at);
     });
 
   const totalAmount = filteredReceipts?.reduce((sum, r) => sum + (r.total_amount ?? 0), 0) ?? 0;
@@ -140,7 +141,7 @@ export default function ReceiptsPage() {
                   {cc.color && (
                     <span
                       className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                      style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
                     />
                   )}
                   {cc.name}
@@ -290,9 +291,10 @@ export default function ReceiptsPage() {
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground">
+                  <TableCell colSpan={3} className="text-muted-foreground">
                     {receiptCount} {receiptCount === 1 ? 'comprobante' : 'comprobantes'}
                   </TableCell>
+                  <TableCell className="hidden lg:table-cell" />
                   <TableCell className="text-right font-semibold">
                     {formatCurrency(totalAmount)}
                   </TableCell>
