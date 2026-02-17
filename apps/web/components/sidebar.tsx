@@ -19,11 +19,9 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isAdmin, role, fullName } = useCurrentUser();
+  const { role, fullName } = useCurrentUser();
 
-  const visibleNavItems = navItems.filter(
-    (item) => item.href !== '/settings' || isAdmin
-  );
+  const visibleNavItems = navItems;
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">

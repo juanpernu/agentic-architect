@@ -13,13 +13,15 @@ import {
   Calendar,
   DollarSign,
   Package,
+  Layers,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
+import type { CostCenter } from '@architech/shared';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -48,21 +50,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function ReceiptDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, isAdminOrSupervisor } = useCurrentUser();
   const receiptId = params.id as string;
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [selectedCostCenterId, setSelectedCostCenterId] = useState('');
+  const [isSavingCostCenter, setIsSavingCostCenter] = useState(false);
 
   const { data: receipt, isLoading, error } = useSWR<ReceiptDetail>(
     receiptId ? `/api/receipts/${receiptId}` : null,
     fetcher
   );
+
+  const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -76,7 +89,7 @@ export default function ReceiptDetailPage() {
         throw new Error(errorBody.error ?? 'Error al eliminar comprobante');
       }
 
-      toast.success('Comprobante eliminado con éxito');
+      sileo.success({ title: 'Comprobante eliminado con éxito' });
       await mutate('/api/receipts');
       if (receipt) {
         await mutate(`/api/receipts?project_id=${receipt.project_id}`);
@@ -84,11 +97,33 @@ export default function ReceiptDetailPage() {
       }
       router.push('/receipts');
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al eliminar comprobante'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al eliminar comprobante',
+      });
       setIsDeleting(false);
       setShowDeleteDialog(false);
+    }
+  };
+
+  const handleSaveCostCenter = async () => {
+    if (!selectedCostCenterId) return;
+    setIsSavingCostCenter(true);
+    try {
+      const response = await fetch(`/api/receipts/${receiptId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cost_center_id: selectedCostCenterId }),
+      });
+      if (!response.ok) {
+        const errorBody = await response.json();
+        throw new Error(errorBody.error ?? 'Error al asignar centro de costos');
+      }
+      sileo.success({ title: 'Centro de costos asignado' });
+      await mutate(`/api/receipts/${receiptId}`);
+    } catch (error) {
+      sileo.error({ title: error instanceof Error ? error.message : 'Error al asignar' });
+    } finally {
+      setIsSavingCostCenter(false);
     }
   };
 
@@ -263,6 +298,58 @@ export default function ReceiptDetailPage() {
                     day: 'numeric',
                   })}
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <Layers className="inline mr-2 h-4 w-4" />
+                  Centro de Costos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {receipt.cost_center ? (
+                  <div className="flex items-center gap-2">
+                    {receipt.cost_center.color && (
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: PROJECT_COLOR_HEX[receipt.cost_center.color] }}
+                      />
+                    )}
+                    <span className="text-base font-medium">{receipt.cost_center.name}</span>
+                  </div>
+                ) : isAdminOrSupervisor ? (
+                  <div className="space-y-2">
+                    <Select value={selectedCostCenterId} onValueChange={setSelectedCostCenterId}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Asignar centro de costos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {costCenters?.map((cc) => (
+                          <SelectItem key={cc.id} value={cc.id}>
+                            <span className="flex items-center gap-2">
+                              {cc.color && (
+                                <span
+                                  className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                                />
+                              )}
+                              {cc.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedCostCenterId && (
+                      <Button size="sm" onClick={handleSaveCostCenter} disabled={isSavingCostCenter}>
+                        {isSavingCostCenter ? 'Guardando...' : 'Asignar'}
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">Sin asignar</span>
+                )}
               </CardContent>
             </Card>
           </div>

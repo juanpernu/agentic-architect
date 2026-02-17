@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import useSWR, { mutate } from 'swr';
-import { toast } from 'sonner';
+import { sileo } from 'sileo';
 import {
   Check,
   X,
@@ -42,7 +42,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
-import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project } from '@architech/shared';
+import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, CostCenter } from '@architech/shared';
 
 interface ReceiptReviewProps {
   imageUrl: string;
@@ -74,6 +74,7 @@ export function ReceiptReview({
   const [date, setDate] = useState(extractionResult.receipt.date ?? '');
   const [total, setTotal] = useState(extractionResult.totals.total?.toString() ?? '');
   const [projectId, setProjectId] = useState(preSelectedProjectId ?? '');
+  const [costCenterId, setCostCenterId] = useState('');
   const [items, setItems] = useState<EditableItem[]>(
     extractionResult.items.map((item, index) => ({
       ...item,
@@ -86,6 +87,7 @@ export function ReceiptReview({
   const [tempValue, setTempValue] = useState('');
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
+  const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
 
   const confidence = extractionResult.confidence;
 
@@ -183,22 +185,27 @@ export function ReceiptReview({
 
   const handleConfirm = async () => {
     if (!projectId) {
-      toast.error('Debes seleccionar un proyecto');
+      sileo.error({ title: 'Debes seleccionar un proyecto' });
+      return;
+    }
+
+    if (!costCenterId) {
+      sileo.error({ title: 'Debes seleccionar un centro de costos' });
       return;
     }
 
     if (!vendor) {
-      toast.error('El proveedor es requerido');
+      sileo.error({ title: 'El proveedor es requerido' });
       return;
     }
 
     if (!date) {
-      toast.error('La fecha es requerida');
+      sileo.error({ title: 'La fecha es requerida' });
       return;
     }
 
     if (items.length === 0) {
-      toast.error('Debes tener al menos un ítem');
+      sileo.error({ title: 'Debes tener al menos un ítem' });
       return;
     }
 
@@ -207,6 +214,7 @@ export function ReceiptReview({
     try {
       const payload: ConfirmReceiptInput = {
         project_id: projectId,
+        cost_center_id: costCenterId,
         image_url: storagePath,
         ai_raw_response: { ...extractionResult },
         ai_confidence: confidence,
@@ -251,7 +259,7 @@ export function ReceiptReview({
 
       const createdReceipt = await response.json();
 
-      toast.success('Comprobante confirmado con éxito');
+      sileo.success({ title: 'Comprobante confirmado con éxito' });
 
       // Refresh data
       await mutate('/api/receipts');
@@ -260,9 +268,9 @@ export function ReceiptReview({
 
       router.push(`/receipts/${createdReceipt.id}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Error al confirmar comprobante'
-      );
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al confirmar comprobante',
+      });
       setIsSubmitting(false);
     }
   };
@@ -443,6 +451,31 @@ export function ReceiptReview({
                               />
                             )}
                             {project.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Cost Center */}
+                <div>
+                  <Label htmlFor="cost-center">Centro de Costos *</Label>
+                  <Select value={costCenterId} onValueChange={setCostCenterId}>
+                    <SelectTrigger id="cost-center" className="w-full mt-1">
+                      <SelectValue placeholder="Seleccionar centro de costos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {costCenters?.map((cc) => (
+                        <SelectItem key={cc.id} value={cc.id}>
+                          <span className="flex items-center gap-2">
+                            {cc.color && (
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: PROJECT_COLOR_HEX[cc.color] }}
+                              />
+                            )}
+                            {cc.name}
                           </span>
                         </SelectItem>
                       ))}
