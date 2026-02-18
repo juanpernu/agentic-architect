@@ -479,7 +479,7 @@ export function ReceiptReview({
 
                 {/* Bank Account */}
                 <div className="space-y-2">
-                  <Label>Cuenta Bancaria (opcional)</Label>
+                  <FieldLabel>Cuenta Bancaria (opcional)</FieldLabel>
                   <Select value={bankAccountId} onValueChange={setBankAccountId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar cuenta bancaria" />
