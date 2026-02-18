@@ -106,8 +106,8 @@ export default function ReceiptsPage() {
             aria-label="Buscar por proveedor"
           />
         </div>
-        <Field orientation="horizontal">
-          <FieldLabel className="text-sm whitespace-nowrap">Proyecto</FieldLabel>
+        <Field orientation="horizontal" className="w-auto items-center">
+          <FieldLabel className="text-sm whitespace-nowrap flex-none">Proyecto</FieldLabel>
           <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Proyecto" />
@@ -122,8 +122,8 @@ export default function ReceiptsPage() {
             </SelectContent>
           </Select>
         </Field>
-        <Field orientation="horizontal">
-          <FieldLabel className="text-sm whitespace-nowrap">Estado</FieldLabel>
+        <Field orientation="horizontal" className="w-auto items-center">
+          <FieldLabel className="text-sm whitespace-nowrap flex-none">Estado</FieldLabel>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Estado" />
@@ -136,8 +136,8 @@ export default function ReceiptsPage() {
             </SelectContent>
           </Select>
         </Field>
-        <Field orientation="horizontal">
-          <FieldLabel className="text-sm whitespace-nowrap">Centro de Costos</FieldLabel>
+        <Field orientation="horizontal" className="w-auto items-center">
+          <FieldLabel className="text-sm whitespace-nowrap flex-none">Centro de Costos</FieldLabel>
           <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
             <SelectTrigger className="w-full sm:w-[220px]">
               <SelectValue placeholder="Centro de Costos" />
@@ -163,8 +163,8 @@ export default function ReceiptsPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <Field orientation="horizontal">
-          <FieldLabel htmlFor="date-from" className="text-sm whitespace-nowrap">Desde</FieldLabel>
+        <Field orientation="horizontal" className="w-auto items-center">
+          <FieldLabel htmlFor="date-from" className="text-sm whitespace-nowrap flex-none">Desde</FieldLabel>
           <Input
             id="date-from"
             type="date"
@@ -173,8 +173,8 @@ export default function ReceiptsPage() {
             className="w-full sm:w-[160px]"
           />
         </Field>
-        <Field orientation="horizontal">
-          <FieldLabel htmlFor="date-to" className="text-sm whitespace-nowrap">Hasta</FieldLabel>
+        <Field orientation="horizontal" className="w-auto items-center">
+          <FieldLabel htmlFor="date-to" className="text-sm whitespace-nowrap flex-none">Hasta</FieldLabel>
           <Input
             id="date-to"
             type="date"
