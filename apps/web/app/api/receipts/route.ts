@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get('project_id');
   const status = searchParams.get('status');
+  const costCenterId = searchParams.get('cost_center_id');
   const limit = searchParams.get('limit');
 
   const db = getDb();
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
 
   if (projectId) query = query.eq('project_id', projectId);
   if (status) query = query.eq('status', status);
+  if (costCenterId) query = query.eq('cost_center_id', costCenterId);
 
   // Architects only see own receipts
   if (ctx.role === 'architect') {
