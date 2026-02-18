@@ -86,8 +86,8 @@ export default function ProjectsPage() {
             aria-label="Buscar proyectos"
           />
         </div>
-        <Field orientation="horizontal">
-          <FieldLabel className="text-sm whitespace-nowrap">Estado</FieldLabel>
+        <Field orientation="horizontal" className="w-auto items-center">
+          <FieldLabel className="text-sm whitespace-nowrap flex-none">Estado</FieldLabel>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Estado" />
