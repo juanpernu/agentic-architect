@@ -5,8 +5,9 @@ import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel, FieldError, FieldSet, FieldLegend, FieldGroup } from '@/components/ui/field';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { organizationSchema } from '@/lib/schemas';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Building2, Upload, Loader2 } from 'lucide-react';
 import { sileo } from 'sileo';
@@ -36,6 +37,7 @@ export function OrgSettingsForm() {
   const { data: org, mutate } = useSWR<Organization>('/api/organization', fetcher);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,13 +45,29 @@ export function OrgSettingsForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSaving(true);
 
     const formData = new FormData(e.currentTarget);
-    const updates: Record<string, string | null> = {};
-
+    const raw: Record<string, string> = {};
     for (const [key, value] of formData.entries()) {
-      updates[key] = (value as string).trim() || null;
+      raw[key] = (value as string).trim();
+    }
+
+    const result = organizationSchema.safeParse(raw);
+    if (!result.success) {
+      const errs: Partial<Record<string, string>> = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as string;
+        if (key && !errs[key]) errs[key] = issue.message;
+      }
+      setFieldErrors(errs);
+      return;
+    }
+    setFieldErrors({});
+
+    setSaving(true);
+    const updates: Record<string, string | null> = {};
+    for (const [key, value] of Object.entries(raw)) {
+      updates[key] = value || null;
     }
 
     try {
@@ -135,57 +153,64 @@ export function OrgSettingsForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre</Label>
-            <Input id="name" name="name" defaultValue={org.name} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact_email">Email de contacto</Label>
-            <Input id="contact_email" name="contact_email" type="email" defaultValue={org.contact_email ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field data-invalid={!!fieldErrors.name}>
+            <FieldLabel htmlFor="name">Nombre</FieldLabel>
+            <Input id="name" name="name" defaultValue={org.name} aria-invalid={!!fieldErrors.name} />
+            <FieldError>{fieldErrors.name}</FieldError>
+          </Field>
+          <Field data-invalid={!!fieldErrors.contact_email}>
+            <FieldLabel htmlFor="contact_email">Email de contacto</FieldLabel>
+            <Input id="contact_email" name="contact_email" type="email" defaultValue={org.contact_email ?? ''} aria-invalid={!!fieldErrors.contact_email} />
+            <FieldError>{fieldErrors.contact_email}</FieldError>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
             <Input id="phone" name="phone" defaultValue={org.phone ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="website">Website</Label>
-            <Input id="website" name="website" defaultValue={org.website ?? ''} />
-          </div>
-        </div>
+          </Field>
+          <Field data-invalid={!!fieldErrors.website}>
+            <FieldLabel htmlFor="website">Website</FieldLabel>
+            <Input id="website" name="website" defaultValue={org.website ?? ''} aria-invalid={!!fieldErrors.website} />
+            <FieldError>{fieldErrors.website}</FieldError>
+          </Field>
+        </FieldGroup>
 
-        <h3 className="text-sm font-medium text-muted-foreground pt-2">Dirección</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="address_street">Calle</Label>
-            <Input id="address_street" name="address_street" defaultValue={org.address_street ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address_locality">Localidad</Label>
-            <Input id="address_locality" name="address_locality" defaultValue={org.address_locality ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address_province">Provincia</Label>
-            <Input id="address_province" name="address_province" defaultValue={org.address_province ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address_postal_code">Código Postal</Label>
-            <Input id="address_postal_code" name="address_postal_code" defaultValue={org.address_postal_code ?? ''} />
-          </div>
-        </div>
+        <FieldSet>
+          <FieldLegend variant="label" className="text-muted-foreground">Dirección</FieldLegend>
+          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field>
+              <FieldLabel htmlFor="address_street">Calle</FieldLabel>
+              <Input id="address_street" name="address_street" defaultValue={org.address_street ?? ''} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="address_locality">Localidad</FieldLabel>
+              <Input id="address_locality" name="address_locality" defaultValue={org.address_locality ?? ''} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="address_province">Provincia</FieldLabel>
+              <Input id="address_province" name="address_province" defaultValue={org.address_province ?? ''} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="address_postal_code">Código Postal</FieldLabel>
+              <Input id="address_postal_code" name="address_postal_code" defaultValue={org.address_postal_code ?? ''} />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
 
-        <h3 className="text-sm font-medium text-muted-foreground pt-2">Redes sociales</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="social_instagram">Instagram</Label>
-            <Input id="social_instagram" name="social_instagram" placeholder="@usuario" defaultValue={org.social_instagram ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="social_linkedin">LinkedIn</Label>
-            <Input id="social_linkedin" name="social_linkedin" placeholder="URL o nombre" defaultValue={org.social_linkedin ?? ''} />
-          </div>
-        </div>
+        <FieldSet>
+          <FieldLegend variant="label" className="text-muted-foreground">Redes sociales</FieldLegend>
+          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field>
+              <FieldLabel htmlFor="social_instagram">Instagram</FieldLabel>
+              <Input id="social_instagram" name="social_instagram" placeholder="@usuario" defaultValue={org.social_instagram ?? ''} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="social_linkedin">LinkedIn</FieldLabel>
+              <Input id="social_linkedin" name="social_linkedin" placeholder="URL o nombre" defaultValue={org.social_linkedin ?? ''} />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
 
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={saving}>

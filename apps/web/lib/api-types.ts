@@ -22,7 +22,7 @@ export interface ReceiptWithDetails extends Receipt {
     id: string;
     name: string;
     color: ProjectColor | null;
-  };
+  } | null;
   uploader: {
     id: string;
     full_name: string;

@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { useFormValidation } from '@/lib/use-form-validation';
+import { inviteSchema } from '@/lib/schemas';
 import {
   Dialog,
   DialogContent,
@@ -29,17 +31,19 @@ export function InviteUserDialog() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<string>('architect');
   const [sending, setSending] = useState(false);
+  const { errors, validate, clearErrors } = useFormValidation(inviteSchema);
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
       setEmail('');
       setRole('architect');
+      clearErrors();
     }
   };
 
   const handleInvite = async () => {
-    if (!email.trim()) return;
+    if (!validate({ email: email.trim(), role })) return;
 
     setSending(true);
     try {
@@ -87,18 +91,21 @@ export function InviteUserDialog() {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="invite-email">Email</Label>
+          <Field data-invalid={!!errors.email}>
+            <FieldLabel htmlFor="invite-email">Email</FieldLabel>
             <Input
               id="invite-email"
               type="email"
               placeholder="usuario@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              aria-required="true"
+              aria-invalid={!!errors.email}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="invite-role">Rol</Label>
+            <FieldError>{errors.email}</FieldError>
+          </Field>
+          <Field data-invalid={!!errors.role}>
+            <FieldLabel htmlFor="invite-role">Rol</FieldLabel>
             <Select value={role} onValueChange={setRole}>
               <SelectTrigger>
                 <SelectValue />
@@ -109,7 +116,8 @@ export function InviteUserDialog() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+            <FieldError>{errors.role}</FieldError>
+          </Field>
           <div className="flex justify-end">
             <Button onClick={handleInvite} disabled={sending || !email.trim()}>
               {sending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

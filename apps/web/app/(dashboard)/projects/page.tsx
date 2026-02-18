@@ -15,7 +15,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -83,10 +83,11 @@ export default function ProjectsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            aria-label="Buscar proyectos"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">Estado</Label>
+        <Field orientation="horizontal">
+          <FieldLabel className="text-sm whitespace-nowrap">Estado</FieldLabel>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Estado" />
@@ -98,7 +99,7 @@ export default function ProjectsPage() {
               <SelectItem value="completed">Completado</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </Field>
       </div>
 
       {isLoading && <LoadingCards count={6} />}
