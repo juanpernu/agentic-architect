@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Project, CostCenter } from '@architech/shared';
+import type { Project, CostCenter, BankAccount } from '@architech/shared';
 import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
@@ -43,6 +43,7 @@ export default function ReceiptsPage() {
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [costCenterFilter, setCostCenterFilter] = useState<string>('all');
+  const [bankAccountFilter, setBankAccountFilter] = useState<string>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -54,6 +55,7 @@ export default function ReceiptsPage() {
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
   const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
 
   const filteredReceipts = receipts
     ?.filter((receipt) => {
@@ -66,9 +68,11 @@ export default function ReceiptsPage() {
         statusFilter === 'all' || receipt.status === statusFilter;
       const matchesCostCenter =
         costCenterFilter === 'all' || receipt.cost_center_id === costCenterFilter;
+      const matchesBankAccount =
+        bankAccountFilter === 'all' || receipt.bank_account_id === bankAccountFilter;
       const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
       const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
-      return matchesSearch && matchesProject && matchesStatus && matchesCostCenter && matchesDateFrom && matchesDateTo;
+      return matchesSearch && matchesProject && matchesStatus && matchesCostCenter && matchesBankAccount && matchesDateFrom && matchesDateTo;
     })
     .sort((a, b) => {
       const cmp = a.receipt_date.localeCompare(b.receipt_date);
@@ -160,6 +164,22 @@ export default function ReceiptsPage() {
             </SelectContent>
           </Select>
         </Field>
+        <Field className="sm:w-auto">
+          <FieldLabel>Cuenta Bancaria</FieldLabel>
+          <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
+            <SelectTrigger className="sm:w-[220px]">
+              <SelectValue placeholder="Cuenta Bancaria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las cuentas</SelectItem>
+              {bankAccounts?.map((ba) => (
+                <SelectItem key={ba.id} value={ba.id}>
+                  {ba.name} ({ba.bank_name})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
@@ -192,7 +212,7 @@ export default function ReceiptsPage() {
           icon={Receipt}
           title="No hay comprobantes"
           description={
-            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || costCenterFilter !== 'all' || dateFrom || dateTo
+            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || costCenterFilter !== 'all' || bankAccountFilter !== 'all' || dateFrom || dateTo
               ? 'No se encontraron comprobantes con los filtros seleccionados'
               : 'Los comprobantes cargados aparecerán aquí'
           }
@@ -208,6 +228,7 @@ export default function ReceiptsPage() {
                   <TableHead>Proveedor</TableHead>
                   <TableHead>Proyecto</TableHead>
                   <TableHead className="hidden lg:table-cell">Centro de Costos</TableHead>
+                  <TableHead className="hidden xl:table-cell">Banco</TableHead>
                   <TableHead>
                     <Button
                       variant="ghost"
@@ -288,6 +309,9 @@ export default function ReceiptsPage() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    <TableCell className="hidden xl:table-cell text-muted-foreground">
+                      {receipt.bank_account ? receipt.bank_account.name : '—'}
+                    </TableCell>
                     <TableCell>
                       {new Date(receipt.receipt_date).toLocaleDateString('es-AR')}
                     </TableCell>
@@ -309,6 +333,7 @@ export default function ReceiptsPage() {
                     {receiptCount} {receiptCount === 1 ? 'comprobante' : 'comprobantes'}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell" />
+                  <TableCell className="hidden xl:table-cell" />
                   <TableCell className="text-right font-semibold">
                     {formatCurrency(totalAmount)}
                   </TableCell>
