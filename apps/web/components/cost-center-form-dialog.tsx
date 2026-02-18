@@ -9,8 +9,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { useFormValidation } from '@/lib/use-form-validation';
+import { costCenterSchema } from '@/lib/schemas';
 import { COST_CENTER_COLOR_HEX, PROJECT_COLORS } from '@/lib/project-colors';
 import type { CostCenter, ProjectColor } from '@architech/shared';
 
@@ -22,6 +24,7 @@ interface CostCenterFormDialogProps {
 
 export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCenterFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { errors, validate, clearErrors } = useFormValidation(costCenterSchema);
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
@@ -38,10 +41,12 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
     } else {
       setFormData({ name: '', description: '', color: '' });
     }
-  }, [costCenter, open]);
+    clearErrors();
+  }, [costCenter, open, clearErrors]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate(formData)) return;
     setIsSubmitting(true);
     try {
       const payload = {
@@ -84,19 +89,20 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cc-name">Nombre <span className="text-red-500">*</span></Label>
+          <Field data-invalid={!!errors.name}>
+            <FieldLabel htmlFor="cc-name">Nombre <span className="text-red-500">*</span></FieldLabel>
             <Input
               id="cc-name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ej: Albañilería"
               maxLength={100}
-              required
+              aria-invalid={!!errors.name}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cc-description">Descripción</Label>
+            <FieldError>{errors.name}</FieldError>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="cc-description">Descripción</FieldLabel>
             <Textarea
               id="cc-description"
               value={formData.description}
@@ -104,9 +110,9 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
               placeholder="Descripción opcional del centro de costos"
               rows={3}
             />
-          </div>
-          <div className="space-y-2">
-            <Label>Color (opcional)</Label>
+          </Field>
+          <Field>
+            <FieldLabel>Color (opcional)</FieldLabel>
             <div className="flex gap-2 flex-wrap">
               {PROJECT_COLORS.map((c) => (
                 <button
@@ -121,7 +127,7 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
                 />
               ))}
             </div>
-          </div>
+          </Field>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar

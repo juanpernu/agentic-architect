@@ -22,7 +22,8 @@ import { formatCurrency } from '@/lib/format';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { receiptReviewSchema } from '@/lib/schemas';
 import {
   Select,
   SelectContent,
@@ -184,28 +185,18 @@ export function ReceiptReview({
   const calculatedTotal = items.reduce((sum, item) => sum + item.subtotal, 0);
 
   const handleConfirm = async () => {
-    if (!projectId) {
-      sileo.error({ title: 'Debes seleccionar un proyecto' });
-      return;
-    }
+    const result = receiptReviewSchema.safeParse({
+      vendor,
+      date,
+      total,
+      projectId,
+      costCenterId,
+      items,
+    });
 
-    if (!costCenterId) {
-      sileo.error({ title: 'Debes seleccionar un centro de costos' });
-      return;
-    }
-
-    if (!vendor) {
-      sileo.error({ title: 'El proveedor es requerido' });
-      return;
-    }
-
-    if (!date) {
-      sileo.error({ title: 'La fecha es requerida' });
-      return;
-    }
-
-    if (items.length === 0) {
-      sileo.error({ title: 'Debes tener al menos un ítem' });
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      sileo.error({ title: firstError.message });
       return;
     }
 
@@ -324,8 +315,8 @@ export function ReceiptReview({
             <Card>
               <CardContent className="p-4 space-y-4">
                 {/* Vendor */}
-                <div>
-                  <Label>Proveedor</Label>
+                <Field>
+                  <FieldLabel>Proveedor</FieldLabel>
                   {editingField === 'vendor' ? (
                     <div className="flex gap-2 mt-1">
                       <Input
@@ -355,11 +346,11 @@ export function ReceiptReview({
                       <Edit2 className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
-                </div>
+                </Field>
 
                 {/* Date */}
-                <div>
-                  <Label>Fecha</Label>
+                <Field>
+                  <FieldLabel>Fecha</FieldLabel>
                   {editingField === 'date' ? (
                     <div className="flex gap-2 mt-1">
                       <Input
@@ -390,11 +381,11 @@ export function ReceiptReview({
                       <Edit2 className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
-                </div>
+                </Field>
 
                 {/* Total */}
-                <div>
-                  <Label>Total</Label>
+                <Field>
+                  <FieldLabel>Total</FieldLabel>
                   {editingField === 'total' ? (
                     <div className="flex gap-2 mt-1">
                       <Input
@@ -431,11 +422,11 @@ export function ReceiptReview({
                       Total de ítems: {formatCurrency(calculatedTotal)}
                     </p>
                   )}
-                </div>
+                </Field>
 
                 {/* Project */}
-                <div>
-                  <Label htmlFor="project">Proyecto *</Label>
+                <Field>
+                  <FieldLabel htmlFor="project">Proyecto *</FieldLabel>
                   <Select value={projectId} onValueChange={setProjectId}>
                     <SelectTrigger id="project" className="w-full mt-1">
                       <SelectValue placeholder="Seleccionar proyecto" />
@@ -456,11 +447,11 @@ export function ReceiptReview({
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
 
                 {/* Cost Center */}
-                <div>
-                  <Label htmlFor="cost-center">Centro de Costos *</Label>
+                <Field>
+                  <FieldLabel htmlFor="cost-center">Centro de Costos *</FieldLabel>
                   <Select value={costCenterId} onValueChange={setCostCenterId}>
                     <SelectTrigger id="cost-center" className="w-full mt-1">
                       <SelectValue placeholder="Seleccionar centro de costos" />
@@ -481,7 +472,7 @@ export function ReceiptReview({
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
               </CardContent>
             </Card>
           </div>
@@ -520,8 +511,8 @@ export function ReceiptReview({
 
                 {item.expanded && (
                   <div className="p-3 border-t bg-muted/30 space-y-3">
-                    <div>
-                      <Label htmlFor={`desc-${item.id}`}>Descripción</Label>
+                    <Field>
+                      <FieldLabel htmlFor={`desc-${item.id}`}>Descripción</FieldLabel>
                       <Input
                         id={`desc-${item.id}`}
                         value={item.description}
@@ -530,10 +521,10 @@ export function ReceiptReview({
                         }
                         placeholder="Descripción del ítem"
                       />
-                    </div>
+                    </Field>
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label htmlFor={`qty-${item.id}`}>Cantidad</Label>
+                      <Field>
+                        <FieldLabel htmlFor={`qty-${item.id}`}>Cantidad</FieldLabel>
                         <Input
                           id={`qty-${item.id}`}
                           type="number"
@@ -543,9 +534,9 @@ export function ReceiptReview({
                             updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
                           }
                         />
-                      </div>
-                      <div>
-                        <Label htmlFor={`price-${item.id}`}>Precio Unitario</Label>
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`price-${item.id}`}>Precio Unitario</FieldLabel>
                         <Input
                           id={`price-${item.id}`}
                           type="number"
@@ -555,7 +546,7 @@ export function ReceiptReview({
                             updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)
                           }
                         />
-                      </div>
+                      </Field>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-medium">

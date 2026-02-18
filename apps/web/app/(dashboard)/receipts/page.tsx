@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -103,10 +103,11 @@ export default function ReceiptsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            aria-label="Buscar por proveedor"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">Proyecto</Label>
+        <Field orientation="horizontal">
+          <FieldLabel className="text-sm whitespace-nowrap">Proyecto</FieldLabel>
           <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Proyecto" />
@@ -120,9 +121,9 @@ export default function ReceiptsPage() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">Estado</Label>
+        </Field>
+        <Field orientation="horizontal">
+          <FieldLabel className="text-sm whitespace-nowrap">Estado</FieldLabel>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Estado" />
@@ -134,9 +135,9 @@ export default function ReceiptsPage() {
               <SelectItem value="rejected">Rechazado</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">Centro de Costos</Label>
+        </Field>
+        <Field orientation="horizontal">
+          <FieldLabel className="text-sm whitespace-nowrap">Centro de Costos</FieldLabel>
           <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
             <SelectTrigger className="w-full sm:w-[220px]">
               <SelectValue placeholder="Centro de Costos" />
@@ -158,12 +159,12 @@ export default function ReceiptsPage() {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </Field>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <Label htmlFor="date-from" className="text-sm whitespace-nowrap">Desde</Label>
+        <Field orientation="horizontal">
+          <FieldLabel htmlFor="date-from" className="text-sm whitespace-nowrap">Desde</FieldLabel>
           <Input
             id="date-from"
             type="date"
@@ -171,9 +172,9 @@ export default function ReceiptsPage() {
             onChange={(e) => setDateFrom(e.target.value)}
             className="w-full sm:w-[160px]"
           />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="date-to" className="text-sm whitespace-nowrap">Hasta</Label>
+        </Field>
+        <Field orientation="horizontal">
+          <FieldLabel htmlFor="date-to" className="text-sm whitespace-nowrap">Hasta</FieldLabel>
           <Input
             id="date-to"
             type="date"
@@ -181,7 +182,7 @@ export default function ReceiptsPage() {
             onChange={(e) => setDateTo(e.target.value)}
             className="w-full sm:w-[160px]"
           />
-        </div>
+        </Field>
       </div>
 
       {isLoadingReceipts && <LoadingTable rows={8} />}

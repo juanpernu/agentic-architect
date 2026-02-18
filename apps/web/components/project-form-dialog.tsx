@@ -14,7 +14,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { useFormValidation } from '@/lib/use-form-validation';
+import { projectSchema } from '@/lib/schemas';
 import {
   Select,
   SelectContent,
@@ -40,6 +42,7 @@ interface ProjectFormDialogProps {
 export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDialogProps) {
   const { data: users = [] } = useSWR<OrgUser[]>(open ? '/api/users' : null, fetcher);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { errors, validate, clearErrors } = useFormValidation(projectSchema);
   const [formData, setFormData] = useState<{
     name: string;
     address: string;
@@ -72,10 +75,12 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         color: '',
       });
     }
-  }, [project, open]);
+    clearErrors();
+  }, [project, open, clearErrors]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate(formData)) return;
     setIsSubmitting(true);
 
     try {
@@ -138,10 +143,10 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">
+          <Field data-invalid={!!errors.name}>
+            <FieldLabel htmlFor="name">
               Nombre <span className="text-red-500">*</span>
-            </Label>
+            </FieldLabel>
             <Input
               id="name"
               value={formData.name}
@@ -149,12 +154,13 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="Ej: Casa Rodriguez"
-              required
+              aria-invalid={!!errors.name}
             />
-          </div>
+            <FieldError>{errors.name}</FieldError>
+          </Field>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Dirección</Label>
+          <Field>
+            <FieldLabel htmlFor="address">Dirección</FieldLabel>
             <Input
               id="address"
               value={formData.address}
@@ -163,10 +169,10 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               }
               placeholder="Ej: Av. Corrientes 1234, CABA"
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Estado</Label>
+          <Field>
+            <FieldLabel htmlFor="status">Estado</FieldLabel>
             <Select
               value={formData.status}
               onValueChange={(value) =>
@@ -182,10 +188,10 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 <SelectItem value="completed">Completado</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <Label htmlFor="architect_id">Arquitecto</Label>
+          <Field>
+            <FieldLabel htmlFor="architect_id">Arquitecto</FieldLabel>
             <Select
               value={formData.architect_id || '__none__'}
               onValueChange={(value) =>
@@ -204,10 +210,10 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <Label>Color (opcional)</Label>
+          <Field>
+            <FieldLabel>Color (opcional)</FieldLabel>
             <div className="flex gap-2 flex-wrap">
               {(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const).map(
                 (c) => (
@@ -230,7 +236,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 )
               )}
             </div>
-          </div>
+          </Field>
 
           <DialogFooter>
             <Button
