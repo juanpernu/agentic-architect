@@ -238,31 +238,35 @@ export default function ReceiptsPage() {
                       {receipt.vendor ?? 'Sin proveedor'}
                     </TableCell>
                     <TableCell>
-                      {receipt.project.color && PROJECT_BADGE_STYLES[receipt.project.color] ? (
-                        <Badge
-                          className="cursor-pointer hover:opacity-80 transition-opacity"
-                          style={{
-                            backgroundColor: PROJECT_BADGE_STYLES[receipt.project.color].bg,
-                            color: PROJECT_BADGE_STYLES[receipt.project.color].text,
-                            borderColor: 'transparent',
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/projects/${receipt.project_id}`);
-                          }}
-                        >
-                          {receipt.project.name}
-                        </Badge>
+                      {receipt.project ? (
+                        receipt.project.color && PROJECT_BADGE_STYLES[receipt.project.color] ? (
+                          <Badge
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{
+                              backgroundColor: PROJECT_BADGE_STYLES[receipt.project.color].bg,
+                              color: PROJECT_BADGE_STYLES[receipt.project.color].text,
+                              borderColor: 'transparent',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/projects/${receipt.project_id}`);
+                            }}
+                          >
+                            {receipt.project.name}
+                          </Badge>
+                        ) : (
+                          <span
+                            className="text-primary hover:underline cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/projects/${receipt.project_id}`);
+                            }}
+                          >
+                            {receipt.project.name}
+                          </span>
+                        )
                       ) : (
-                        <span
-                          className="text-primary hover:underline cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/projects/${receipt.project_id}`);
-                          }}
-                        >
-                          {receipt.project.name}
-                        </span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
