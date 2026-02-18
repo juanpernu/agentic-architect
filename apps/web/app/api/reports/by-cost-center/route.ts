@@ -16,9 +16,9 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('receipts')
-    .select('total_amount, cost_center:cost_centers!inner(id, name, color, organization_id)')
+    .select('total_amount, cost_center:cost_centers!inner(id, name, color), project:projects!inner(organization_id)')
     .eq('status', 'confirmed')
-    .eq('cost_center.organization_id', ctx.orgId);
+    .eq('project.organization_id', ctx.orgId);
 
   if (projectId) query = query.eq('project_id', projectId);
   if (dateFrom) query = query.gte('receipt_date', dateFrom);

@@ -3,7 +3,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
-import { COST_CENTER_BADGE_STYLES } from '@/lib/project-colors';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { CostCenterSpend, ProjectColor } from '@architech/shared';
 
 const currencyTickFormatter = (value: number) => formatCurrencyCompact(value);
@@ -62,8 +62,8 @@ export function SpendByCostCenterChart({ data }: { data: CostCenterSpend[] }) {
                 <Cell
                   key={entry.cost_center_id}
                   fill={
-                    entry.cost_center_color && COST_CENTER_BADGE_STYLES[entry.cost_center_color as ProjectColor]
-                      ? COST_CENTER_BADGE_STYLES[entry.cost_center_color as ProjectColor].text
+                    entry.cost_center_color && PROJECT_COLOR_HEX[entry.cost_center_color as ProjectColor]
+                      ? PROJECT_COLOR_HEX[entry.cost_center_color as ProjectColor]
                       : DEFAULT_BAR_COLOR
                   }
                 />

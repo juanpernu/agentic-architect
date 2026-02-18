@@ -203,6 +203,10 @@ export default function ReportsPage() {
                             <TableRow
                               className="cursor-pointer hover:bg-muted/50"
                               onClick={() => handleToggleCostCenter(row.cost_center_id)}
+                              aria-expanded={isExpanded}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleToggleCostCenter(row.cost_center_id); }}
                             >
                               <TableCell>
                                 {isExpanded
