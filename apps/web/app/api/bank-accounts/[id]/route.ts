@@ -24,6 +24,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: 'El nombre del banco no puede estar vacío' }, { status: 400 });
   }
 
+  const VALID_CURRENCIES = ['ARS', 'USD'];
+  if (body.currency !== undefined && !VALID_CURRENCIES.includes(body.currency as string)) {
+    return NextResponse.json({ error: 'Moneda no válida. Opciones: ARS, USD' }, { status: 400 });
+  }
+
   const db = getDb();
 
   const updateFields: Record<string, unknown> = {};

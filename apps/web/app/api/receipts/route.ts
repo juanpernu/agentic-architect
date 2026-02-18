@@ -90,6 +90,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Validate bank_account_id if provided
+  if (body.bank_account_id) {
+    const { data: validBA } = await db
+      .from('bank_accounts')
+      .select('id')
+      .eq('id', body.bank_account_id as string)
+      .eq('organization_id', ctx.orgId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (!validBA) {
+      return NextResponse.json(
+        { error: 'Cuenta bancaria no válida o inactiva' },
+        { status: 400 }
+      );
+    }
+  }
+
   // Upsert supplier if provided
   let supplierId: string | null = null;
   const supplierData = body.supplier as Record<string, unknown> | undefined;

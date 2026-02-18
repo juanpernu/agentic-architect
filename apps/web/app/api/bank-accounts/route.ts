@@ -38,6 +38,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'El nombre del banco es requerido' }, { status: 400 });
   }
 
+  const VALID_CURRENCIES = ['ARS', 'USD'];
+  if (body.currency && !VALID_CURRENCIES.includes(body.currency as string)) {
+    return NextResponse.json({ error: 'Moneda no válida. Opciones: ARS, USD' }, { status: 400 });
+  }
+
   const db = getDb();
   const { data, error } = await db
     .from('bank_accounts')
