@@ -226,3 +226,11 @@ export interface SpendTrend {
   month: string;
   total: number;
 }
+
+export interface CostCenterSpend {
+  cost_center_id: string;
+  cost_center_name: string;
+  cost_center_color: string | null;
+  total_amount: number;
+  receipt_count: number;
+}
