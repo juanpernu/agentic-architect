@@ -75,7 +75,7 @@ export default function ProjectsPage() {
         }
       />
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -86,10 +86,10 @@ export default function ProjectsPage() {
             aria-label="Buscar proyectos"
           />
         </div>
-        <Field orientation="horizontal" className="w-auto items-center">
-          <FieldLabel className="text-sm whitespace-nowrap flex-none">Estado</FieldLabel>
+        <Field className="sm:w-auto">
+          <FieldLabel>Estado</FieldLabel>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="sm:w-[180px]">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
