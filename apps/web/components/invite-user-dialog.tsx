@@ -99,6 +99,7 @@ export function InviteUserDialog() {
               placeholder="usuario@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              aria-required="true"
               aria-invalid={!!errors.email}
             />
             <FieldError>{errors.email}</FieldError>
@@ -118,7 +119,7 @@ export function InviteUserDialog() {
             <FieldError>{errors.role}</FieldError>
           </Field>
           <div className="flex justify-end">
-            <Button onClick={handleInvite} disabled={sending}>
+            <Button onClick={handleInvite} disabled={sending || !email.trim()}>
               {sending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {sending ? 'Enviando...' : 'Enviar invitación'}
             </Button>

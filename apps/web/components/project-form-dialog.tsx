@@ -154,6 +154,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="Ej: Casa Rodriguez"
+              aria-required="true"
               aria-invalid={!!errors.name}
             />
             <FieldError>{errors.name}</FieldError>

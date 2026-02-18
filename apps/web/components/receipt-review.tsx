@@ -22,7 +22,7 @@ import { formatCurrency } from '@/lib/format';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { receiptReviewSchema } from '@/lib/schemas';
 import {
   Select,

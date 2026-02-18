@@ -97,6 +97,7 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ej: Albañilería"
               maxLength={100}
+              aria-required="true"
               aria-invalid={!!errors.name}
             />
             <FieldError>{errors.name}</FieldError>
