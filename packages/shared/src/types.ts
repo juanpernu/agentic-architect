@@ -63,6 +63,7 @@ export interface Receipt {
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
   cost_center_id: string | null;
+  bank_account_id: string | null;
   status: ReceiptStatus;
   created_at: string;
   updated_at: string;
@@ -101,6 +102,19 @@ export interface CostCenter {
   name: string;
   description: string | null;
   color: ProjectColor | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BankAccount {
+  id: string;
+  organization_id: string;
+  name: string;
+  bank_name: string;
+  cbu: string | null;
+  alias: string | null;
+  currency: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -166,6 +180,7 @@ export interface UpdateProjectInput {
 export interface ConfirmReceiptInput {
   project_id: string;
   cost_center_id: string;
+  bank_account_id?: string;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
