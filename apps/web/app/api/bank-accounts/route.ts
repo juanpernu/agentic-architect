@@ -5,7 +5,6 @@ import { getDb } from '@/lib/supabase';
 export async function GET() {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
-  if (ctx.role === 'architect') return forbidden();
 
   const db = getDb();
   const { data, error } = await db

@@ -160,6 +160,7 @@ export async function POST(req: NextRequest) {
     .insert({
       project_id: body.project_id,
       cost_center_id: body.cost_center_id,
+      bank_account_id: body.bank_account_id ?? null,
       uploaded_by: ctx.dbUserId,
       vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
       supplier_id: supplierId,
