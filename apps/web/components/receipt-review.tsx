@@ -321,7 +321,7 @@ export function ReceiptReview({
                 <Field>
                   <FieldLabel>Proveedor</FieldLabel>
                   {editingField === 'vendor' ? (
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex gap-2">
                       <Input
                         value={tempValue}
                         onChange={(e) => setTempValue(e.target.value)}
@@ -335,18 +335,17 @@ export function ReceiptReview({
                       </Button>
                     </div>
                   ) : (
-                    <div
-                      className="flex items-center justify-between p-2 rounded border mt-1 cursor-pointer hover:bg-muted/50"
-                      onClick={() => startEditing('vendor', vendor)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') startEditing('vendor', vendor); }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label="Editar proveedor"
-                    >
-                      <span className={vendor ? '' : 'text-muted-foreground'}>
-                        {vendor || 'Sin proveedor'}
-                      </span>
-                      <Edit2 className="h-4 w-4 text-muted-foreground" />
+                    <div className="relative cursor-pointer" onClick={() => startEditing('vendor', vendor)}>
+                      <Input
+                        readOnly
+                        value={vendor || ''}
+                        placeholder="Sin proveedor"
+                        className="cursor-pointer pr-9"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') startEditing('vendor', vendor); }}
+                        aria-label="Editar proveedor"
+                      />
+                      <Edit2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   )}
                 </Field>
@@ -355,7 +354,7 @@ export function ReceiptReview({
                 <Field>
                   <FieldLabel>Fecha</FieldLabel>
                   {editingField === 'date' ? (
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex gap-2">
                       <Input
                         type="date"
                         value={tempValue}
@@ -370,18 +369,17 @@ export function ReceiptReview({
                       </Button>
                     </div>
                   ) : (
-                    <div
-                      className="flex items-center justify-between p-2 rounded border mt-1 cursor-pointer hover:bg-muted/50"
-                      onClick={() => startEditing('date', date)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') startEditing('date', date); }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label="Editar fecha"
-                    >
-                      <span className={date ? '' : 'text-muted-foreground'}>
-                        {date ? new Date(date).toLocaleDateString('es-AR') : 'Sin fecha'}
-                      </span>
-                      <Edit2 className="h-4 w-4 text-muted-foreground" />
+                    <div className="relative cursor-pointer" onClick={() => startEditing('date', date)}>
+                      <Input
+                        readOnly
+                        value={date ? new Date(date).toLocaleDateString('es-AR') : ''}
+                        placeholder="Sin fecha"
+                        className="cursor-pointer pr-9"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') startEditing('date', date); }}
+                        aria-label="Editar fecha"
+                      />
+                      <Edit2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   )}
                 </Field>
@@ -390,7 +388,7 @@ export function ReceiptReview({
                 <Field>
                   <FieldLabel>Total</FieldLabel>
                   {editingField === 'total' ? (
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex gap-2">
                       <Input
                         type="number"
                         step="0.01"
@@ -406,18 +404,16 @@ export function ReceiptReview({
                       </Button>
                     </div>
                   ) : (
-                    <div
-                      className="flex items-center justify-between p-2 rounded border mt-1 cursor-pointer hover:bg-muted/50"
-                      onClick={() => startEditing('total', total)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') startEditing('total', total); }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label="Editar total"
-                    >
-                      <span className="font-semibold">
-                        {formatCurrency(parseFloat(total) || 0)}
-                      </span>
-                      <Edit2 className="h-4 w-4 text-muted-foreground" />
+                    <div className="relative cursor-pointer" onClick={() => startEditing('total', total)}>
+                      <Input
+                        readOnly
+                        value={formatCurrency(parseFloat(total) || 0)}
+                        className="cursor-pointer pr-9 font-semibold"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') startEditing('total', total); }}
+                        aria-label="Editar total"
+                      />
+                      <Edit2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   )}
                   {Math.abs((parseFloat(total) || 0) - calculatedTotal) > 0.01 && (
