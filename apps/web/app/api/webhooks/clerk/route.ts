@@ -9,6 +9,7 @@ import type { UserRole } from '@architech/shared';
 type WebhookEventType =
   | 'user.created'
   | 'user.updated'
+  | 'organization.created'
   | 'organizationMembership.created'
   | 'organizationMembership.updated';
 
@@ -93,19 +94,39 @@ export async function POST(req: Request) {
     case 'user.updated': {
       const data = event.data;
       const orgMemberships = data.organization_memberships as Array<{
-        organization: { id: string; name: string; slug: string };
+        organization: { id: string; name: string; slug: string; image_url?: string };
         role: string;
       }> | undefined;
 
       const org = orgMemberships?.[0]?.organization;
       if (!org) break;
 
-      // Upsert organization
-      const { error: orgError } = await db.from('organizations').upsert({
+      // Upsert organization — seed logo_url only on first insert to avoid overwriting user edits
+      const { data: existingOrg, error: lookupError } = await db.from('organizations')
+        .select('id')
+        .eq('id', org.id)
+        .maybeSingle();
+
+      // Fail-safe: if lookup fails, assume org exists (skip logo to avoid overwrite)
+      if (lookupError) {
+        console.error('Failed to check existing org:', lookupError);
+      }
+
+      const orgPayload: Record<string, string | null> = {
         id: org.id,
         name: org.name,
         slug: org.slug,
-      }, { onConflict: 'id' });
+      };
+
+      // Only seed logo on first insert
+      if (!existingOrg && !lookupError && org.image_url) {
+        orgPayload.logo_url = org.image_url;
+      }
+
+      const { error: orgError } = await db.from('organizations').upsert(
+        orgPayload,
+        { onConflict: 'id' }
+      );
 
       if (orgError) {
         console.error('Failed to upsert organization:', orgError);
@@ -168,6 +189,28 @@ export async function POST(req: Request) {
       }
 
       await syncMetadataToClerk(clerkUserId, updatedUser.id, updatedUser.role as UserRole);
+
+      break;
+    }
+
+    case 'organization.created': {
+      const data = event.data;
+      const orgId = data.id as string;
+      const orgName = data.name as string;
+      const orgSlug = data.slug as string;
+      const imageUrl = (data.image_url as string | undefined) ?? null;
+
+      const { error: orgError } = await db.from('organizations').upsert({
+        id: orgId,
+        name: orgName,
+        slug: orgSlug,
+        logo_url: imageUrl,
+      }, { onConflict: 'id' });
+
+      if (orgError) {
+        console.error('Failed to upsert organization from org.created:', orgError);
+        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      }
 
       break;
     }

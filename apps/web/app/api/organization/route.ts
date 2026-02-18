@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb, getPublicFileUrl } from '@/lib/supabase';
 
+/** If logo_url is already a full URL, return as-is; otherwise resolve via Supabase storage. */
+function resolveLogoUrl(logoUrl: string | null): string | null {
+  if (!logoUrl) return null;
+  if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) return logoUrl;
+  return getPublicFileUrl('org-assets', logoUrl);
+}
+
 export async function GET() {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
@@ -15,9 +22,7 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  if (data.logo_url) {
-    data.logo_url = getPublicFileUrl('org-assets', data.logo_url);
-  }
+  data.logo_url = resolveLogoUrl(data.logo_url);
 
   return NextResponse.json(data);
 }
@@ -70,9 +75,7 @@ export async function PATCH(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  if (data.logo_url) {
-    data.logo_url = getPublicFileUrl('org-assets', data.logo_url);
-  }
+  data.logo_url = resolveLogoUrl(data.logo_url);
 
   return NextResponse.json(data);
 }

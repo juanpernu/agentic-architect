@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (saveError) return NextResponse.json({ error: saveError.message }, { status: 500 });
 
   // Remove old logo file after DB update (minimizes orphan risk)
-  if (oldLogoUrl && oldLogoUrl !== path) {
+  if (oldLogoUrl && oldLogoUrl !== path && !oldLogoUrl.startsWith('http')) {
     await db.storage.from('org-assets').remove([oldLogoUrl]);
   }
 
