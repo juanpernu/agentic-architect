@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('receipts')
-    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), cost_center:cost_centers(id, name, color)')
+    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), cost_center:cost_centers(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
     .order('created_at', { ascending: false });
 
   // Filter by org via projects
