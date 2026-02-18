@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('receipts')
-    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), cost_center:cost_centers(id, name, color)')
+    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), cost_center:cost_centers(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
     .order('created_at', { ascending: false });
 
   // Filter by org via projects
@@ -90,6 +90,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Validate bank_account_id if provided
+  if (body.bank_account_id) {
+    const { data: validBA } = await db
+      .from('bank_accounts')
+      .select('id')
+      .eq('id', body.bank_account_id as string)
+      .eq('organization_id', ctx.orgId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (!validBA) {
+      return NextResponse.json(
+        { error: 'Cuenta bancaria no válida o inactiva' },
+        { status: 400 }
+      );
+    }
+  }
+
   // Upsert supplier if provided
   let supplierId: string | null = null;
   const supplierData = body.supplier as Record<string, unknown> | undefined;
@@ -160,6 +178,7 @@ export async function POST(req: NextRequest) {
     .insert({
       project_id: body.project_id,
       cost_center_id: body.cost_center_id,
+      bank_account_id: body.bank_account_id ?? null,
       uploaded_by: ctx.dbUserId,
       vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
       supplier_id: supplierId,

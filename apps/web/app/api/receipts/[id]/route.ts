@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data, error } = await db
     .from('receipts')
-    .select('*, project:projects!inner(id, name, color, organization_id), uploader:users!uploaded_by(id, full_name), receipt_items(*), cost_center:cost_centers(id, name, color)')
+    .select('*, project:projects!inner(id, name, color, organization_id), uploader:users!uploaded_by(id, full_name), receipt_items(*), cost_center:cost_centers(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
     .eq('id', id)
     .eq('project.organization_id', ctx.orgId)
     .single();
@@ -95,6 +95,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
     }
     updateFields.cost_center_id = body.cost_center_id;
+  }
+
+  if (body.bank_account_id !== undefined) {
+    if (body.bank_account_id !== null) {
+      const { data: validBA } = await db
+        .from('bank_accounts')
+        .select('id')
+        .eq('id', body.bank_account_id as string)
+        .eq('organization_id', ctx.orgId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!validBA) {
+        return NextResponse.json(
+          { error: 'Cuenta bancaria no válida o inactiva' },
+          { status: 400 }
+        );
+      }
+    }
+    updateFields.bank_account_id = body.bank_account_id;
   }
 
   if (Object.keys(updateFields).length === 0) {

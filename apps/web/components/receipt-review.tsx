@@ -43,7 +43,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { PROJECT_COLOR_HEX, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
-import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, CostCenter } from '@architech/shared';
+import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, CostCenter, BankAccount } from '@architech/shared';
 
 interface ReceiptReviewProps {
   imageUrl: string;
@@ -76,6 +76,7 @@ export function ReceiptReview({
   const [total, setTotal] = useState(extractionResult.totals.total?.toString() ?? '');
   const [projectId, setProjectId] = useState(preSelectedProjectId ?? '');
   const [costCenterId, setCostCenterId] = useState('');
+  const [bankAccountId, setBankAccountId] = useState('');
   const [items, setItems] = useState<EditableItem[]>(
     extractionResult.items.map((item, index) => ({
       ...item,
@@ -89,6 +90,7 @@ export function ReceiptReview({
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
   const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
 
   const confidence = extractionResult.confidence;
 
@@ -206,6 +208,7 @@ export function ReceiptReview({
       const payload: ConfirmReceiptInput = {
         project_id: projectId,
         cost_center_id: costCenterId,
+        bank_account_id: bankAccountId || undefined,
         image_url: storagePath,
         ai_raw_response: { ...extractionResult },
         ai_confidence: confidence,
@@ -473,6 +476,23 @@ export function ReceiptReview({
                     </SelectContent>
                   </Select>
                 </Field>
+
+                {/* Bank Account */}
+                <div className="space-y-2">
+                  <Label>Cuenta Bancaria (opcional)</Label>
+                  <Select value={bankAccountId} onValueChange={setBankAccountId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cuenta bancaria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bankAccounts?.map((ba) => (
+                        <SelectItem key={ba.id} value={ba.id}>
+                          {ba.name} ({ba.bank_name})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -10,6 +10,7 @@ const tabs = [
   { href: '/settings/general', label: 'General', roles: ['admin', 'supervisor', 'architect'] },
   { href: '/settings/users', label: 'Usuarios', roles: ['admin'] },
   { href: '/settings/cost-centers', label: 'Centro de Costos', roles: ['admin', 'supervisor'] },
+  { href: '/settings/banks', label: 'Bancos', roles: ['admin', 'supervisor'] },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

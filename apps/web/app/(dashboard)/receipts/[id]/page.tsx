@@ -14,6 +14,7 @@ import {
   DollarSign,
   Package,
   Layers,
+  Landmark,
 } from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
@@ -21,7 +22,7 @@ import { formatCurrency } from '@/lib/format';
 import { PROJECT_COLOR_HEX, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
-import type { CostCenter } from '@architech/shared';
+import type { CostCenter, BankAccount } from '@architech/shared';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -70,6 +71,8 @@ export default function ReceiptDetailPage() {
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [selectedCostCenterId, setSelectedCostCenterId] = useState('');
   const [isSavingCostCenter, setIsSavingCostCenter] = useState(false);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState('');
+  const [isSavingBankAccount, setIsSavingBankAccount] = useState(false);
 
   const { data: receipt, isLoading, error } = useSWR<ReceiptDetail>(
     receiptId ? `/api/receipts/${receiptId}` : null,
@@ -77,6 +80,7 @@ export default function ReceiptDetailPage() {
   );
 
   const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -125,6 +129,28 @@ export default function ReceiptDetailPage() {
       sileo.error({ title: error instanceof Error ? error.message : 'Error al asignar' });
     } finally {
       setIsSavingCostCenter(false);
+    }
+  };
+
+  const handleSaveBankAccount = async () => {
+    if (!selectedBankAccountId) return;
+    setIsSavingBankAccount(true);
+    try {
+      const response = await fetch(`/api/receipts/${receiptId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bank_account_id: selectedBankAccountId }),
+      });
+      if (!response.ok) {
+        const errorBody = await response.json();
+        throw new Error(errorBody.error ?? 'Error al asignar cuenta bancaria');
+      }
+      sileo.success({ title: 'Cuenta bancaria asignada' });
+      await mutate(`/api/receipts/${receiptId}`);
+    } catch (error) {
+      sileo.error({ title: error instanceof Error ? error.message : 'Error al asignar' });
+    } finally {
+      setIsSavingBankAccount(false);
     }
   };
 
@@ -326,6 +352,41 @@ export default function ReceiptDetailPage() {
                       {selectedCostCenterId && (
                         <Button size="sm" onClick={handleSaveCostCenter} disabled={isSavingCostCenter}>
                           {isSavingCostCenter ? 'Guardando...' : 'Asignar'}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Sin asignar</span>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-muted-foreground">
+                    <Landmark className="h-3.5 w-3.5" />
+                    Cuenta Bancaria
+                  </Label>
+                  {receipt.bank_account ? (
+                    <div className="text-sm font-medium">
+                      {receipt.bank_account.name}
+                      <span className="text-muted-foreground ml-1">({receipt.bank_account.bank_name})</span>
+                    </div>
+                  ) : isAdminOrSupervisor ? (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                      <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
+                        <SelectTrigger className="w-full sm:w-[220px]">
+                          <SelectValue placeholder="Asignar cuenta" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bankAccounts?.map((ba) => (
+                            <SelectItem key={ba.id} value={ba.id}>
+                              {ba.name} ({ba.bank_name})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedBankAccountId && (
+                        <Button size="sm" onClick={handleSaveBankAccount} disabled={isSavingBankAccount}>
+                          {isSavingBankAccount ? 'Guardando...' : 'Asignar'}
                         </Button>
                       )}
                     </div>
