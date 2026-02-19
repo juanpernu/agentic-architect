@@ -103,3 +103,30 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   return NextResponse.json({ version_number: newVersion, total_amount: totalAmount });
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext();
+  if (!ctx) return unauthorized();
+  if (ctx.role === 'architect') return forbidden();
+
+  const { id } = await params;
+  const db = getDb();
+
+  const { data: budget } = await db
+    .from('budgets')
+    .select('id')
+    .eq('id', id)
+    .eq('organization_id', ctx.orgId)
+    .single();
+
+  if (!budget) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  const { error } = await db
+    .from('budgets')
+    .delete()
+    .eq('id', id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true });
+}
