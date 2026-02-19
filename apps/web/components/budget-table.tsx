@@ -139,8 +139,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
     setIsDirty(true);
   }, [costCenters]);
 
-  const usedCostCenterIds = new Set(sections.map((s) => s.cost_center_id));
-  const availableCostCenters = costCenters.filter((c) => c.is_active && !usedCostCenterIds.has(c.id));
+  const activeCostCenters = costCenters.filter((c) => c.is_active);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -377,7 +376,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
         </table>
       </div>
 
-      {!readOnly && availableCostCenters.length > 0 && (
+      {!readOnly && activeCostCenters.length > 0 && (
         <div className="flex items-center gap-2">
           <Plus className="h-4 w-4 text-muted-foreground" />
           <Select key={`base-${sections.length}`} onValueChange={(id) => addSection(id, false)}>
@@ -385,7 +384,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
               <SelectValue placeholder="Agregar rubro base..." />
             </SelectTrigger>
             <SelectContent>
-              {availableCostCenters.map((cc) => (
+              {activeCostCenters.map((cc) => (
                 <SelectItem key={cc.id} value={cc.id}>{cc.name}</SelectItem>
               ))}
             </SelectContent>
@@ -395,7 +394,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
               <SelectValue placeholder="Agregar adicional..." />
             </SelectTrigger>
             <SelectContent>
-              {availableCostCenters.map((cc) => (
+              {activeCostCenters.map((cc) => (
                 <SelectItem key={cc.id} value={cc.id}>{cc.name}</SelectItem>
               ))}
             </SelectContent>
