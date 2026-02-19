@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/client';
+import { getStripe } from '@/lib/stripe/client';
 import { getDb } from '@/lib/supabase';
 import type Stripe from 'stripe';
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
             ? session.customer
             : session.customer.id;
 
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
         const seatItem = subscription.items.data.find(
           (item) =>
             item.price.id === process.env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID ||

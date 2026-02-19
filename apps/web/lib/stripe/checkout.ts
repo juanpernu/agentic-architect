@@ -3,7 +3,7 @@
 // a SetupIntent + Subscription instead of a Checkout Session.
 // Webhooks, feature gating, and portal code do NOT change.
 
-import { stripe } from './client';
+import { getStripe } from './client';
 
 interface CreateCheckoutParams {
   orgId: string;
@@ -32,7 +32,7 @@ export async function createCheckoutSession({
       ? process.env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID!
       : process.env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID!;
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: 'subscription',
     ...(stripeCustomerId
       ? { customer: stripeCustomerId }
