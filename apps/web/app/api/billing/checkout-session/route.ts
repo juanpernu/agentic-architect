@@ -20,11 +20,18 @@ export async function POST(request: Request) {
   }
 
   const db = getDb();
-  const { data: org } = await db
-    .from('organizations')
-    .select('id, plan, stripe_customer_id')
-    .eq('id', ctx.orgId)
-    .single();
+  const [{ data: org }, { data: user }] = await Promise.all([
+    db
+      .from('organizations')
+      .select('id, plan, stripe_customer_id')
+      .eq('id', ctx.orgId)
+      .single(),
+    db
+      .from('users')
+      .select('email')
+      .eq('id', ctx.dbUserId)
+      .single(),
+  ]);
 
   if (!org) {
     return NextResponse.json({ error: 'Organización no encontrada' }, { status: 404 });
@@ -42,11 +49,19 @@ export async function POST(request: Request) {
   const protocol = host.includes('localhost') ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
 
+  const customerEmail = user?.email ?? '';
+  if (!org.stripe_customer_id && !customerEmail) {
+    return NextResponse.json(
+      { error: 'No se encontró un email para crear la suscripción' },
+      { status: 400 }
+    );
+  }
+
   // FUTURE: Elements migration — replace createCheckoutSession with
   // createSetupIntent + inline PaymentForm component
   const session = await createCheckoutSession({
     orgId: ctx.orgId,
-    customerEmail: '',
+    customerEmail,
     stripeCustomerId: org.stripe_customer_id,
     billingCycle,
     seatCount,

@@ -15,6 +15,11 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 
+const ADVANCE_PRICING = {
+  monthly: { base: 30, seat: 5 },
+  yearly: { base: 300, seat: 50 },
+} as const;
+
 const PLAN_FEATURES = {
   free: [
     '1 proyecto',
@@ -227,7 +232,18 @@ export default function BillingPage() {
                   <Zap className="h-4 w-4 text-amber-500" />
                 </div>
                 <CardDescription>Para equipos en crecimiento</CardDescription>
-                <p className="text-3xl font-bold">Consultar precio</p>
+                <div>
+                  <p className="text-3xl font-bold">
+                    US${ADVANCE_PRICING[billingOption].base}
+                    <span className="text-base font-normal text-muted-foreground">
+                      /{billingOption === 'monthly' ? 'mes' : 'año'}
+                    </span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    + US${ADVANCE_PRICING[billingOption].seat}/usuario
+                    {billingOption === 'monthly' ? '/mes' : '/año'}
+                  </p>
+                </div>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
@@ -251,6 +267,25 @@ export default function BillingPage() {
                         onChange={(e) => setSeatCount(Number(e.target.value))}
                         className="mt-1 w-full"
                       />
+                      <div className="mt-2 rounded-md bg-muted/50 p-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Base</span>
+                          <span>US${ADVANCE_PRICING[billingOption].base}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            {seatCount} usuario{seatCount > 1 ? 's' : ''} x US${ADVANCE_PRICING[billingOption].seat}
+                          </span>
+                          <span>US${ADVANCE_PRICING[billingOption].seat * seatCount}</span>
+                        </div>
+                        <div className="mt-1 flex justify-between border-t pt-1 font-medium">
+                          <span>Total</span>
+                          <span>
+                            US${ADVANCE_PRICING[billingOption].base + ADVANCE_PRICING[billingOption].seat * seatCount}
+                            /{billingOption === 'monthly' ? 'mes' : 'año'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     <Button
                       className="mt-4 w-full"
