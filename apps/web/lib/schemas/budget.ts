@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const budgetItemSchema = z.object({
-  description: z.string().min(1, 'La descripcion es requerida'),
+  description: z.string(),
   unit: z.string(),
   quantity: z.number().min(0),
   cost: z.number().min(0),
