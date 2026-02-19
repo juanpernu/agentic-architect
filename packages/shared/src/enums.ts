@@ -18,3 +18,9 @@ export const ReceiptStatus = {
   REJECTED: 'rejected',
 } as const;
 export type ReceiptStatus = (typeof ReceiptStatus)[keyof typeof ReceiptStatus];
+
+export const PROJECT_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const;
+export type ProjectColor = (typeof PROJECT_COLORS)[number];
+
+export const CURRENCIES = ['ARS', 'USD'] as const;
+export type Currency = (typeof CURRENCIES)[number];
