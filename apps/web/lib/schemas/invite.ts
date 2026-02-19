@@ -6,3 +6,11 @@ export const inviteSchema = z.object({
 });
 
 export type InviteFormData = z.infer<typeof inviteSchema>;
+
+// API schema
+export const inviteCreateSchema = z.object({
+  email: z.string().email('Invalid email').transform(s => s.trim().toLowerCase()),
+  role: z.enum(['admin', 'supervisor', 'architect']),
+});
+
+export type InviteCreateInput = z.infer<typeof inviteCreateSchema>;
