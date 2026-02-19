@@ -239,7 +239,7 @@ export default function ProjectDetailPage() {
       ) : isAdminOrSupervisor ? (
         <div className="mb-6">
           <Button variant="outline" asChild>
-            <Link href={`/budgets/new?project_id=${projectId}`}>
+            <Link href={`/budgets`}>
               <Calculator className="mr-2 h-4 w-4" />
               Crear presupuesto
             </Link>

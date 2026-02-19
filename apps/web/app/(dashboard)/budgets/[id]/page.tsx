@@ -1,6 +1,7 @@
 'use client';
 
 import { use } from 'react';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { ArrowLeft, History } from 'lucide-react';
@@ -12,10 +13,18 @@ import type { BudgetDetail } from '@/lib/api-types';
 
 export default function BudgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { data: budget, isLoading, error } = useSWR<BudgetDetail>(
-    `/api/budgets/${id}`,
-    fetcher
-  );
+  const searchParams = useSearchParams();
+  const versionParam = searchParams.get('version');
+
+  const apiUrl = versionParam
+    ? `/api/budgets/${id}?version=${versionParam}`
+    : `/api/budgets/${id}`;
+
+  const { data: budget, isLoading, error } = useSWR<BudgetDetail>(apiUrl, fetcher);
+
+  const isHistoricalVersion = versionParam && budget
+    ? Number(versionParam) !== budget.current_version
+    : false;
 
   if (isLoading) {
     return (
@@ -47,8 +56,15 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
             Historial
           </Button>
         </Link>
+        {isHistoricalVersion && (
+          <Link href={`/budgets/${id}`}>
+            <Button variant="outline" size="sm">
+              Volver a version actual
+            </Button>
+          </Link>
+        )}
       </div>
-      <BudgetEditor budget={budget} />
+      <BudgetEditor budget={budget} readOnly={isHistoricalVersion || undefined} />
     </div>
   );
 }

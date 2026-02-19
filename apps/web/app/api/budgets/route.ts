@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { budgetSnapshotSchema } from '@/lib/schemas';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -11,11 +12,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('budgets')
-    .select(`
-      *,
-      project:projects!project_id(id, name),
-      latest_version:budget_versions(total_amount)
-    `)
+    .select('*, project:projects!project_id(id, name)')
     .eq('organization_id', ctx.orgId)
     .order('updated_at', { ascending: false });
 
@@ -26,14 +23,34 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const budgets = (data ?? []).map(({ latest_version, project, ...b }) => {
-    const versions = latest_version as Array<{ total_amount: number }> | null;
-    return {
-      ...b,
-      project_name: (project as { id: string; name: string })?.name ?? '',
-      total_amount: versions?.length ? Number(versions[versions.length - 1].total_amount) : 0,
-    };
-  });
+  // Fetch latest version total for each budget
+  const budgetIds = (data ?? []).map((b) => b.id);
+  let versionTotals: Record<string, number> = {};
+
+  if (budgetIds.length > 0) {
+    const { data: versions } = await db
+      .from('budget_versions')
+      .select('budget_id, version_number, total_amount')
+      .in('budget_id', budgetIds);
+
+    // Group by budget_id and take the highest version_number
+    const latestVersions: Record<string, { version: number; total: number }> = {};
+    for (const v of versions ?? []) {
+      const existing = latestVersions[v.budget_id];
+      if (!existing || v.version_number > existing.version) {
+        latestVersions[v.budget_id] = { version: v.version_number, total: Number(v.total_amount) };
+      }
+    }
+    versionTotals = Object.fromEntries(
+      Object.entries(latestVersions).map(([id, v]) => [id, v.total])
+    );
+  }
+
+  const budgets = (data ?? []).map(({ project, ...b }) => ({
+    ...b,
+    project_name: (project as { id: string; name: string })?.name ?? '',
+    total_amount: versionTotals[b.id] ?? 0,
+  }));
 
   return NextResponse.json(budgets);
 }
@@ -58,6 +75,12 @@ export async function POST(req: NextRequest) {
   }
   if (!snapshot) {
     return NextResponse.json({ error: 'snapshot is required' }, { status: 400 });
+  }
+
+  try {
+    budgetSnapshotSchema.parse(snapshot);
+  } catch (validationError) {
+    return NextResponse.json({ error: 'Invalid snapshot format' }, { status: 400 });
   }
 
   const db = getDb();
