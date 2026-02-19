@@ -169,26 +169,71 @@ export async function POST(req: Request) {
     case 'organizationMembership.updated': {
       const data = event.data;
       const orgData = data.organization as { id: string; name: string; slug: string };
-      const userData = data.public_user_data as { user_id: string };
+      const userData = data.public_user_data as {
+        user_id: string;
+        first_name?: string;
+        last_name?: string;
+        identifier?: string;
+        image_url?: string;
+      };
       const role = data.role as string;
 
       const mappedRole = CLERK_ROLE_MAP[role] ?? 'architect';
       const clerkUserId = userData.user_id;
 
-      const { data: updatedUser, error: roleError } = await db.from('users')
+      // Try to update existing user first
+      const { data: updatedUser } = await db.from('users')
         .update({ role: mappedRole })
         .eq('clerk_user_id', clerkUserId)
         .eq('organization_id', orgData.id)
         .select('id, role')
         .single();
 
-      // I3: User may not exist yet if user.created webhook hasn't been processed
-      if (roleError || !updatedUser) {
-        console.warn('User not found for membership update (may arrive before user.created):', clerkUserId);
+      if (updatedUser) {
+        await syncMetadataToClerk(clerkUserId, updatedUser.id, updatedUser.role as UserRole);
         break;
       }
 
-      await syncMetadataToClerk(clerkUserId, updatedUser.id, updatedUser.role as UserRole);
+      // User doesn't exist yet — create them (common for invited users)
+      // Ensure org exists
+      await db.from('organizations').upsert(
+        { id: orgData.id, name: orgData.name, slug: orgData.slug },
+        { onConflict: 'id' }
+      );
+
+      // Get user details from Clerk
+      let fullName = `${userData.first_name ?? ''} ${userData.last_name ?? ''}`.trim() || 'Usuario';
+      let email = userData.identifier ?? '';
+
+      if (fullName === 'Usuario' || !email) {
+        try {
+          const client = await clerkClient();
+          const clerkUser = await client.users.getUser(clerkUserId);
+          fullName = `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() || fullName;
+          email = email || (clerkUser.emailAddresses?.[0]?.emailAddress ?? '');
+        } catch (e) {
+          console.error('Failed to fetch Clerk user for membership creation:', e);
+        }
+      }
+
+      const { data: newUser, error: insertError } = await db.from('users')
+        .insert({
+          clerk_user_id: clerkUserId,
+          organization_id: orgData.id,
+          role: mappedRole,
+          full_name: fullName,
+          email,
+          avatar_url: userData.image_url ?? null,
+        })
+        .select('id, role')
+        .single();
+
+      if (insertError || !newUser) {
+        console.error('Failed to create user from membership webhook:', insertError);
+        break;
+      }
+
+      await syncMetadataToClerk(clerkUserId, newUser.id, newUser.role as UserRole);
 
       break;
     }

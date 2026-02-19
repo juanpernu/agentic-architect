@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { UserRole } from '@architech/shared';
+import { validateBody } from '@/lib/validate';
 
-const VALID_ROLES = ['admin', 'supervisor', 'architect'] as const;
+const roleUpdateSchema = z.object({
+  role: z.enum(['admin', 'supervisor', 'architect']),
+});
 
 export async function PATCH(
   req: NextRequest,
@@ -33,22 +37,10 @@ export async function PATCH(
     );
   }
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
-  }
+  const result = await validateBody(roleUpdateSchema, req);
+  if ('error' in result) return result.error;
 
-  const { role } = body;
-
-  // Validate role
-  if (!role || !VALID_ROLES.includes(role as UserRole)) {
-    return NextResponse.json(
-      { error: 'Rol inválido. Debe ser admin, supervisor o architect' },
-      { status: 400 }
-    );
-  }
+  const { role } = result.data;
 
   const db = getDb();
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { validateBody } from '@/lib/validate';
+import { bankAccountUpdateSchema } from '@/lib/schemas';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -9,42 +11,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
-  }
+  const result = await validateBody(bankAccountUpdateSchema, req);
+  if ('error' in result) return result.error;
+  const updates = result.data;
 
-  if (body.name !== undefined && !(body.name as string).trim()) {
-    return NextResponse.json({ error: 'El nombre no puede estar vacío' }, { status: 400 });
-  }
-
-  if (body.bank_name !== undefined && !(body.bank_name as string).trim()) {
-    return NextResponse.json({ error: 'El nombre del banco no puede estar vacío' }, { status: 400 });
-  }
-
-  const VALID_CURRENCIES = ['ARS', 'USD'];
-  if (body.currency !== undefined && !VALID_CURRENCIES.includes(body.currency as string)) {
-    return NextResponse.json({ error: 'Moneda no válida. Opciones: ARS, USD' }, { status: 400 });
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
   }
 
   const db = getDb();
-
-  const updateFields: Record<string, unknown> = {};
-  if (body.name !== undefined) updateFields.name = (body.name as string).trim();
-  if (body.bank_name !== undefined) updateFields.bank_name = (body.bank_name as string).trim();
-  if (body.cbu !== undefined) updateFields.cbu = body.cbu ? (body.cbu as string).trim() : null;
-  if (body.alias !== undefined) updateFields.alias = body.alias ? (body.alias as string).trim() : null;
-  if (body.currency !== undefined) updateFields.currency = body.currency;
-
-  if (Object.keys(updateFields).length === 0) {
-    return NextResponse.json({ error: 'No hay campos para actualizar' }, { status: 400 });
-  }
-
   const { data, error } = await db
     .from('bank_accounts')
-    .update(updateFields)
+    .update(updates)
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .select()

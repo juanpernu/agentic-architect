@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
+import { validateBody } from '@/lib/validate';
+import { inviteCreateSchema } from '@/lib/schemas';
+import { checkPlanLimit } from '@/lib/plan-guard';
 
-const VALID_ROLES = ['admin', 'supervisor', 'architect'] as const;
 const ROLE_MAP: Record<string, string> = {
   admin: 'org:admin',
   supervisor: 'org:member',
   architect: 'org:member',
 };
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -41,25 +42,14 @@ export async function POST(req: NextRequest) {
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
+  const guard = await checkPlanLimit(ctx.orgId, 'user');
+  if (!guard.allowed) {
+    return NextResponse.json({ error: guard.reason }, { status: 403 });
   }
 
-  const { email, role } = body;
-
-  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
-    return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
-  }
-
-  if (!role || typeof role !== 'string' || !VALID_ROLES.includes(role as typeof VALID_ROLES[number])) {
-    return NextResponse.json(
-      { error: 'Rol inválido. Debe ser admin, supervisor o architect' },
-      { status: 400 }
-    );
-  }
+  const result = await validateBody(inviteCreateSchema, req);
+  if ('error' in result) return result.error;
+  const { email, role } = result.data;
 
   const clerkRole = ROLE_MAP[role];
 
@@ -67,7 +57,7 @@ export async function POST(req: NextRequest) {
     const client = await clerkClient();
     const invitation = await client.organizations.createOrganizationInvitation({
       organizationId: ctx.orgId,
-      emailAddress: email.trim(),
+      emailAddress: email,
       role: clerkRole,
       inviterUserId: ctx.userId,
     });

@@ -1,6 +1,4 @@
-import type { UserRole, ProjectStatus, ReceiptStatus } from './enums';
-
-export type ProjectColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'pink' | 'teal';
+import type { UserRole, ProjectStatus, ReceiptStatus, ProjectColor } from './enums';
 
 export interface Organization {
   id: string;
@@ -16,6 +14,13 @@ export interface Organization {
   contact_email: string | null;
   social_instagram: string | null;
   social_linkedin: string | null;
+  plan: 'free' | 'advance' | 'enterprise';
+  subscription_status: 'active' | 'past_due' | 'canceled' | 'trialing';
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  max_seats: number;
+  billing_cycle: string | null;
+  current_period_end: string | null;
   created_at: string;
   updated_at: string;
 }

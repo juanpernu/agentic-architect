@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { checkPlanLimit } from '@/lib/plan-guard';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
+
+  const guard = await checkPlanLimit(ctx.orgId, 'reports');
+  if (!guard.allowed) {
+    return NextResponse.json({ error: guard.reason }, { status: 403 });
+  }
 
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get('project_id');

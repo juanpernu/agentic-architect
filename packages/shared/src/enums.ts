@@ -18,3 +18,22 @@ export const ReceiptStatus = {
   REJECTED: 'rejected',
 } as const;
 export type ReceiptStatus = (typeof ReceiptStatus)[keyof typeof ReceiptStatus];
+
+export const PROJECT_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const;
+export type ProjectColor = (typeof PROJECT_COLORS)[number];
+
+export const CURRENCIES = ['ARS', 'USD'] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
+export const SubscriptionPlan = {
+  FREE: 'free',
+  ADVANCE: 'advance',
+  ENTERPRISE: 'enterprise',
+} as const;
+
+export const SubscriptionStatus = {
+  ACTIVE: 'active',
+  PAST_DUE: 'past_due',
+  CANCELED: 'canceled',
+  TRIALING: 'trialing',
+} as const;

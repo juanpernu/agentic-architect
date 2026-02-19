@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-
-const VALID_STATUSES = ['active', 'paused', 'completed'];
-const VALID_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
+import { validateBody } from '@/lib/validate';
+import { projectUpdateSchema } from '@/lib/schemas';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -30,20 +29,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const result = await validateBody(projectUpdateSchema, req);
+  if ('error' in result) return result.error;
+  const updates = result.data;
 
-  // Validate status if provided
-  if (body.status && !VALID_STATUSES.includes(body.status as string)) {
-    return NextResponse.json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 });
-  }
-
-  if (body.color !== undefined && body.color !== null && !VALID_COLORS.includes(body.color as string)) {
-    return NextResponse.json({ error: `color must be one of: ${VALID_COLORS.join(', ')}` }, { status: 400 });
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
   }
 
   const db = getDb();
@@ -59,16 +50,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (project?.architect_id !== ctx.dbUserId) return forbidden();
   }
 
-  const updateFields: Record<string, unknown> = {};
-  if (body.name) updateFields.name = body.name;
-  if (body.address !== undefined) updateFields.address = body.address;
-  if (body.status) updateFields.status = body.status;
-  if (body.architect_id !== undefined) updateFields.architect_id = body.architect_id;
-  if (body.color !== undefined) updateFields.color = body.color;
-
   const { data, error } = await db
     .from('projects')
-    .update(updateFields)
+    .update(updates)
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .select()
