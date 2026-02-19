@@ -1,4 +1,4 @@
-import type { Project, Receipt, ReceiptItem, ProjectColor, CostCenter, BankAccount } from '@architech/shared';
+import type { Project, Receipt, ReceiptItem, ProjectColor, CostCenter, BankAccount, Budget, BudgetVersion, BudgetSnapshot } from '@architech/shared';
 
 export interface ProjectWithDetails extends Project {
   architect: {
@@ -44,4 +44,25 @@ export interface ReceiptDetail extends Receipt {
   receipt_items: ReceiptItem[];
   cost_center: { id: string; name: string; color: ProjectColor | null } | null;
   bank_account: { id: string; name: string; bank_name: string } | null;
+}
+
+export interface BudgetListItem extends Budget {
+  project_name: string;
+  total_amount: number;
+}
+
+export interface BudgetDetail extends Budget {
+  project: {
+    id: string;
+    name: string;
+  };
+  latest_version: BudgetVersion;
+}
+
+export interface BudgetVersionSummary {
+  id: string;
+  version_number: number;
+  total_amount: number;
+  created_by_name: string;
+  created_at: string;
 }

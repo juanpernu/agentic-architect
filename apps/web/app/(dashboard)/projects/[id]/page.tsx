@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
-import { Building2, Edit, Trash2, Upload } from 'lucide-react';
+import { Building2, Calculator, Edit, Trash2, Upload } from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
-import type { ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
+import type { BudgetListItem, ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -58,6 +58,11 @@ export default function ProjectDetailPage() {
 
   const { data: receipts, isLoading: isLoadingReceipts } = useSWR<ReceiptWithDetails[]>(
     projectId ? `/api/receipts?project_id=${projectId}` : null,
+    fetcher
+  );
+
+  const { data: budgets } = useSWR<BudgetListItem[]>(
+    projectId ? `/api/budgets?project_id=${projectId}` : null,
     fetcher
   );
 
@@ -221,6 +226,26 @@ export default function ProjectDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {budgets && budgets.length > 0 ? (
+        <div className="mb-6">
+          <Button variant="outline" asChild>
+            <Link href={`/budgets/${budgets[0].id}`}>
+              <Calculator className="mr-2 h-4 w-4" />
+              Ver presupuesto
+            </Link>
+          </Button>
+        </div>
+      ) : isAdminOrSupervisor ? (
+        <div className="mb-6">
+          <Button variant="outline" asChild>
+            <Link href={`/budgets`}>
+              <Calculator className="mr-2 h-4 w-4" />
+              Crear presupuesto
+            </Link>
+          </Button>
+        </div>
+      ) : null}
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Comprobantes</h2>
