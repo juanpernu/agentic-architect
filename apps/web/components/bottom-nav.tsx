@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Upload, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Calculator, Upload, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 const navItems = [
   { href: '/', label: 'Inicio', icon: LayoutDashboard },
   { href: '/projects', label: 'Proyectos', icon: FolderKanban },
+  { href: '/budgets', label: 'Presupuestos', icon: Calculator },
   { href: '/upload', label: 'Cargar', icon: Upload },
   { href: '/settings', label: 'Ajustes', icon: Settings },
 ];
