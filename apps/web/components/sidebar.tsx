@@ -6,6 +6,7 @@ import { LayoutDashboard, FolderKanban, Receipt, Upload, BarChart3, Settings } f
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { usePlan } from '@/lib/use-plan';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { Badge } from '@/components/ui/badge';
 
@@ -26,10 +27,13 @@ const navItems: Array<{
 export function Sidebar() {
   const pathname = usePathname();
   const { role, fullName } = useCurrentUser();
+  const { isFreePlan } = usePlan();
 
-  const visibleNavItems = navItems.filter(
-    (item) => !item.roles || item.roles.includes(role)
-  );
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === '/reports' && isFreePlan) return false;
+    if (item.roles && !item.roles.includes(role)) return false;
+    return true;
+  });
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">

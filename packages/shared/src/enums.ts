@@ -18,3 +18,16 @@ export const ReceiptStatus = {
   REJECTED: 'rejected',
 } as const;
 export type ReceiptStatus = (typeof ReceiptStatus)[keyof typeof ReceiptStatus];
+
+export const SubscriptionPlan = {
+  FREE: 'free',
+  ADVANCE: 'advance',
+  ENTERPRISE: 'enterprise',
+} as const;
+
+export const SubscriptionStatus = {
+  ACTIVE: 'active',
+  PAST_DUE: 'past_due',
+  CANCELED: 'canceled',
+  TRIALING: 'trialing',
+} as const;

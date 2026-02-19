@@ -7,6 +7,7 @@ import { Building2, MapPin, Plus, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { usePlan } from '@/lib/use-plan';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { ProjectWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
@@ -30,9 +31,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 export default function ProjectsPage() {
   const { isAdminOrSupervisor } = useCurrentUser();
+  const { canCreateProject } = usePlan();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -67,7 +70,7 @@ export default function ProjectsPage() {
         description="Gestiona tus proyectos de construcción"
         action={
           isAdminOrSupervisor ? (
-            <Button onClick={() => setShowCreateDialog(true)}>
+            <Button onClick={() => setShowCreateDialog(true)} disabled={!canCreateProject}>
               <Plus className="mr-2" />
               Nuevo Proyecto
             </Button>
@@ -101,6 +104,12 @@ export default function ProjectsPage() {
           </Select>
         </Field>
       </div>
+
+      {!canCreateProject && isAdminOrSupervisor && (
+        <div className="mb-6">
+          <UpgradeBanner message="Alcanzaste el límite de proyectos en tu plan." />
+        </div>
+      )}
 
       {isLoading && <LoadingCards count={6} />}
 
