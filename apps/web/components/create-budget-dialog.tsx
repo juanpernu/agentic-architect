@@ -51,8 +51,8 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
           ? [{
               cost_center_id: costCenters[0].id,
               cost_center_name: costCenters[0].name,
-              subtotal: 0,
-              items: [{ description: '', quantity: 1, unit: 'unidad', unit_price: 0, subtotal: 0 }],
+              is_additional: false,
+              items: [{ description: '', unit: 'gl', quantity: 1, cost: 0, subtotal: 0 }],
             }]
           : [],
       };
