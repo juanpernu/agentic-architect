@@ -101,9 +101,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Project already has a budget' }, { status: 409 });
   }
 
-  // Calculate total
-  const sections = (snapshot as { sections?: Array<{ subtotal?: number }> }).sections ?? [];
-  const totalAmount = sections.reduce((sum, s) => sum + (Number(s.subtotal) || 0), 0);
+  // Calculate total (sum of all item subtotals across all sections)
+  const sections = (snapshot as { sections?: Array<{ items?: Array<{ subtotal?: number }> }> }).sections ?? [];
+  const totalAmount = sections.reduce((sum, s) =>
+    sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0)
+  , 0);
 
   // Create budget
   const { data: budget, error: budgetError } = await db

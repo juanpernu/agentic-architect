@@ -77,8 +77,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const newVersion = budget.current_version + 1;
 
-  const sections = (snapshot as { sections?: Array<{ subtotal?: number }> }).sections ?? [];
-  const totalAmount = sections.reduce((sum, s) => sum + (Number(s.subtotal) || 0), 0);
+  const sections = (snapshot as { sections?: Array<{ items?: Array<{ subtotal?: number }> }> }).sections ?? [];
+  const totalAmount = sections.reduce((sum, s) =>
+    sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0)
+  , 0);
 
   const { error: versionError } = await db
     .from('budget_versions')
