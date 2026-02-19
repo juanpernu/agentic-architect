@@ -14,6 +14,13 @@ export interface Organization {
   contact_email: string | null;
   social_instagram: string | null;
   social_linkedin: string | null;
+  plan: 'free' | 'advance' | 'enterprise';
+  subscription_status: 'active' | 'past_due' | 'canceled' | 'trialing';
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  max_seats: number;
+  billing_cycle: string | null;
+  current_period_end: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -223,4 +230,60 @@ export interface SpendByProject {
 export interface SpendTrend {
   month: string;
   total: number;
+}
+
+export interface CostCenterSpend {
+  cost_center_id: string;
+  cost_center_name: string;
+  cost_center_color: string | null;
+  total_amount: number;
+  receipt_count: number;
+}
+
+// Budget types
+export interface BudgetItem {
+  description: string;
+  unit: string;
+  quantity: number;
+  cost: number;
+  subtotal: number;
+}
+
+export interface BudgetSection {
+  cost_center_id: string;
+  cost_center_name: string;
+  is_additional: boolean;
+  items: BudgetItem[];
+}
+
+export interface BudgetSnapshot {
+  sections: BudgetSection[];
+}
+
+export interface Budget {
+  id: string;
+  project_id: string;
+  organization_id: string;
+  current_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetVersion {
+  id: string;
+  budget_id: string;
+  version_number: number;
+  snapshot: BudgetSnapshot;
+  total_amount: number;
+  created_by: string;
+  created_at: string;
+}
+
+export interface CreateBudgetInput {
+  project_id: string;
+  snapshot: BudgetSnapshot;
+}
+
+export interface UpdateBudgetInput {
+  snapshot: BudgetSnapshot;
 }

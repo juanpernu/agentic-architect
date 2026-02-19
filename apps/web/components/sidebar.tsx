@@ -2,26 +2,38 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Receipt, Upload, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Receipt, Upload, BarChart3, Settings } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { usePlan } from '@/lib/use-plan';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { Badge } from '@/components/ui/badge';
 
-const navItems = [
+const navItems: Array<{
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  roles?: string[];
+}> = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projects', label: 'Proyectos', icon: FolderKanban },
   { href: '/receipts', label: 'Comprobantes', icon: Receipt },
   { href: '/upload', label: 'Cargar', icon: Upload },
+  { href: '/reports', label: 'Reportes', icon: BarChart3, roles: ['admin', 'supervisor'] },
   { href: '/settings', label: 'Ajustes', icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { role, fullName } = useCurrentUser();
+  const { isFreePlan } = usePlan();
 
-  const visibleNavItems = navItems;
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === '/reports' && isFreePlan) return false;
+    if (item.roles && !item.roles.includes(role)) return false;
+    return true;
+  });
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">

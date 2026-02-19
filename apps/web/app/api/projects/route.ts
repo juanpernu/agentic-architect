@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { projectCreateSchema } from '@/lib/schemas';
+import { checkPlanLimit } from '@/lib/plan-guard';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -38,6 +39,11 @@ export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
+
+  const guard = await checkPlanLimit(ctx.orgId, 'project');
+  if (!guard.allowed) {
+    return NextResponse.json({ error: guard.reason }, { status: 403 });
+  }
 
   const result = await validateBody(projectCreateSchema, req);
   if ('error' in result) return result.error;

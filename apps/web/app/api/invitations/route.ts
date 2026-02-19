@@ -3,6 +3,7 @@ import { clerkClient } from '@clerk/nextjs/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { validateBody } from '@/lib/validate';
 import { inviteCreateSchema } from '@/lib/schemas';
+import { checkPlanLimit } from '@/lib/plan-guard';
 
 const ROLE_MAP: Record<string, string> = {
   admin: 'org:admin',
@@ -40,6 +41,11 @@ export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  const guard = await checkPlanLimit(ctx.orgId, 'user');
+  if (!guard.allowed) {
+    return NextResponse.json({ error: guard.reason }, { status: 403 });
+  }
 
   const result = await validateBody(inviteCreateSchema, req);
   if ('error' in result) return result.error;

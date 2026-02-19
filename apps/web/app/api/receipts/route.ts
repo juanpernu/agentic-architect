@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb, getSignedImageUrl } from '@/lib/supabase';
+import { checkPlanLimit } from '@/lib/plan-guard';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -9,6 +10,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get('project_id');
   const status = searchParams.get('status');
+  const costCenterId = searchParams.get('cost_center_id');
   const limit = searchParams.get('limit');
 
   const db = getDb();
@@ -23,6 +25,7 @@ export async function GET(req: NextRequest) {
 
   if (projectId) query = query.eq('project_id', projectId);
   if (status) query = query.eq('status', status);
+  if (costCenterId) query = query.eq('cost_center_id', costCenterId);
 
   // Architects only see own receipts
   if (ctx.role === 'architect') {
@@ -63,6 +66,11 @@ export async function POST(req: NextRequest) {
 
   if (!body.project_id || !body.total_amount || !body.receipt_date || !body.image_url) {
     return NextResponse.json({ error: 'project_id, total_amount, receipt_date, and image_url are required' }, { status: 400 });
+  }
+
+  const guard = await checkPlanLimit(ctx.orgId, 'receipt', { projectId: body.project_id as string });
+  if (!guard.allowed) {
+    return NextResponse.json({ error: guard.reason }, { status: 403 });
   }
 
   if (!body.cost_center_id) {
