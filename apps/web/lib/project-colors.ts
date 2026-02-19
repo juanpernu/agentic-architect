@@ -1,6 +1,7 @@
+import { PROJECT_COLORS } from '@architech/shared';
 import type { ProjectColor } from '@architech/shared';
 
-export const PROJECT_COLORS: ProjectColor[] = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
+export { PROJECT_COLORS };
 
 export const PROJECT_COLOR_HEX: Record<ProjectColor, string> = {
   red: '#ef4444',
