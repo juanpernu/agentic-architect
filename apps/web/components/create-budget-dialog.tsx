@@ -14,6 +14,7 @@ import { Field, FieldLabel } from '@/components/ui/field';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { AlertTriangle } from 'lucide-react';
 import type { Project, CostCenter, BudgetSnapshot } from '@architech/shared';
 import type { BudgetListItem } from '@/lib/api-types';
 
@@ -34,6 +35,8 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
   // Filter out projects that already have a budget
   const projectsWithBudget = new Set(budgets.map((b) => b.project_id));
   const availableProjects = projects.filter((p) => !projectsWithBudget.has(p.id));
+  const activeCostCenters = costCenters.filter((c) => c.is_active);
+  const noCostCenters = activeCostCenters.length === 0;
 
   useEffect(() => {
     setSelectedProjectId('');
@@ -47,10 +50,10 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
     try {
       // Create initial snapshot with one empty section if cost centers exist
       const initialSnapshot: BudgetSnapshot = {
-        sections: costCenters.length > 0
+        sections: activeCostCenters.length > 0
           ? [{
-              cost_center_id: costCenters[0].id,
-              cost_center_name: costCenters[0].name,
+              cost_center_id: activeCostCenters[0].id,
+              cost_center_name: activeCostCenters[0].name,
               is_additional: false,
               items: [{ description: '', unit: 'gl', quantity: 1, cost: 0, subtotal: 0 }],
             }]
@@ -107,11 +110,19 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
               </p>
             )}
           </Field>
+          {noCostCenters && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <p>
+                No hay centros de costos creados. <a href="/settings/cost-centers" className="font-medium underline">Crear centros de costos</a> antes de crear un presupuesto.
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !selectedProjectId}>
+            <Button type="submit" disabled={isSubmitting || !selectedProjectId || noCostCenters}>
               {isSubmitting ? 'Creando...' : 'Crear'}
             </Button>
           </DialogFooter>
