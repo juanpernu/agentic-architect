@@ -16,6 +16,13 @@ export interface Organization {
   contact_email: string | null;
   social_instagram: string | null;
   social_linkedin: string | null;
+  plan: 'free' | 'advance' | 'enterprise';
+  subscription_status: 'active' | 'past_due' | 'canceled' | 'trialing';
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  max_seats: number;
+  billing_cycle: string | null;
+  current_period_end: string | null;
   created_at: string;
   updated_at: string;
 }
