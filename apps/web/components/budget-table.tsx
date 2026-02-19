@@ -81,10 +81,12 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
 
   const removeItem = useCallback((sectionIndex: number, itemIndex: number) => {
     setSections((prev) => {
+      const section = prev[sectionIndex];
+      if (section.items.length <= 1) return prev;
       const next = [...prev];
-      const section = { ...next[sectionIndex] };
-      section.items = section.items.filter((_, i) => i !== itemIndex);
-      next[sectionIndex] = section;
+      const updated = { ...section };
+      updated.items = section.items.filter((_, i) => i !== itemIndex);
+      next[sectionIndex] = updated;
       return next;
     });
     setIsDirty(true);
@@ -378,7 +380,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       {!readOnly && availableCostCenters.length > 0 && (
         <div className="flex items-center gap-2">
           <Plus className="h-4 w-4 text-muted-foreground" />
-          <Select onValueChange={(id) => addSection(id, false)}>
+          <Select key={`base-${sections.length}`} onValueChange={(id) => addSection(id, false)}>
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Agregar rubro base..." />
             </SelectTrigger>
@@ -388,7 +390,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
               ))}
             </SelectContent>
           </Select>
-          <Select onValueChange={(id) => addSection(id, true)}>
+          <Select key={`add-${sections.length}`} onValueChange={(id) => addSection(id, true)}>
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Agregar adicional..." />
             </SelectTrigger>

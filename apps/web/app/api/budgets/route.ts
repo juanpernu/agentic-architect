@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { budgetSnapshotSchema } from '@/lib/schemas';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -74,6 +75,12 @@ export async function POST(req: NextRequest) {
   }
   if (!snapshot) {
     return NextResponse.json({ error: 'snapshot is required' }, { status: 400 });
+  }
+
+  try {
+    budgetSnapshotSchema.parse(snapshot);
+  } catch {
+    return NextResponse.json({ error: 'Invalid snapshot format' }, { status: 400 });
   }
 
   const db = getDb();
