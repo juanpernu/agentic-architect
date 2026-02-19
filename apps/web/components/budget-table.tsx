@@ -55,6 +55,15 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
 
   const getSectionIndex = (section: BudgetSection) => sections.indexOf(section);
 
+  const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal', value: number) => {
+    setSections((prev) => {
+      const next = [...prev];
+      next[sectionIndex] = { ...next[sectionIndex], [field]: value };
+      return next;
+    });
+    setIsDirty(true);
+  }, []);
+
   const updateItem = useCallback((sectionIndex: number, itemIndex: number, field: keyof BudgetItem, value: string | number) => {
     setSections((prev) => {
       const next = [...prev];
@@ -128,6 +137,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       cost_center_id: cc.id,
       cost_center_name: cc.name,
       is_additional: isAdditional,
+      subtotal: 0,
       items: [{ description: '', unit: 'gl', quantity: 1, cost: 0, subtotal: 0 }],
     };
     setSections((prev) => {
@@ -194,7 +204,20 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             <td className="px-3 py-2 font-bold">{section.cost_center_name}</td>
             <td className="px-3 py-2" />
             <td className="px-3 py-2" />
-            <td className="px-3 py-2 text-right font-bold">{formatCurrency(sectionSubtotal)}</td>
+            <td className="px-3 py-2 text-right font-bold">
+              {readOnly ? (
+                formatCurrency(section.subtotal || 0)
+              ) : (
+                <Input
+                  type="number"
+                  value={section.subtotal || ''}
+                  onChange={(e) => updateSectionField(sectionIdx, 'subtotal', parseFloat(e.target.value) || 0)}
+                  className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-slate-700 text-white text-right font-bold w-28"
+                  min={0}
+                  step="any"
+                />
+              )}
+            </td>
             {showCost && <td className="px-3 py-2 text-right font-bold">{formatCurrency(sectionCost)}</td>}
             {!readOnly && (
               <td className="px-3 py-2">
