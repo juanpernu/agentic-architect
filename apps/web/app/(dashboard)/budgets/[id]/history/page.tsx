@@ -3,12 +3,14 @@
 import { use } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -16,6 +18,7 @@ import type { BudgetVersionSummary, BudgetDetail } from '@/lib/api-types';
 
 export default function BudgetHistoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { data: budget } = useSWR<BudgetDetail>(`/api/budgets/${id}`, fetcher);
   const { data: versions, isLoading } = useSWR<BudgetVersionSummary[]>(
     `/api/budgets/${id}/versions`,
@@ -41,7 +44,7 @@ export default function BudgetHistoryPage({ params }: { params: Promise<{ id: st
       {isLoading && <LoadingTable />}
 
       {!isLoading && versions && versions.length > 0 && (
-        <div className="border rounded-lg">
+        <Card>
           <Table>
             <TableHeader>
               <TableRow>
@@ -53,30 +56,29 @@ export default function BudgetHistoryPage({ params }: { params: Promise<{ id: st
             </TableHeader>
             <TableBody>
               {versions.map((v) => (
-                <TableRow key={v.id}>
+                <TableRow
+                  key={v.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/budgets/${id}?version=${v.version_number}`)}
+                >
                   <TableCell>
-                    <Link
-                      href={`/budgets/${id}?version=${v.version_number}`}
-                      className="hover:underline"
-                    >
-                      <Badge variant={v.version_number === budget?.current_version ? 'default' : 'secondary'}>
-                        v{v.version_number}
-                      </Badge>
-                      {v.version_number === budget?.current_version && (
-                        <span className="ml-2 text-xs text-muted-foreground">actual</span>
-                      )}
-                    </Link>
+                    <Badge variant={v.version_number === budget?.current_version ? 'default' : 'secondary'}>
+                      v{v.version_number}
+                    </Badge>
+                    {v.version_number === budget?.current_version && (
+                      <span className="ml-2 text-xs text-muted-foreground">actual</span>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium">{formatCurrency(v.total_amount)}</TableCell>
                   <TableCell>{v.created_by_name}</TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {new Date(v.created_at).toLocaleString('es-AR')}
+                    {new Date(v.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       )}
     </div>
   );

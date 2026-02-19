@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -124,7 +125,8 @@ export default function BudgetsPage() {
       )}
 
       {!isLoading && filteredBudgets && filteredBudgets.length > 0 && (
-        <div className="border rounded-lg">
+        <Card>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -166,7 +168,8 @@ export default function BudgetsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+          </div>
+        </Card>
       )}
 
       <CreateBudgetDialog

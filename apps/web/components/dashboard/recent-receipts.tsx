@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatCurrency } from '@/lib/format';
 import { ArrowRight } from 'lucide-react';
@@ -57,15 +57,17 @@ export async function RecentReceipts() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <CardHeader>
         <CardTitle>Comprobantes Recientes</CardTitle>
-        <Link
-          href="/receipts"
-          className="text-sm text-primary hover:underline flex items-center gap-1"
-        >
-          Ver todos
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <CardAction>
+          <Link
+            href="/receipts"
+            className="text-sm text-primary hover:underline flex items-center gap-1"
+          >
+            Ver todos
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </CardAction>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

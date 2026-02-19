@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
 import { useFormValidation } from '@/lib/use-form-validation';
 import { projectSchema } from '@/lib/schemas';
 import {
@@ -142,104 +142,106 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field data-invalid={!!errors.name}>
-            <FieldLabel htmlFor="name">
-              Nombre <span className="text-red-500">*</span>
-            </FieldLabel>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Ej: Casa Rodriguez"
-              aria-required="true"
-              aria-invalid={!!errors.name}
-            />
-            <FieldError>{errors.name}</FieldError>
-          </Field>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup className="space-y-4">
+            <Field data-invalid={!!errors.name}>
+              <FieldLabel htmlFor="name">
+                Nombre <span className="text-red-500">*</span>
+              </FieldLabel>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="Ej: Casa Rodriguez"
+                aria-required="true"
+                aria-invalid={!!errors.name}
+              />
+              <FieldError>{errors.name}</FieldError>
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="address">Dirección</FieldLabel>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-              placeholder="Ej: Av. Corrientes 1234, CABA"
-            />
-          </Field>
+            <Field>
+              <FieldLabel htmlFor="address">Dirección</FieldLabel>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                placeholder="Ej: Av. Corrientes 1234, CABA"
+              />
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="status">Estado</FieldLabel>
-            <Select
-              value={formData.status}
-              onValueChange={(value) =>
-                setFormData({ ...formData, status: value as ProjectStatus })
-              }
-            >
-              <SelectTrigger id="status" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Activo</SelectItem>
-                <SelectItem value="paused">Pausado</SelectItem>
-                <SelectItem value="completed">Completado</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
+            <Field>
+              <FieldLabel htmlFor="status">Estado</FieldLabel>
+              <Select
+                value={formData.status}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value as ProjectStatus })
+                }
+              >
+                <SelectTrigger id="status" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="paused">Pausado</SelectItem>
+                  <SelectItem value="completed">Completado</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="architect_id">Arquitecto</FieldLabel>
-            <Select
-              value={formData.architect_id || '__none__'}
-              onValueChange={(value) =>
-                setFormData({ ...formData, architect_id: value === '__none__' ? '' : value })
-              }
-            >
-              <SelectTrigger id="architect_id" className="w-full">
-                <SelectValue placeholder="Seleccionar arquitecto (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Sin asignar</SelectItem>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.full_name ?? user.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
+            <Field>
+              <FieldLabel htmlFor="architect_id">Arquitecto</FieldLabel>
+              <Select
+                value={formData.architect_id || '__none__'}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, architect_id: value === '__none__' ? '' : value })
+                }
+              >
+                <SelectTrigger id="architect_id" className="w-full">
+                  <SelectValue placeholder="Seleccionar arquitecto (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Sin asignar</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.full_name ?? user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-          <Field>
-            <FieldLabel>Color (opcional)</FieldLabel>
-            <div className="flex gap-2 flex-wrap">
-              {(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const).map(
-                (c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() =>
-                      setFormData({ ...formData, color: formData.color === c ? '' : c })
-                    }
-                    className={`h-8 w-8 rounded-full transition-all ${
-                      formData.color === c
-                        ? 'ring-2 ring-offset-2 ring-foreground scale-110'
-                        : 'hover:scale-110'
-                    }`}
-                    style={{
-                      backgroundColor: PROJECT_COLOR_HEX[c],
-                    }}
-                    aria-label={`Color ${c}`}
-                  />
-                )
-              )}
-            </div>
-          </Field>
+            <Field>
+              <FieldLabel>Color (opcional)</FieldLabel>
+              <div className="flex gap-2 flex-wrap">
+                {(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'] as const).map(
+                  (c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, color: formData.color === c ? '' : c })
+                      }
+                      className={`h-8 w-8 rounded-full transition-all ${
+                        formData.color === c
+                          ? 'ring-2 ring-offset-2 ring-foreground scale-110'
+                          : 'hover:scale-110'
+                      }`}
+                      style={{
+                        backgroundColor: PROJECT_COLOR_HEX[c],
+                      }}
+                      aria-label={`Color ${c}`}
+                    />
+                  )
+                )}
+              </div>
+            </Field>
+          </FieldGroup>
 
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button
               type="button"
               variant="outline"

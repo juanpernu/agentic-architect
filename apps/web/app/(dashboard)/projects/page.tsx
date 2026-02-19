@@ -16,7 +16,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -26,7 +26,9 @@ import {
 } from '@/components/ui/select';
 import {
   Card,
+  CardAction,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -78,32 +80,38 @@ export default function ProjectsPage() {
         }
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar proyectos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            aria-label="Buscar proyectos"
-          />
+      <FieldGroup className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <Field className="flex-1">
+            <FieldLabel htmlFor="search-projects">Buscar</FieldLabel>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search-projects"
+                placeholder="Buscar proyectos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                aria-label="Buscar proyectos"
+              />
+            </div>
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel>Estado</FieldLabel>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="sm:w-[180px]">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Activo</SelectItem>
+                <SelectItem value="paused">Pausado</SelectItem>
+                <SelectItem value="completed">Completado</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
-        <Field className="sm:w-auto">
-          <FieldLabel>Estado</FieldLabel>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="sm:w-[180px]">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="active">Activo</SelectItem>
-              <SelectItem value="paused">Pausado</SelectItem>
-              <SelectItem value="completed">Completado</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
+      </FieldGroup>
 
       {!canCreateProject && isAdminOrSupervisor && (
         <div className="mb-6">
@@ -139,26 +147,28 @@ export default function ProjectsPage() {
             <Link key={project.id} href={`/projects/${project.id}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {project.color && (
-                        <span
-                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
-                        />
-                      )}
-                      {project.name}
-                    </CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {project.color && (
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
+                      />
+                    )}
+                    {project.name}
+                  </CardTitle>
+                  <CardDescription>
+                    {project.address && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{project.address}</span>
+                      </span>
+                    )}
+                  </CardDescription>
+                  <CardAction>
                     <StatusBadge status={project.status} />
-                  </div>
+                  </CardAction>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {project.address && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{project.address}</span>
-                    </div>
-                  )}
                   <div className="text-sm text-muted-foreground">
                     <span className="font-medium">Arquitecto:</span>{' '}
                     {project.architect?.full_name ?? 'Sin asignar'}
@@ -166,9 +176,7 @@ export default function ProjectsPage() {
                   <div className="text-lg font-bold text-primary">
                     {formatCurrency(project.total_spend)}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Gasto total
-                  </div>
+                  <CardDescription>Gasto total</CardDescription>
                 </CardContent>
               </Card>
             </Link>

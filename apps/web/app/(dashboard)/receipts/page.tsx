@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel, FieldSeparator } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -99,111 +99,117 @@ export default function ReceiptsPage() {
         description="Visualiza todos los comprobantes cargados"
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por proveedor..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            aria-label="Buscar por proveedor"
-          />
+      <FieldGroup className="mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <Field className="flex-1">
+            <FieldLabel htmlFor="search">Buscar</FieldLabel>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search"
+                placeholder="Buscar por proveedor..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                aria-label="Buscar por proveedor"
+              />
+            </div>
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel>Proyecto</FieldLabel>
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="sm:w-[200px]">
+                <SelectValue placeholder="Proyecto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los proyectos</SelectItem>
+                {projects?.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel>Estado</FieldLabel>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="sm:w-[180px]">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="confirmed">Confirmado</SelectItem>
+                <SelectItem value="rejected">Rechazado</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel>Centro de Costos</FieldLabel>
+            <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
+              <SelectTrigger className="sm:w-[220px]">
+                <SelectValue placeholder="Centro de Costos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los centros</SelectItem>
+                {costCenters?.map((cc) => (
+                  <SelectItem key={cc.id} value={cc.id}>
+                    <span className="flex items-center gap-2">
+                      {cc.color && (
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
+                        />
+                      )}
+                      {cc.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel>Cuenta Bancaria</FieldLabel>
+            <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
+              <SelectTrigger className="sm:w-[220px]">
+                <SelectValue placeholder="Cuenta Bancaria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las cuentas</SelectItem>
+                {bankAccounts?.map((ba) => (
+                  <SelectItem key={ba.id} value={ba.id}>
+                    {ba.name} ({ba.bank_name})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
-        <Field className="sm:w-auto">
-          <FieldLabel>Proyecto</FieldLabel>
-          <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="sm:w-[200px]">
-              <SelectValue placeholder="Proyecto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los proyectos</SelectItem>
-              {projects?.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field className="sm:w-auto">
-          <FieldLabel>Estado</FieldLabel>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="sm:w-[180px]">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendiente</SelectItem>
-              <SelectItem value="confirmed">Confirmado</SelectItem>
-              <SelectItem value="rejected">Rechazado</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field className="sm:w-auto">
-          <FieldLabel>Centro de Costos</FieldLabel>
-          <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
-            <SelectTrigger className="sm:w-[220px]">
-              <SelectValue placeholder="Centro de Costos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los centros</SelectItem>
-              {costCenters?.map((cc) => (
-                <SelectItem key={cc.id} value={cc.id}>
-                  <span className="flex items-center gap-2">
-                    {cc.color && (
-                      <span
-                        className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
-                      />
-                    )}
-                    {cc.name}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field className="sm:w-auto">
-          <FieldLabel>Cuenta Bancaria</FieldLabel>
-          <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
-            <SelectTrigger className="sm:w-[220px]">
-              <SelectValue placeholder="Cuenta Bancaria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las cuentas</SelectItem>
-              {bankAccounts?.map((ba) => (
-                <SelectItem key={ba.id} value={ba.id}>
-                  {ba.name} ({ba.bank_name})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
-        <Field className="sm:w-auto">
-          <FieldLabel htmlFor="date-from">Desde</FieldLabel>
-          <Input
-            id="date-from"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="sm:w-[160px]"
-          />
-        </Field>
-        <Field className="sm:w-auto">
-          <FieldLabel htmlFor="date-to">Hasta</FieldLabel>
-          <Input
-            id="date-to"
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="sm:w-[160px]"
-          />
-        </Field>
-      </div>
+        <FieldSeparator />
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <Field className="sm:w-auto">
+            <FieldLabel htmlFor="date-from">Desde</FieldLabel>
+            <Input
+              id="date-from"
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="sm:w-[160px]"
+            />
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel htmlFor="date-to">Hasta</FieldLabel>
+            <Input
+              id="date-to"
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="sm:w-[160px]"
+            />
+          </Field>
+        </div>
+      </FieldGroup>
 
       {isLoadingReceipts && <LoadingTable rows={8} />}
 

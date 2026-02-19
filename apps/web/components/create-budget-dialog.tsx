@@ -10,7 +10,7 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -105,9 +105,9 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
               </SelectContent>
             </Select>
             {availableProjects.length === 0 && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <FieldDescription>
                 Todos los proyectos ya tienen presupuesto
-              </p>
+              </FieldDescription>
             )}
           </Field>
           {noCostCenters && (

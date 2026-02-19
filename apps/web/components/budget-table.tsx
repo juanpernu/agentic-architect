@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import {
+  Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
 import { SaveBudgetDialog } from '@/components/save-budget-dialog';
 import type { BudgetSnapshot, BudgetSection, BudgetItem, CostCenter } from '@architech/shared';
 import type { BudgetDetail } from '@/lib/api-types';
@@ -50,8 +53,11 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
   const getEffectiveSubtotal = (s: BudgetSection) =>
     s.subtotal != null ? s.subtotal : calcItemsSum(s, 'subtotal');
 
+  const getEffectiveCost = (s: BudgetSection) =>
+    s.cost != null ? s.cost : calcItemsSum(s, 'cost');
+
   const sumSections = (secs: BudgetSection[], field: 'cost' | 'subtotal') =>
-    secs.reduce((sum, s) => sum + (field === 'subtotal' ? getEffectiveSubtotal(s) : calcItemsSum(s, field)), 0);
+    secs.reduce((sum, s) => sum + (field === 'subtotal' ? getEffectiveSubtotal(s) : getEffectiveCost(s)), 0);
 
   const baseTotalSubtotal = sumSections(baseSections, 'subtotal');
   const baseTotalCost = sumSections(baseSections, 'cost');
@@ -61,7 +67,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
 
   const getSectionIndex = (section: BudgetSection) => sections.indexOf(section);
 
-  const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal', value: number | undefined) => {
+  const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal' | 'cost', value: number | undefined) => {
     setSections((prev) => {
       const next = [...prev];
       next[sectionIndex] = { ...next[sectionIndex], [field]: value };
@@ -203,33 +209,58 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       const sectionSubtotal = section.items.reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0);
 
       return (
-        <tbody key={`${section.cost_center_id}-${sectionIdx}`}>
-          <tr className="bg-slate-800 text-white">
-            <td className="px-3 py-2 font-bold">{currentSectionNum}</td>
-            <td className="px-3 py-2 font-bold">{section.cost_center_name}</td>
-            <td className="px-3 py-2" />
-            <td className="px-3 py-2" />
-            <td className="px-3 py-2 text-right font-bold">
+        <TableBody key={`${section.cost_center_id}-${sectionIdx}`}>
+          <TableRow className="bg-slate-800 text-white hover:bg-slate-800">
+            <TableCell className="px-3 py-2 font-bold">{currentSectionNum}</TableCell>
+            <TableCell className="px-3 py-2 font-bold">{section.cost_center_name}</TableCell>
+            <TableCell className="px-3 py-2" />
+            <TableCell className="px-3 py-2" />
+            <TableCell className="px-3 py-2 text-right font-bold">
               {readOnly ? (
                 formatCurrency(getEffectiveSubtotal(section))
               ) : (
-                <Input
-                  type="number"
-                  value={section.subtotal != null ? section.subtotal : ''}
-                  placeholder={sectionSubtotal.toString()}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    updateSectionField(sectionIdx, 'subtotal', raw === '' ? undefined : parseFloat(raw) || 0);
-                  }}
-                  className={`h-7 text-sm border-0 shadow-none focus-visible:ring-1 text-right font-bold w-28 ${section.subtotal != null ? 'bg-slate-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                  min={0}
-                  step="any"
-                />
+                <div className="relative flex items-center justify-end">
+                  <span className="absolute left-2 text-white font-bold text-sm pointer-events-none">$</span>
+                  <Input
+                    type="number"
+                    value={section.subtotal != null ? section.subtotal : ''}
+                    placeholder={formatCurrency(sectionSubtotal).replace('$', '').trim()}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      updateSectionField(sectionIdx, 'subtotal', raw === '' ? undefined : parseFloat(raw) || 0);
+                    }}
+                    className={`h-7 text-sm border-0 shadow-none focus-visible:ring-1 text-right font-bold w-32 pl-6 ${section.subtotal != null ? 'bg-slate-600 text-white placeholder:text-white' : 'bg-slate-700 text-white placeholder:text-white'}`}
+                    min={0}
+                    step="any"
+                  />
+                </div>
               )}
-            </td>
-            {showCost && <td className="px-3 py-2 text-right font-bold">{formatCurrency(sectionCost)}</td>}
+            </TableCell>
+            {showCost && (
+              <TableCell className="px-3 py-2 text-right font-bold">
+                {readOnly ? (
+                  formatCurrency(getEffectiveCost(section))
+                ) : (
+                  <div className="relative flex items-center justify-end">
+                    <span className="absolute left-2 text-white font-bold text-sm pointer-events-none">$</span>
+                    <Input
+                      type="number"
+                      value={section.cost != null ? section.cost : ''}
+                      placeholder={formatCurrency(sectionCost).replace('$', '').trim()}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        updateSectionField(sectionIdx, 'cost', raw === '' ? undefined : parseFloat(raw) || 0);
+                      }}
+                      className={`h-7 text-sm border-0 shadow-none focus-visible:ring-1 text-right font-bold w-32 pl-6 ${section.cost != null ? 'bg-slate-600 text-white placeholder:text-white' : 'bg-slate-700 text-white placeholder:text-white'}`}
+                      min={0}
+                      step="any"
+                    />
+                  </div>
+                )}
+              </TableCell>
+            )}
             {!readOnly && (
-              <td className="px-3 py-2">
+              <TableCell className="px-3 py-2">
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="icon" className="h-6 w-6 text-white hover:text-white hover:bg-slate-700" onClick={() => moveSection(sectionIdx, 'up')}>
                     <ChevronUp className="h-3 w-3" />
@@ -241,16 +272,16 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
-              </td>
+              </TableCell>
             )}
-          </tr>
+          </TableRow>
 
           {section.items.map((item, itemIdx) => (
-            <tr key={itemIdx} className="border-b border-gray-200 hover:bg-gray-50">
-              <td className="px-3 py-1 text-sm text-muted-foreground">
+            <TableRow key={itemIdx} className="hover:bg-gray-50">
+              <TableCell className="px-3 py-1 text-sm text-muted-foreground">
                 {currentSectionNum},{itemIdx + 1}
-              </td>
-              <td className="px-3 py-1">
+              </TableCell>
+              <TableCell className="px-3 py-1">
                 <Input
                   value={item.description}
                   onChange={(e) => updateItem(sectionIdx, itemIdx, 'description', e.target.value)}
@@ -258,8 +289,8 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
                   disabled={readOnly}
                   className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-transparent"
                 />
-              </td>
-              <td className="px-3 py-1">
+              </TableCell>
+              <TableCell className="px-3 py-1">
                 <Input
                   value={item.unit}
                   onChange={(e) => updateItem(sectionIdx, itemIdx, 'unit', e.target.value)}
@@ -267,8 +298,8 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
                   disabled={readOnly}
                   className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-transparent w-16"
                 />
-              </td>
-              <td className="px-3 py-1">
+              </TableCell>
+              <TableCell className="px-3 py-1">
                 <Input
                   type="number"
                   value={item.quantity || ''}
@@ -278,8 +309,8 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
                   min={0}
                   step="any"
                 />
-              </td>
-              <td className="px-3 py-1">
+              </TableCell>
+              <TableCell className="px-3 py-1">
                 <Input
                   type="number"
                   value={item.subtotal || ''}
@@ -289,9 +320,9 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
                   min={0}
                   step="any"
                 />
-              </td>
+              </TableCell>
               {showCost && (
-                <td className="px-3 py-1">
+                <TableCell className="px-3 py-1">
                   <Input
                     type="number"
                     value={item.cost || ''}
@@ -301,39 +332,39 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
                     min={0}
                     step="any"
                   />
-                </td>
+                </TableCell>
               )}
               {!readOnly && (
-                <td className="px-3 py-1">
+                <TableCell className="px-3 py-1">
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(sectionIdx, itemIdx)}>
                     <Trash2 className="h-3 w-3 text-muted-foreground" />
                   </Button>
-                </td>
+                </TableCell>
               )}
-            </tr>
+            </TableRow>
           ))}
 
           {/* Section subtotal row */}
-          <tr className="bg-muted/20 border-b border-gray-300">
-            <td className="px-3 py-1" />
-            <td className="px-3 py-1 text-sm font-medium text-muted-foreground">Subtotal {section.cost_center_name}</td>
-            <td className="px-3 py-1" />
-            <td className="px-3 py-1" />
-            <td className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(sectionSubtotal)}</td>
-            {showCost && <td className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(sectionCost)}</td>}
-            {!readOnly && <td className="px-3 py-1" />}
-          </tr>
+          <TableRow className="bg-muted/20 hover:bg-muted/20">
+            <TableCell className="px-3 py-1" />
+            <TableCell className="px-3 py-1 text-sm font-medium text-muted-foreground">Subtotal {section.cost_center_name}</TableCell>
+            <TableCell className="px-3 py-1" />
+            <TableCell className="px-3 py-1" />
+            <TableCell className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(getEffectiveSubtotal(section))}</TableCell>
+            {showCost && <TableCell className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(getEffectiveCost(section))}</TableCell>}
+            {!readOnly && <TableCell className="px-3 py-1" />}
+          </TableRow>
 
           {!readOnly && (
-            <tr className="border-b border-gray-200">
-              <td colSpan={showCost ? 7 : 6} className="px-3 py-1">
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={showCost ? 7 : 6} className="px-3 py-1">
                 <Button variant="ghost" size="sm" onClick={() => addItem(sectionIdx)} className="h-6 text-xs">
                   <Plus className="mr-1 h-3 w-3" /> Agregar item
                 </Button>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )}
-        </tbody>
+        </TableBody>
       );
     });
   };
@@ -364,59 +395,59 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       </div>
 
       <div className="border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-muted/50 border-b">
-              <th className="px-3 py-2 text-left font-medium w-[60px]">Item</th>
-              <th className="px-3 py-2 text-left font-medium">Descripcion de tareas de obra</th>
-              <th className="px-3 py-2 text-left font-medium w-[80px]">Unidad</th>
-              <th className="px-3 py-2 text-left font-medium w-[90px]">Cant</th>
-              <th className="px-3 py-2 text-right font-medium w-[130px]">Subtotal</th>
-              {showCost && <th className="px-3 py-2 text-right font-medium w-[130px]">Costo</th>}
-              {!readOnly && <th className="px-3 py-2 w-[90px]" />}
-            </tr>
-          </thead>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="px-3 py-2 w-[60px]">Item</TableHead>
+              <TableHead className="px-3 py-2">Descripcion de tareas de obra</TableHead>
+              <TableHead className="px-3 py-2 w-[80px]">Unidad</TableHead>
+              <TableHead className="px-3 py-2 w-[90px]">Cant</TableHead>
+              <TableHead className="px-3 py-2 text-right w-[130px]">Subtotal</TableHead>
+              {showCost && <TableHead className="px-3 py-2 text-right w-[130px]">Costo</TableHead>}
+              {!readOnly && <TableHead className="px-3 py-2 w-[90px]" />}
+            </TableRow>
+          </TableHeader>
 
           {renderSectionRows(baseSections)}
 
           {baseSections.length > 0 && (
-            <tfoot>
-              <tr className="bg-muted/30 border-t-2 border-slate-300 font-bold">
-                <td className="px-3 py-2" />
-                <td className="px-3 py-2">TOTAL</td>
-                <td className="px-3 py-2" />
-                <td className="px-3 py-2" />
-                <td className="px-3 py-2 text-right">{formatCurrency(baseTotalSubtotal)}</td>
-                {showCost && <td className="px-3 py-2 text-right">{formatCurrency(baseTotalCost)}</td>}
-                {!readOnly && <td className="px-3 py-2" />}
-              </tr>
-            </tfoot>
+            <TableFooter>
+              <TableRow className="bg-muted/30 border-t-2 border-slate-300 font-bold">
+                <TableCell className="px-3 py-2" />
+                <TableCell className="px-3 py-2">TOTAL</TableCell>
+                <TableCell className="px-3 py-2" />
+                <TableCell className="px-3 py-2" />
+                <TableCell className="px-3 py-2 text-right">{formatCurrency(baseTotalSubtotal)}</TableCell>
+                {showCost && <TableCell className="px-3 py-2 text-right">{formatCurrency(baseTotalCost)}</TableCell>}
+                {!readOnly && <TableCell className="px-3 py-2" />}
+              </TableRow>
+            </TableFooter>
           )}
 
           {additionalSections.length > 0 && (
             <>
-              <tbody>
-                <tr className="bg-amber-50 border-t-2 border-amber-300">
-                  <td colSpan={showCost ? (readOnly ? 6 : 7) : (readOnly ? 5 : 6)} className="px-3 py-2 font-bold text-amber-800">
+              <TableBody>
+                <TableRow className="bg-amber-50 border-t-2 border-amber-300 hover:bg-amber-50">
+                  <TableCell colSpan={showCost ? (readOnly ? 6 : 7) : (readOnly ? 5 : 6)} className="px-3 py-2 font-bold text-amber-800">
                     Adicional
-                  </td>
-                </tr>
-              </tbody>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
               {renderSectionRows(additionalSections)}
-              <tfoot>
-                <tr className="bg-amber-50/50 border-t-2 border-amber-300 font-bold">
-                  <td className="px-3 py-2" />
-                  <td className="px-3 py-2">TOTAL ADICIONAL</td>
-                  <td className="px-3 py-2" />
-                  <td className="px-3 py-2" />
-                  <td className="px-3 py-2 text-right">{formatCurrency(additionalTotalSubtotal)}</td>
-                  {showCost && <td className="px-3 py-2 text-right">{formatCurrency(additionalTotalCost)}</td>}
-                  {!readOnly && <td className="px-3 py-2" />}
-                </tr>
-              </tfoot>
+              <TableFooter>
+                <TableRow className="bg-amber-50/50 border-t-2 border-amber-300 font-bold">
+                  <TableCell className="px-3 py-2" />
+                  <TableCell className="px-3 py-2">TOTAL ADICIONAL</TableCell>
+                  <TableCell className="px-3 py-2" />
+                  <TableCell className="px-3 py-2" />
+                  <TableCell className="px-3 py-2 text-right">{formatCurrency(additionalTotalSubtotal)}</TableCell>
+                  {showCost && <TableCell className="px-3 py-2 text-right">{formatCurrency(additionalTotalCost)}</TableCell>}
+                  {!readOnly && <TableCell className="px-3 py-2" />}
+                </TableRow>
+              </TableFooter>
             </>
           )}
-        </table>
+        </Table>
       </div>
 
       {!readOnly && activeCostCenters.length > 0 && (

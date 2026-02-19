@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
 import { useFormValidation } from '@/lib/use-form-validation';
 import { costCenterSchema } from '@/lib/schemas';
 import { COST_CENTER_COLOR_HEX, PROJECT_COLORS } from '@/lib/project-colors';
@@ -88,48 +88,50 @@ export function CostCenterFormDialog({ open, onOpenChange, costCenter }: CostCen
             {costCenter ? 'Actualiza los datos del centro de costos' : 'Crea un nuevo centro de costos para clasificar comprobantes'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field data-invalid={!!errors.name}>
-            <FieldLabel htmlFor="cc-name">Nombre <span className="text-red-500">*</span></FieldLabel>
-            <Input
-              id="cc-name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ej: Albañilería"
-              maxLength={100}
-              aria-required="true"
-              aria-invalid={!!errors.name}
-            />
-            <FieldError>{errors.name}</FieldError>
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="cc-description">Descripción</FieldLabel>
-            <Textarea
-              id="cc-description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Descripción opcional del centro de costos"
-              rows={3}
-            />
-          </Field>
-          <Field>
-            <FieldLabel>Color (opcional)</FieldLabel>
-            <div className="flex gap-2 flex-wrap">
-              {PROJECT_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, color: formData.color === c ? '' : c })}
-                  className={`h-8 w-8 rounded-full transition-all ${
-                    formData.color === c ? 'ring-2 ring-offset-2 ring-foreground scale-110' : 'hover:scale-110'
-                  }`}
-                  style={{ backgroundColor: COST_CENTER_COLOR_HEX[c] }}
-                  aria-label={`Color ${c}`}
-                />
-              ))}
-            </div>
-          </Field>
-          <DialogFooter>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup className="space-y-4">
+            <Field data-invalid={!!errors.name}>
+              <FieldLabel htmlFor="cc-name">Nombre <span className="text-red-500">*</span></FieldLabel>
+              <Input
+                id="cc-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ej: Albañilería"
+                maxLength={100}
+                aria-required="true"
+                aria-invalid={!!errors.name}
+              />
+              <FieldError>{errors.name}</FieldError>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="cc-description">Descripción</FieldLabel>
+              <Textarea
+                id="cc-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descripción opcional del centro de costos"
+                rows={3}
+              />
+            </Field>
+            <Field>
+              <FieldLabel>Color (opcional)</FieldLabel>
+              <div className="flex gap-2 flex-wrap">
+                {PROJECT_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, color: formData.color === c ? '' : c })}
+                    className={`h-8 w-8 rounded-full transition-all ${
+                      formData.color === c ? 'ring-2 ring-offset-2 ring-foreground scale-110' : 'hover:scale-110'
+                    }`}
+                    style={{ backgroundColor: COST_CENTER_COLOR_HEX[c] }}
+                    aria-label={`Color ${c}`}
+                  />
+                ))}
+              </div>
+            </Field>
+          </FieldGroup>
+          <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>

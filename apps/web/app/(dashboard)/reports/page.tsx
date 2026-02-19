@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -110,44 +110,46 @@ export default function ReportsPage() {
       />
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
-        <Field className="sm:w-auto">
-          <FieldLabel>Proyecto</FieldLabel>
-          <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="sm:w-[200px]">
-              <SelectValue placeholder="Proyecto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los proyectos</SelectItem>
-              {projects?.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field className="sm:w-auto">
-          <FieldLabel htmlFor="report-date-from">Desde</FieldLabel>
-          <Input
-            id="report-date-from"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="sm:w-[160px]"
-          />
-        </Field>
-        <Field className="sm:w-auto">
-          <FieldLabel htmlFor="report-date-to">Hasta</FieldLabel>
-          <Input
-            id="report-date-to"
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="sm:w-[160px]"
-          />
-        </Field>
-      </div>
+      <FieldGroup className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <Field className="sm:w-auto">
+            <FieldLabel>Proyecto</FieldLabel>
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="sm:w-[200px]">
+                <SelectValue placeholder="Proyecto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los proyectos</SelectItem>
+                {projects?.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel htmlFor="report-date-from">Desde</FieldLabel>
+            <Input
+              id="report-date-from"
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="sm:w-[160px]"
+            />
+          </Field>
+          <Field className="sm:w-auto">
+            <FieldLabel htmlFor="report-date-to">Hasta</FieldLabel>
+            <Input
+              id="report-date-to"
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="sm:w-[160px]"
+            />
+          </Field>
+        </div>
+      </FieldGroup>
 
       {isLoadingReport && <LoadingTable rows={6} />}
 

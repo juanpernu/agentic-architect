@@ -13,13 +13,17 @@ import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { BudgetListItem, ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardAction,
   CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -167,28 +171,26 @@ export default function ProjectDetailPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3 mb-6 stagger-children">
+      <div className="grid gap-4 md:grid-cols-2 mb-6 stagger-children">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Estado
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Gasto Total</CardTitle>
+            <CardAction>
+              <StatusBadge status={project.status} />
+            </CardAction>
           </CardHeader>
           <CardContent>
-            <StatusBadge status={project.status} />
+            <div className="text-3xl font-bold tracking-tight">
+              {formatCurrency(totalSpend)}
+            </div>
+            <CardDescription className="mt-2">
+              {receipts?.length ?? 0} comprobantes
+            </CardDescription>
           </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Arquitecto
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardFooter className="border-t pt-4 flex items-center gap-3">
             {project.architect ? (
-              <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
+              <>
+                <Avatar className="h-8 w-8">
                   <AvatarImage src={project.architect.avatar_url ?? undefined} alt={project.architect.full_name} />
                   <AvatarFallback className="text-xs">
                     {project.architect.full_name
@@ -200,52 +202,61 @@ export default function ProjectDetailPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="text-base font-medium">{project.architect.full_name}</div>
+                  <div className="text-sm font-medium">{project.architect.full_name}</div>
                   <div className="text-xs text-muted-foreground">{project.architect.email}</div>
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="text-base font-medium text-muted-foreground">Sin asignar</div>
+              <span className="text-sm text-muted-foreground">Sin arquitecto asignado</span>
             )}
-          </CardContent>
+          </CardFooter>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Gasto Total
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Presupuesto</CardTitle>
+            {budgets && budgets.length > 0 && (
+              <CardAction>
+                <Badge variant="secondary">v{budgets[0].current_version}</Badge>
+              </CardAction>
+            )}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {formatCurrency(totalSpend)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {receipts?.length ?? 0} comprobantes
-            </div>
+            {budgets && budgets.length > 0 ? (
+              <>
+                <div className="text-3xl font-bold tracking-tight">
+                  {formatCurrency(budgets[0].total_amount)}
+                </div>
+                <CardDescription className="mt-2">Version actual</CardDescription>
+              </>
+            ) : (
+              <>
+                <div className="text-3xl font-bold tracking-tight text-muted-foreground/40">
+                  —
+                </div>
+                <CardDescription className="mt-2">Sin presupuesto</CardDescription>
+              </>
+            )}
           </CardContent>
+          <CardFooter className="border-t pt-4">
+            {budgets && budgets.length > 0 ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/budgets/${budgets[0].id}`}>
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Ver presupuesto
+                </Link>
+              </Button>
+            ) : isAdminOrSupervisor ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/budgets">
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Crear presupuesto
+                </Link>
+              </Button>
+            ) : null}
+          </CardFooter>
         </Card>
       </div>
-
-      {budgets && budgets.length > 0 ? (
-        <div className="mb-6">
-          <Button variant="outline" asChild>
-            <Link href={`/budgets/${budgets[0].id}`}>
-              <Calculator className="mr-2 h-4 w-4" />
-              Ver presupuesto
-            </Link>
-          </Button>
-        </div>
-      ) : isAdminOrSupervisor ? (
-        <div className="mb-6">
-          <Button variant="outline" asChild>
-            <Link href={`/budgets`}>
-              <Calculator className="mr-2 h-4 w-4" />
-              Crear presupuesto
-            </Link>
-          </Button>
-        </div>
-      ) : null}
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Comprobantes</h2>

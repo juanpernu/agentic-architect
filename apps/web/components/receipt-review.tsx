@@ -22,7 +22,7 @@ import { formatCurrency } from '@/lib/format';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { receiptReviewSchema } from '@/lib/schemas';
 import {
   Select,
@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
@@ -316,7 +317,11 @@ export function ReceiptReview({
           {/* Extracted Fields */}
           <div className="space-y-4">
             <Card>
-              <CardContent className="p-4 space-y-4">
+              <CardHeader>
+                <CardTitle className="text-sm">Datos del Comprobante</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup className="space-y-4">
                 {/* Vendor */}
                 <Field>
                   <FieldLabel>Proveedor</FieldLabel>
@@ -474,7 +479,7 @@ export function ReceiptReview({
                 </Field>
 
                 {/* Bank Account */}
-                <div className="space-y-2">
+                <Field>
                   <FieldLabel>Cuenta Bancaria (opcional)</FieldLabel>
                   <Select value={bankAccountId} onValueChange={setBankAccountId}>
                     <SelectTrigger>
@@ -488,7 +493,8 @@ export function ReceiptReview({
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
+                </FieldGroup>
               </CardContent>
             </Card>
           </div>
@@ -497,13 +503,13 @@ export function ReceiptReview({
         {/* Line Items */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Ítems del Comprobante</CardTitle>
+            <CardTitle>Ítems del Comprobante</CardTitle>
+            <CardAction>
               <Button size="sm" variant="outline" onClick={addItem}>
                 <Plus className="mr-2 h-4 w-4" />
                 Agregar Ítem
               </Button>
-            </div>
+            </CardAction>
           </CardHeader>
           <CardContent className="space-y-2">
             {items.map((item) => (
@@ -526,44 +532,46 @@ export function ReceiptReview({
                 </div>
 
                 {item.expanded && (
-                  <div className="p-3 border-t bg-muted/30 space-y-3">
-                    <Field>
-                      <FieldLabel htmlFor={`desc-${item.id}`}>Descripción</FieldLabel>
-                      <Input
-                        id={`desc-${item.id}`}
-                        value={item.description}
-                        onChange={(e) =>
-                          updateItem(item.id, 'description', e.target.value)
-                        }
-                        placeholder="Descripción del ítem"
-                      />
-                    </Field>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 border-t bg-muted/30">
+                    <FieldGroup className="space-y-3">
                       <Field>
-                        <FieldLabel htmlFor={`qty-${item.id}`}>Cantidad</FieldLabel>
+                        <FieldLabel htmlFor={`desc-${item.id}`}>Descripción</FieldLabel>
                         <Input
-                          id={`qty-${item.id}`}
-                          type="number"
-                          step="0.01"
-                          value={item.quantity}
+                          id={`desc-${item.id}`}
+                          value={item.description}
                           onChange={(e) =>
-                            updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
+                            updateItem(item.id, 'description', e.target.value)
                           }
+                          placeholder="Descripción del ítem"
                         />
                       </Field>
-                      <Field>
-                        <FieldLabel htmlFor={`price-${item.id}`}>Precio Unitario</FieldLabel>
-                        <Input
-                          id={`price-${item.id}`}
-                          type="number"
-                          step="0.01"
-                          value={item.unit_price}
-                          onChange={(e) =>
-                            updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)
-                          }
-                        />
-                      </Field>
-                    </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field>
+                          <FieldLabel htmlFor={`qty-${item.id}`}>Cantidad</FieldLabel>
+                          <Input
+                            id={`qty-${item.id}`}
+                            type="number"
+                            step="0.01"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel htmlFor={`price-${item.id}`}>Precio Unitario</FieldLabel>
+                          <Input
+                            id={`price-${item.id}`}
+                            type="number"
+                            step="0.01"
+                            value={item.unit_price}
+                            onChange={(e) =>
+                              updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </Field>
+                      </div>
+                    </FieldGroup>
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-medium">
                         Subtotal: {formatCurrency(item.subtotal)}

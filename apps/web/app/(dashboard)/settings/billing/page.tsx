@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import {
   Card,
+  CardAction,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -139,26 +141,24 @@ export default function BillingPage() {
       {plan === 'advance' && (
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  Plan Advance
-                  <Badge variant="secondary">
-                    {billingCycle === 'yearly' ? 'Anual' : 'Mensual'}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  {currentProjects} proyectos · {currentSeats} de {maxSeats ?? '∞'} usuarios
-                  {currentPeriodEnd && (
-                    <> · Próxima facturación: {new Date(currentPeriodEnd).toLocaleDateString('es-AR')}</>
-                  )}
-                </CardDescription>
-              </div>
+            <CardTitle className="flex items-center gap-2">
+              Plan Advance
+              <Badge variant="secondary">
+                {billingCycle === 'yearly' ? 'Anual' : 'Mensual'}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              {currentProjects} proyectos · {currentSeats} de {maxSeats ?? '∞'} usuarios
+              {currentPeriodEnd && (
+                <> · Próxima facturación: {new Date(currentPeriodEnd).toLocaleDateString('es-AR')}</>
+              )}
+            </CardDescription>
+            <CardAction>
               <Button variant="outline" onClick={handleManageSubscription} disabled={isRedirecting}>
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Gestionar suscripción
               </Button>
-            </div>
+            </CardAction>
           </CardHeader>
         </Card>
       )}
@@ -215,9 +215,9 @@ export default function BillingPage() {
               <CardHeader>
                 <CardTitle>Free</CardTitle>
                 <CardDescription>Para empezar</CardDescription>
-                <p className="text-3xl font-bold">Gratis</p>
               </CardHeader>
               <CardContent>
+                <p className="text-3xl font-bold mb-4">Gratis</p>
                 <ul className="space-y-2 text-sm">
                   {PLAN_FEATURES.free.map((f) => (
                     <li key={f} className="flex items-center gap-2">
@@ -225,23 +225,27 @@ export default function BillingPage() {
                     </li>
                   ))}
                 </ul>
-                {isFreePlan && (
-                  <Button variant="outline" className="mt-6 w-full" disabled>
+              </CardContent>
+              {isFreePlan && (
+                <CardFooter>
+                  <Button variant="outline" className="w-full" disabled>
                     Plan actual
                   </Button>
-                )}
-              </CardContent>
+                </CardFooter>
+              )}
             </Card>
 
             {/* Advance */}
             <Card className={plan === 'advance' ? 'border-primary' : 'border-2 border-primary/50'}>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <CardTitle>Advance</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Advance
                   <Zap className="h-4 w-4 text-amber-500" />
-                </div>
+                </CardTitle>
                 <CardDescription>Para equipos en crecimiento</CardDescription>
-                <div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
                   <p className="text-3xl font-bold">
                     US${ADVANCE_PRICING[billingOption].base}
                     <span className="text-base font-normal text-muted-foreground">
@@ -253,8 +257,6 @@ export default function BillingPage() {
                     {billingOption === 'monthly' ? '/mes' : '/año'}
                   </p>
                 </div>
-              </CardHeader>
-              <CardContent>
                 <ul className="space-y-2 text-sm">
                   {PLAN_FEATURES.advance.map((f) => (
                     <li key={f} className="flex items-center gap-2">
@@ -263,41 +265,45 @@ export default function BillingPage() {
                   ))}
                 </ul>
                 {isFreePlan && (
-                  <>
-                    <div className="mt-4">
-                      <label className="text-sm font-medium">
-                        Usuarios: {seatCount}
-                      </label>
-                      <input
-                        type="range"
-                        min={1}
-                        max={20}
-                        value={seatCount}
-                        onChange={(e) => setSeatCount(Number(e.target.value))}
-                        className="mt-1 w-full"
-                      />
-                      <div className="mt-2 rounded-md bg-muted/50 p-3 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Base</span>
-                          <span>US${ADVANCE_PRICING[billingOption].base}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            {seatCount} usuario{seatCount > 1 ? 's' : ''} x US${ADVANCE_PRICING[billingOption].seat}
-                          </span>
-                          <span>US${ADVANCE_PRICING[billingOption].seat * seatCount}</span>
-                        </div>
-                        <div className="mt-1 flex justify-between border-t pt-1 font-medium">
-                          <span>Total</span>
-                          <span>
-                            US${ADVANCE_PRICING[billingOption].base + ADVANCE_PRICING[billingOption].seat * seatCount}
-                            /{billingOption === 'monthly' ? 'mes' : 'año'}
-                          </span>
-                        </div>
+                  <div className="mt-4">
+                    <label className="text-sm font-medium">
+                      Usuarios: {seatCount}
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={20}
+                      value={seatCount}
+                      onChange={(e) => setSeatCount(Number(e.target.value))}
+                      className="mt-1 w-full"
+                    />
+                    <div className="mt-2 rounded-md bg-muted/50 p-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Base</span>
+                        <span>US${ADVANCE_PRICING[billingOption].base}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          {seatCount} usuario{seatCount > 1 ? 's' : ''} x US${ADVANCE_PRICING[billingOption].seat}
+                        </span>
+                        <span>US${ADVANCE_PRICING[billingOption].seat * seatCount}</span>
+                      </div>
+                      <div className="mt-1 flex justify-between border-t pt-1 font-medium">
+                        <span>Total</span>
+                        <span>
+                          US${ADVANCE_PRICING[billingOption].base + ADVANCE_PRICING[billingOption].seat * seatCount}
+                          /{billingOption === 'monthly' ? 'mes' : 'año'}
+                        </span>
                       </div>
                     </div>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                {isFreePlan ? (
+                  <div className="w-full">
                     <Button
-                      className="mt-4 w-full"
+                      className="w-full"
                       onClick={handleUpgrade}
                       disabled={isRedirecting}
                     >
@@ -307,27 +313,26 @@ export default function BillingPage() {
                     {upgradeError && (
                       <p className="mt-2 text-sm text-red-600">{upgradeError}</p>
                     )}
-                  </>
-                )}
-                {plan === 'advance' && (
-                  <Button variant="outline" className="mt-6 w-full" disabled>
+                  </div>
+                ) : plan === 'advance' ? (
+                  <Button variant="outline" className="w-full" disabled>
                     Plan actual
                   </Button>
-                )}
-              </CardContent>
+                ) : null}
+              </CardFooter>
             </Card>
 
             {/* Enterprise */}
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <CardTitle>Enterprise</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Enterprise
                   <Building2 className="h-4 w-4 text-violet-500" />
-                </div>
+                </CardTitle>
                 <CardDescription>Para grandes organizaciones</CardDescription>
-                <p className="text-3xl font-bold">Personalizado</p>
               </CardHeader>
               <CardContent>
+                <p className="text-3xl font-bold mb-4">Personalizado</p>
                 <ul className="space-y-2 text-sm">
                   {PLAN_FEATURES.enterprise.map((f) => (
                     <li key={f} className="flex items-center gap-2">
@@ -335,7 +340,9 @@ export default function BillingPage() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="mt-6 w-full" asChild>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full" asChild>
                   <a
                     href="https://wa.me/TUNUMERO"
                     target="_blank"
@@ -344,7 +351,7 @@ export default function BillingPage() {
                     Contactanos
                   </a>
                 </Button>
-              </CardContent>
+              </CardFooter>
             </Card>
           </div>
         </>

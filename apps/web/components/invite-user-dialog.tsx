@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
 import { useFormValidation } from '@/lib/use-form-validation';
 import { inviteSchema } from '@/lib/schemas';
 import {
@@ -96,7 +96,7 @@ export function InviteUserDialog() {
         {!canInviteUser && (
           <UpgradeBanner message="Alcanzaste el límite de usuarios en tu plan." />
         )}
-        <div className="space-y-4 pt-4">
+        <FieldGroup className="space-y-4 pt-4">
           <Field data-invalid={!!errors.email}>
             <FieldLabel htmlFor="invite-email">Email</FieldLabel>
             <Input
@@ -130,7 +130,7 @@ export function InviteUserDialog() {
               {sending ? 'Enviando...' : 'Enviar invitación'}
             </Button>
           </div>
-        </div>
+        </FieldGroup>
       </DialogContent>
     </Dialog>
   );

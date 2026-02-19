@@ -9,6 +9,7 @@ import { useCurrentUser } from '@/lib/use-current-user';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -112,7 +113,7 @@ export default function BanksPage() {
           </div>
         )}
 
-        <div className="rounded-lg border bg-card">
+        <Card>
           <Table>
             <TableHeader>
               <TableRow>
@@ -152,7 +153,7 @@ export default function BanksPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       </>
     );
   }

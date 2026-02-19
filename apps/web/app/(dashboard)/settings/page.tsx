@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function SettingsPage() {
-  redirect('/settings/general');
+export default async function SettingsPage() {
+  return redirect('/settings/general');
 }

@@ -14,6 +14,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
@@ -127,7 +128,7 @@ export default function SettingsUsersPage() {
         <InviteUserDialog />
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <Card>
         <Table>
           <TableHeader>
             <TableRow>
@@ -211,7 +212,7 @@ export default function SettingsUsersPage() {
             })}
           </TableBody>
         </Table>
-      </div>
+      </Card>
     </>
   );
 }

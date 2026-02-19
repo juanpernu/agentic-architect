@@ -34,6 +34,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import {
   Table,
@@ -255,7 +256,10 @@ export default function ReceiptDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Receipt Details */}
           <Card>
-            <CardContent className="pt-6">
+            <CardHeader>
+              <CardTitle className="text-sm">Detalle del Comprobante</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-5">
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1.5 text-muted-foreground">

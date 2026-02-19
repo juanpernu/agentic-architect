@@ -254,6 +254,7 @@ export interface BudgetSection {
   cost_center_name: string;
   is_additional: boolean;
   subtotal?: number;
+  cost?: number;
   items: BudgetItem[];
 }
 
