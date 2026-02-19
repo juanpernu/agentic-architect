@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { sileo } from 'sileo';
 import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
@@ -31,6 +31,7 @@ import {
 import { CreateBudgetDialog } from '@/components/create-budget-dialog';
 
 export default function BudgetsPage() {
+  const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -136,11 +137,9 @@ export default function BudgetsPage() {
             </TableHeader>
             <TableBody>
               {filteredBudgets.map((budget) => (
-                <TableRow key={budget.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell>
-                    <Link href={`/budgets/${budget.id}`} className="font-medium hover:underline">
-                      {budget.project_name}
-                    </Link>
+                <TableRow key={budget.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/budgets/${budget.id}`)}>
+                  <TableCell className="font-medium">
+                    {budget.project_name}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">v{budget.current_version}</Badge>
