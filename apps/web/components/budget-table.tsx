@@ -281,6 +281,17 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             </tr>
           ))}
 
+          {/* Section subtotal row */}
+          <tr className="bg-muted/20 border-b border-gray-300">
+            <td className="px-3 py-1" />
+            <td className="px-3 py-1 text-sm font-medium text-muted-foreground">Subtotal {section.cost_center_name}</td>
+            <td className="px-3 py-1" />
+            <td className="px-3 py-1" />
+            <td className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(sectionSubtotal)}</td>
+            {showCost && <td className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(sectionCost)}</td>}
+            {!readOnly && <td className="px-3 py-1" />}
+          </tr>
+
           {!readOnly && (
             <tr className="border-b border-gray-200">
               <td colSpan={showCost ? 7 : 6} className="px-3 py-1">
