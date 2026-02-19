@@ -28,7 +28,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const versions = (data ?? []).map(({ created_by, ...v }) => ({
     ...v,
-    created_by_name: (created_by as { full_name: string } | null)?.full_name ?? 'Usuario',
+    created_by_name: (created_by as unknown as { full_name: string } | null)?.full_name ?? 'Usuario',
   }));
 
   return NextResponse.json(versions);
