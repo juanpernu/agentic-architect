@@ -238,16 +238,16 @@ export interface CostCenterSpend {
 // Budget types
 export interface BudgetItem {
   description: string;
-  quantity: number;
   unit: string;
-  unit_price: number;
+  quantity: number;
+  cost: number;
   subtotal: number;
 }
 
 export interface BudgetSection {
   cost_center_id: string;
   cost_center_name: string;
-  subtotal: number;
+  is_additional: boolean;
   items: BudgetItem[];
 }
 
