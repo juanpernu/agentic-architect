@@ -24,6 +24,8 @@ import {
 import { UserPlus, Loader2 } from 'lucide-react';
 import { sileo } from 'sileo';
 import { ROLE_LABELS } from '@/lib/role-constants';
+import { usePlan } from '@/lib/use-plan';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 import type { UserRole } from '@architech/shared';
 
 export function InviteUserDialog() {
@@ -32,6 +34,7 @@ export function InviteUserDialog() {
   const [role, setRole] = useState<string>('architect');
   const [sending, setSending] = useState(false);
   const { errors, validate, clearErrors } = useFormValidation(inviteSchema);
+  const { canInviteUser } = usePlan();
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -90,6 +93,9 @@ export function InviteUserDialog() {
             Se enviará un email de invitación a la organización. El rol se puede ajustar después desde Ajustes.
           </DialogDescription>
         </DialogHeader>
+        {!canInviteUser && (
+          <UpgradeBanner message="Alcanzaste el límite de usuarios en tu plan." />
+        )}
         <div className="space-y-4 pt-4">
           <Field data-invalid={!!errors.email}>
             <FieldLabel htmlFor="invite-email">Email</FieldLabel>
@@ -119,7 +125,7 @@ export function InviteUserDialog() {
             <FieldError>{errors.role}</FieldError>
           </Field>
           <div className="flex justify-end">
-            <Button onClick={handleInvite} disabled={sending || !email.trim()}>
+            <Button onClick={handleInvite} disabled={sending || !email.trim() || !canInviteUser}>
               {sending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {sending ? 'Enviando...' : 'Enviar invitación'}
             </Button>
