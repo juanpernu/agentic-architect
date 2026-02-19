@@ -8,7 +8,7 @@ import { ArrowLeft, History } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
-import { BudgetEditor } from '@/components/budget-editor';
+import { BudgetTable } from '@/components/budget-table';
 import type { BudgetDetail } from '@/lib/api-types';
 
 export default function BudgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -64,7 +64,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           </Link>
         )}
       </div>
-      <BudgetEditor budget={budget} readOnly={isHistoricalVersion || undefined} />
+      <BudgetTable budget={budget} readOnly={isHistoricalVersion || undefined} />
     </div>
   );
 }
