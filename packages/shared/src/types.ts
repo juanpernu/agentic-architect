@@ -253,7 +253,7 @@ export interface BudgetSection {
   cost_center_id: string;
   cost_center_name: string;
   is_additional: boolean;
-  subtotal: number;
+  subtotal?: number;
   items: BudgetItem[];
 }
 

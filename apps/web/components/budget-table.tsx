@@ -44,18 +44,24 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
   const baseSections = sections.filter((s) => !s.is_additional);
   const additionalSections = sections.filter((s) => s.is_additional);
 
-  const sumItems = (secs: BudgetSection[], field: 'cost' | 'subtotal') =>
-    secs.reduce((sum, s) => sum + s.items.reduce((iSum, i) => iSum + (Number(i[field]) || 0), 0), 0);
+  const calcItemsSum = (s: BudgetSection, field: 'cost' | 'subtotal') =>
+    s.items.reduce((sum, i) => sum + (Number(i[field]) || 0), 0);
 
-  const baseTotalSubtotal = sumItems(baseSections, 'subtotal');
-  const baseTotalCost = sumItems(baseSections, 'cost');
-  const additionalTotalSubtotal = sumItems(additionalSections, 'subtotal');
-  const additionalTotalCost = sumItems(additionalSections, 'cost');
+  const getEffectiveSubtotal = (s: BudgetSection) =>
+    s.subtotal != null ? s.subtotal : calcItemsSum(s, 'subtotal');
+
+  const sumSections = (secs: BudgetSection[], field: 'cost' | 'subtotal') =>
+    secs.reduce((sum, s) => sum + (field === 'subtotal' ? getEffectiveSubtotal(s) : calcItemsSum(s, field)), 0);
+
+  const baseTotalSubtotal = sumSections(baseSections, 'subtotal');
+  const baseTotalCost = sumSections(baseSections, 'cost');
+  const additionalTotalSubtotal = sumSections(additionalSections, 'subtotal');
+  const additionalTotalCost = sumSections(additionalSections, 'cost');
   const grandTotalSubtotal = baseTotalSubtotal + additionalTotalSubtotal;
 
   const getSectionIndex = (section: BudgetSection) => sections.indexOf(section);
 
-  const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal', value: number) => {
+  const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal', value: number | undefined) => {
     setSections((prev) => {
       const next = [...prev];
       next[sectionIndex] = { ...next[sectionIndex], [field]: value };
@@ -137,7 +143,6 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       cost_center_id: cc.id,
       cost_center_name: cc.name,
       is_additional: isAdditional,
-      subtotal: 0,
       items: [{ description: '', unit: 'gl', quantity: 1, cost: 0, subtotal: 0 }],
     };
     setSections((prev) => {
@@ -206,13 +211,17 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             <td className="px-3 py-2" />
             <td className="px-3 py-2 text-right font-bold">
               {readOnly ? (
-                formatCurrency(section.subtotal || 0)
+                formatCurrency(getEffectiveSubtotal(section))
               ) : (
                 <Input
                   type="number"
-                  value={section.subtotal || ''}
-                  onChange={(e) => updateSectionField(sectionIdx, 'subtotal', parseFloat(e.target.value) || 0)}
-                  className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-slate-700 text-white text-right font-bold w-28"
+                  value={section.subtotal != null ? section.subtotal : ''}
+                  placeholder={sectionSubtotal.toString()}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    updateSectionField(sectionIdx, 'subtotal', raw === '' ? undefined : parseFloat(raw) || 0);
+                  }}
+                  className={`h-7 text-sm border-0 shadow-none focus-visible:ring-1 text-right font-bold w-28 ${section.subtotal != null ? 'bg-slate-600 text-white' : 'bg-slate-700 text-slate-400'}`}
                   min={0}
                   step="any"
                 />

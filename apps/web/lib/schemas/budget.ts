@@ -12,7 +12,7 @@ export const budgetSectionSchema = z.object({
   cost_center_id: z.string().uuid(),
   cost_center_name: z.string(),
   is_additional: z.boolean(),
-  subtotal: z.number().min(0),
+  subtotal: z.number().min(0).optional(),
   items: z.array(budgetItemSchema).min(1),
 });
 
