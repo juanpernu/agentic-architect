@@ -1,6 +1,4 @@
-import type { UserRole, ProjectStatus, ReceiptStatus } from './enums';
-
-export type ProjectColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'pink' | 'teal';
+import type { UserRole, ProjectStatus, ReceiptStatus, ProjectColor } from './enums';
 
 export interface Organization {
   id: string;

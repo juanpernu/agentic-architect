@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-import { PROJECT_COLORS } from '@/lib/project-colors';
+import { validateBody } from '@/lib/validate';
+import { costCenterCreateSchema } from '@/lib/schemas';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -24,33 +25,18 @@ export async function POST(req: NextRequest) {
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
 
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
-  }
-
-  if (!body.name || !(body.name as string).trim()) {
-    return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 });
-  }
-
-  if ((body.name as string).length > 100) {
-    return NextResponse.json({ error: 'El nombre no puede exceder 100 caracteres' }, { status: 400 });
-  }
-
-  if (body.color && !(PROJECT_COLORS as readonly string[]).includes(body.color as string)) {
-    return NextResponse.json({ error: `color debe ser uno de: ${PROJECT_COLORS.join(', ')}` }, { status: 400 });
-  }
+  const result = await validateBody(costCenterCreateSchema, req);
+  if ('error' in result) return result.error;
+  const { name, description, color } = result.data;
 
   const db = getDb();
   const { data, error } = await db
     .from('cost_centers')
     .insert({
       organization_id: ctx.orgId,
-      name: (body.name as string).trim(),
-      description: body.description ? (body.description as string).trim() : null,
-      color: body.color ?? null,
+      name,
+      description,
+      color,
     })
     .select()
     .single();
