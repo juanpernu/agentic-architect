@@ -60,8 +60,11 @@ export default function BillingPage() {
   const [seatCount, setSeatCount] = useState(3);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  const [upgradeError, setUpgradeError] = useState<string | null>(null);
+
   const handleUpgrade = async () => {
     setIsRedirecting(true);
+    setUpgradeError(null);
     try {
       const res = await fetch('/api/billing/checkout-session', {
         method: 'POST',
@@ -69,9 +72,15 @@ export default function BillingPage() {
         body: JSON.stringify({ billingCycle: billingOption, seatCount }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setUpgradeError(data.error ?? `Error ${res.status}`);
+        return;
+      }
       if (data.url) {
         window.location.href = data.url;
       }
+    } catch {
+      setUpgradeError('Error de conexión. Intentá de nuevo.');
     } finally {
       setIsRedirecting(false);
     }
@@ -295,6 +304,9 @@ export default function BillingPage() {
                       <CreditCard className="mr-2 h-4 w-4" />
                       {isRedirecting ? 'Redirigiendo...' : 'Elegir plan'}
                     </Button>
+                    {upgradeError && (
+                      <p className="mt-2 text-sm text-red-600">{upgradeError}</p>
+                    )}
                   </>
                 )}
                 {plan === 'advance' && (

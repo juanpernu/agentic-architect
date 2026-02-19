@@ -59,14 +59,20 @@ export async function POST(request: Request) {
 
   // FUTURE: Elements migration — replace createCheckoutSession with
   // createSetupIntent + inline PaymentForm component
-  const session = await createCheckoutSession({
-    orgId: ctx.orgId,
-    customerEmail,
-    stripeCustomerId: org.stripe_customer_id,
-    billingCycle,
-    seatCount,
-    baseUrl,
-  });
+  try {
+    const session = await createCheckoutSession({
+      orgId: ctx.orgId,
+      customerEmail,
+      stripeCustomerId: org.stripe_customer_id,
+      billingCycle,
+      seatCount,
+      baseUrl,
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    console.error('Checkout session error:', err);
+    const message = err instanceof Error ? err.message : 'Error al crear sesión de pago';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
