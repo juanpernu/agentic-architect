@@ -241,3 +241,51 @@ export interface CostCenterSpend {
   total_amount: number;
   receipt_count: number;
 }
+
+// Budget types
+export interface BudgetItem {
+  description: string;
+  unit: string;
+  quantity: number;
+  cost: number;
+  subtotal: number;
+}
+
+export interface BudgetSection {
+  cost_center_id: string;
+  cost_center_name: string;
+  is_additional: boolean;
+  items: BudgetItem[];
+}
+
+export interface BudgetSnapshot {
+  sections: BudgetSection[];
+}
+
+export interface Budget {
+  id: string;
+  project_id: string;
+  organization_id: string;
+  current_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetVersion {
+  id: string;
+  budget_id: string;
+  version_number: number;
+  snapshot: BudgetSnapshot;
+  total_amount: number;
+  created_by: string;
+  created_at: string;
+}
+
+export interface CreateBudgetInput {
+  project_id: string;
+  snapshot: BudgetSnapshot;
+}
+
+export interface UpdateBudgetInput {
+  snapshot: BudgetSnapshot;
+}
