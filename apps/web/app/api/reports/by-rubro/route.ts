@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('receipts')
-    .select('id, total_amount, rubro_id, rubro:rubros(id, name, color), project:projects(id, name)')
+    .select('id, total_amount, rubro_id, rubro:rubros(id, name, color), project:projects!inner(id, name)')
     .eq('status', 'confirmed');
 
   // Filter by org via project

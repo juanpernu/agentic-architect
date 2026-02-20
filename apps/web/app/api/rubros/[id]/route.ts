@@ -54,6 +54,17 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   const db = getDb();
 
+  // Verify rubro belongs to caller's org
+  const { data: rubro } = await db
+    .from('rubros')
+    .select('id, budget:budgets!budget_id(organization_id)')
+    .eq('id', id)
+    .single();
+
+  if (!rubro || (rubro.budget as unknown as { organization_id: string })?.organization_id !== ctx.orgId) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const { count } = await db
     .from('receipts')
     .select('id', { count: 'exact', head: true })

@@ -13,32 +13,26 @@ export async function GET(req: NextRequest) {
   if (budgetId) {
     const { data, error } = await db
       .from('rubros')
-      .select('*, budget:budgets!budget_id(id, project_id, organization_id)')
+      .select('*, budget:budgets!budget_id!inner(id, project_id, organization_id)')
       .eq('budget_id', budgetId)
+      .eq('budget.organization_id', ctx.orgId)
       .order('sort_order', { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const filtered = (data ?? []).filter(
-      (r) => (r.budget as { organization_id: string })?.organization_id === ctx.orgId
-    );
-
-    return NextResponse.json(filtered.map(({ budget, ...r }) => r));
+    return NextResponse.json((data ?? []).map(({ budget, ...r }) => r));
   }
 
-  // All rubros for the org (for filters)
+  // All rubros for the org (filtered at DB level)
   const { data, error } = await db
     .from('rubros')
-    .select('*, budget:budgets!budget_id(id, organization_id)')
+    .select('*, budget:budgets!budget_id!inner(id, organization_id)')
+    .eq('budget.organization_id', ctx.orgId)
     .order('name', { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const filtered = (data ?? []).filter(
-    (r) => (r.budget as { organization_id: string })?.organization_id === ctx.orgId
-  );
-
-  return NextResponse.json(filtered.map(({ budget, ...r }) => r));
+  return NextResponse.json((data ?? []).map(({ budget, ...r }) => r));
 }
 
 export async function POST(req: NextRequest) {

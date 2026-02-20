@@ -96,6 +96,9 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
 
   /* ---- Section mutations ---- */
 
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
+
   const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal' | 'cost', value: number | undefined) => {
     setSections((prev) => {
       const next = [...prev];
@@ -105,6 +108,13 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   }, []);
 
   const renameSectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup rename debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (renameSectionDebounceRef.current) clearTimeout(renameSectionDebounceRef.current);
+    };
+  }, []);
 
   const renameSection = useCallback((sectionIndex: number, newName: string) => {
     setSections((prev) => {
@@ -116,7 +126,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
     // Debounce the API call to rename the rubro
     if (renameSectionDebounceRef.current) clearTimeout(renameSectionDebounceRef.current);
     renameSectionDebounceRef.current = setTimeout(() => {
-      const rubroId = sections[sectionIndex]?.rubro_id;
+      const rubroId = sectionsRef.current[sectionIndex]?.rubro_id;
       if (rubroId && newName.trim()) {
         fetch(`/api/rubros/${rubroId}`, {
           method: 'PATCH',
@@ -127,7 +137,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
         });
       }
     }, 1000);
-  }, [sections]);
+  }, []);
 
   /* ---- Item mutations ---- */
 
@@ -168,7 +178,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   /* ---- Section management ---- */
 
   const removeSection = useCallback(async (index: number) => {
-    const section = sections[index];
+    const section = sectionsRef.current[index];
     if (!section) return;
 
     // Delete the rubro from backend
@@ -185,7 +195,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
     }
 
     setSections((prev) => prev.filter((_, i) => i !== index));
-  }, [sections]);
+  }, []);
 
   const moveSection = useCallback((index: number, direction: 'up' | 'down') => {
     setSections((prev) => {

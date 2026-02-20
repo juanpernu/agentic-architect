@@ -96,6 +96,7 @@ export function useAutosave(
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
       if (hasPendingChangesRef.current) {
         // Fire-and-forget save with latest data
         const data = latestSnapshotRef.current;

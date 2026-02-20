@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { budgetSnapshotSchema } from '@/lib/schemas';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -91,9 +92,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Budget is published. Click "Editar presupuesto" first.' }, { status: 409 });
     }
 
+    const parsed = budgetSnapshotSchema.safeParse(body.snapshot);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid snapshot format' }, { status: 400 });
+    }
+
     const { error } = await db
       .from('budgets')
-      .update({ snapshot: body.snapshot })
+      .update({ snapshot: parsed.data })
       .eq('id', id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -151,7 +157,12 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
     .update({ current_version: newVersion, status: 'published' })
     .eq('id', id);
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) {
+    // Compensate: remove the orphaned version row
+    await db.from('budget_versions').delete()
+      .eq('budget_id', id).eq('version_number', newVersion);
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ version_number: newVersion, total_amount: totalAmount });
 }
