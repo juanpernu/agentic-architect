@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
 import { sileo } from 'sileo';
+import { MapPin } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import {
   Dialog,
@@ -33,6 +34,14 @@ interface OrgUser {
   email: string;
 }
 
+const PROVINCES = [
+  'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
+  'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+  'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan',
+  'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero',
+  'Tierra del Fuego', 'Tucumán',
+];
+
 interface ProjectFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -57,6 +66,12 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
     color: '',
   });
 
+  // Structured address fields (UI only — concatenated into `address` on save)
+  const [street, setStreet] = useState('');
+  const [locality, setLocality] = useState('');
+  const [province, setProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+
   useEffect(() => {
     if (project) {
       setFormData({
@@ -66,6 +81,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         architect_id: project.architect_id ?? '',
         color: project.color ?? '',
       });
+      // Put existing address in street field since we can't reliably parse
+      setStreet(project.address ?? '');
+      setLocality('');
+      setProvince('');
+      setPostalCode('');
     } else {
       setFormData({
         name: '',
@@ -74,22 +94,33 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         architect_id: '',
         color: '',
       });
+      setStreet('');
+      setLocality('');
+      setProvince('');
+      setPostalCode('');
     }
     clearErrors();
   }, [project, open, clearErrors]);
 
+  const buildAddress = (): string => {
+    const parts = [street, locality, province, postalCode].filter(Boolean);
+    return parts.join(', ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate(formData)) return;
+    const address = buildAddress();
+    const data = { ...formData, address };
+    if (!validate(data)) return;
     setIsSubmitting(true);
 
     try {
       const payload = {
-        name: formData.name,
-        address: formData.address || undefined,
-        status: formData.status,
-        architect_id: formData.architect_id || undefined,
-        color: formData.color || null,
+        name: data.name,
+        address: address || undefined,
+        status: data.status,
+        architect_id: data.architect_id || undefined,
+        color: data.color || null,
       } satisfies Omit<CreateProjectInput | UpdateProjectInput, 'color'> & { color: ProjectColor | null };
 
       const response = await fetch(
@@ -110,10 +141,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         title: project ? 'Proyecto actualizado con éxito' : 'Proyecto creado con éxito',
       });
 
-      // Refresh projects list
       await mutate('/api/projects');
 
-      // If editing, also refresh the project detail
       if (project) {
         await mutate(`/api/projects/${project.id}`);
       }
@@ -130,7 +159,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {project ? 'Editar Proyecto' : 'Nuevo Proyecto'}
@@ -142,7 +171,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Project info */}
           <FieldGroup className="space-y-4">
             <Field data-invalid={!!errors.name}>
               <FieldLabel htmlFor="name">
@@ -159,18 +189,6 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 aria-invalid={!!errors.name}
               />
               <FieldError>{errors.name}</FieldError>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="address">Dirección</FieldLabel>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                placeholder="Ej: Av. Corrientes 1234, CABA"
-              />
             </Field>
 
             <Field>
@@ -241,7 +259,65 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
             </Field>
           </FieldGroup>
 
-          <DialogFooter className="mt-4">
+          {/* Ubicación section */}
+          <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span className="font-semibold text-sm">Ubicación</span>
+            </div>
+
+            <Field>
+              <FieldLabel htmlFor="street">Calle y Altura</FieldLabel>
+              <Input
+                id="street"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                placeholder="Ej: Av. Libertador 1234"
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="locality">Localidad</FieldLabel>
+              <Input
+                id="locality"
+                value={locality}
+                onChange={(e) => setLocality(e.target.value)}
+                placeholder="Ej: Vicente López"
+              />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel htmlFor="province">Provincia</FieldLabel>
+                <Select
+                  value={province || '__none__'}
+                  onValueChange={(value) => setProvince(value === '__none__' ? '' : value)}
+                >
+                  <SelectTrigger id="province" className="w-full">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {PROVINCES.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="postal_code">C.P.</FieldLabel>
+                <Input
+                  id="postal_code"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="Ej: 1638"
+                />
+              </Field>
+            </div>
+          </div>
+
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"

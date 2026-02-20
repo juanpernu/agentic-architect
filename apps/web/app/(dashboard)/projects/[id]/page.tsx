@@ -7,6 +7,7 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   Building2,
+  Calculator,
   MapPin,
   Upload,
   Edit,
@@ -208,9 +209,10 @@ export default function ProjectDetailPage() {
         </section>
 
         {/* Stats cards */}
-        <div className="px-5 py-4 grid grid-cols-2 gap-3">
+        <div className="px-5 py-4 space-y-3">
           <div className="bg-card rounded-xl shadow-sm p-4 border border-border/50">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+              <Calculator className="h-3.5 w-3.5 text-primary" />
               Presupuesto
             </p>
             {budgets && budgets.length > 0 ? (
@@ -227,7 +229,8 @@ export default function ProjectDetailPage() {
             )}
           </div>
           <div className="bg-card rounded-xl shadow-sm p-4 border border-border/50">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+              <Receipt className="h-3.5 w-3.5 text-orange-500" />
               Gasto Total
             </p>
             <span className="text-xl font-bold">{formatCurrency(totalSpend)}</span>
