@@ -1,12 +1,12 @@
 'use client';
 
-import { use, useCallback } from 'react';
+import { use, useCallback, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { ArrowLeft, History } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
-import { LoadingCards } from '@/components/ui/loading-skeleton';
+import { LoadingCards, LoadingBudgetTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { BudgetTable } from '@/components/budget-table';
 import type { BudgetDetail } from '@/lib/api-types';
@@ -20,7 +20,16 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
     ? `/api/budgets/${id}?version=${versionParam}`
     : `/api/budgets/${id}`;
 
-  const { data: budget, isLoading, error, mutate } = useSWR<BudgetDetail>(apiUrl, fetcher);
+  const { data: budget, isLoading, isValidating, error, mutate } = useSWR<BudgetDetail>(apiUrl, fetcher);
+
+  // Track initial sync: show skeleton until first revalidation completes after mount.
+  // This avoids showing stale cached data while SWR fetches fresh data.
+  const [isInitialSync, setIsInitialSync] = useState(true);
+  useEffect(() => {
+    if (!isValidating && budget) {
+      setIsInitialSync(false);
+    }
+  }, [isValidating, budget]);
 
   const isHistoricalVersion = versionParam && budget
     ? Number(versionParam) !== budget.current_version
@@ -59,6 +68,8 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       }
     : budget;
 
+  const showSkeleton = isInitialSync && isValidating;
+
   return (
     <div className="p-6">
       <div className="flex items-center gap-4 mb-6">
@@ -81,11 +92,15 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           </Link>
         )}
       </div>
-      <BudgetTable
-        budget={budgetForTable}
-        onPublish={handlePublish}
-        onEdit={handleEdit}
-      />
+      {showSkeleton ? (
+        <LoadingBudgetTable />
+      ) : (
+        <BudgetTable
+          budget={budgetForTable}
+          onPublish={handlePublish}
+          onEdit={handleEdit}
+        />
+      )}
     </div>
   );
 }
