@@ -3,20 +3,39 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
-import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
-import type { CostCenterSpend, ProjectColor } from '@architech/shared';
+import type { RubroSpend } from '@architech/shared';
 
 const currencyTickFormatter = (value: number) => formatCurrencyCompact(value);
 const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
 
 const DEFAULT_BAR_COLOR = 'hsl(var(--primary))';
 
-export function SpendByCostCenterChart({ data }: { data: CostCenterSpend[] }) {
-  if (data.length === 0) {
+interface ProjectGroup {
+  project_name: string;
+  total_amount: number;
+}
+
+export function SpendByRubroChart({ data }: { data: RubroSpend[] }) {
+  // Group by project for the chart
+  const projectMap = new Map<string, ProjectGroup>();
+  for (const row of data) {
+    const existing = projectMap.get(row.project_id);
+    if (existing) {
+      existing.total_amount += row.total_amount;
+    } else {
+      projectMap.set(row.project_id, {
+        project_name: row.project_name,
+        total_amount: row.total_amount,
+      });
+    }
+  }
+  const chartData = Array.from(projectMap.values()).sort((a, b) => b.total_amount - a.total_amount);
+
+  if (chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Gasto por Centro de Costos</CardTitle>
+          <CardTitle>Gasto por Proyecto</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-sm text-muted-foreground">
@@ -30,11 +49,11 @@ export function SpendByCostCenterChart({ data }: { data: CostCenterSpend[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gasto por Centro de Costos</CardTitle>
+        <CardTitle>Gasto por Proyecto</CardTitle>
       </CardHeader>
-      <CardContent role="img" aria-label="Gráfico de barras: gasto por centro de costos">
-        <ResponsiveContainer width="100%" height={Math.max(300, data.length * 50)}>
-          <BarChart data={data} layout="vertical" margin={{ left: 12, right: 12, top: 8, bottom: 4 }}>
+      <CardContent role="img" aria-label="Grafico de barras: gasto por proyecto">
+        <ResponsiveContainer width="100%" height={Math.max(300, chartData.length * 50)}>
+          <BarChart data={chartData} layout="vertical" margin={{ left: 12, right: 12, top: 8, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
             <XAxis
               type="number"
@@ -44,7 +63,7 @@ export function SpendByCostCenterChart({ data }: { data: CostCenterSpend[] }) {
             />
             <YAxis
               type="category"
-              dataKey="cost_center_name"
+              dataKey="project_name"
               className="text-xs"
               width={120}
               tick={{ fill: 'hsl(var(--muted-foreground))' }}
@@ -58,14 +77,10 @@ export function SpendByCostCenterChart({ data }: { data: CostCenterSpend[] }) {
               }}
             />
             <Bar dataKey="total_amount" radius={[0, 4, 4, 0]}>
-              {data.map((entry) => (
+              {chartData.map((entry, index) => (
                 <Cell
-                  key={entry.cost_center_id}
-                  fill={
-                    entry.cost_center_color && PROJECT_COLOR_HEX[entry.cost_center_color as ProjectColor]
-                      ? PROJECT_COLOR_HEX[entry.cost_center_color as ProjectColor]
-                      : DEFAULT_BAR_COLOR
-                  }
+                  key={entry.project_name}
+                  fill={DEFAULT_BAR_COLOR}
                 />
               ))}
             </Bar>
