@@ -9,16 +9,16 @@ export const budgetItemSchema = z.object({
 });
 
 export const budgetSectionSchema = z.object({
-  cost_center_id: z.string().uuid(),
-  cost_center_name: z.string(),
+  rubro_id: z.string().uuid(),
+  rubro_name: z.string(),
   is_additional: z.boolean(),
   subtotal: z.number().min(0).optional(),
   cost: z.number().min(0).optional(),
-  items: z.array(budgetItemSchema).min(1),
+  items: z.array(budgetItemSchema),
 });
 
 export const budgetSnapshotSchema = z.object({
-  sections: z.array(budgetSectionSchema).min(1),
+  sections: z.array(budgetSectionSchema),
 });
 
 export type BudgetSnapshotFormData = z.infer<typeof budgetSnapshotSchema>;

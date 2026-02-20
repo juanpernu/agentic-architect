@@ -5,7 +5,7 @@ export const receiptReviewSchema = z.object({
   date: z.string().min(1, 'La fecha es requerida'),
   total: z.string().refine((v) => parseFloat(v) > 0, 'El total debe ser mayor a 0'),
   projectId: z.string().min(1, 'Debes seleccionar un proyecto'),
-  costCenterId: z.string().min(1, 'Debes seleccionar un centro de costos'),
+  rubroId: z.string().min(1, 'Debes seleccionar un rubro'),
   items: z.array(z.object({
     description: z.string(),
     quantity: z.number(),
