@@ -1,16 +1,21 @@
 import { Suspense } from 'react';
-import { PageHeader } from '@/components/ui/page-header';
+import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
 import { DashboardKPIs } from '@/components/dashboard/dashboard-kpis';
 import { RecentReceipts } from '@/components/dashboard/recent-receipts';
+import { ProgressBarList } from '@/components/ui/progress-bar-list';
+import { BarChartSimple } from '@/components/ui/bar-chart-simple';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { formatCurrencyCompact } from '@/lib/format';
 import type { SpendByProject, SpendTrend } from '@architech/shared';
 
-// Client chart components loaded dynamically to avoid Recharts SSR issues
-import { SpendByProjectChart } from '@/components/dashboard/spend-by-project-chart';
-import { SpendTrendChart } from '@/components/dashboard/spend-trend-chart';
+const monthLabels: Record<string, string> = {
+  '01': 'Ene', '02': 'Feb', '03': 'Mar', '04': 'Abr',
+  '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Ago',
+  '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dic',
+};
 
 async function fetchSpendByProject(): Promise<SpendByProject[]> {
   const ctx = await getAuthContext();
@@ -31,12 +36,14 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
 
   const { data } = await query;
 
-  return (data ?? []).map((p) => ({
-    project_id: p.id,
-    project_name: p.name,
-    total_spend: (p.receipts as Array<{ total_amount: number; status: string }>)
-      ?.reduce((sum: number, r) => sum + Number(r.total_amount), 0) ?? 0,
-  }));
+  return (data ?? [])
+    .map((p) => ({
+      project_id: p.id,
+      project_name: p.name,
+      total_spend: (p.receipts as Array<{ total_amount: number; status: string }>)
+        ?.reduce((sum: number, r) => sum + Number(r.total_amount), 0) ?? 0,
+    }))
+    .sort((a, b) => b.total_spend - a.total_spend);
 }
 
 async function fetchSpendTrend(): Promise<SpendTrend[]> {
@@ -73,92 +80,115 @@ async function fetchSpendTrend(): Promise<SpendTrend[]> {
 
 async function SpendByProjectSection() {
   const data = await fetchSpendByProject();
-  return <SpendByProjectChart data={data} />;
+  return (
+    <ProgressBarList
+      title="Gasto por Proyecto"
+      items={data.map((p) => ({
+        id: p.project_id,
+        label: p.project_name,
+        value: p.total_spend,
+        formattedValue: formatCurrencyCompact(p.total_spend),
+      }))}
+      maxItems={5}
+      actionLabel="Ver Todo"
+      actionHref="/projects"
+    />
+  );
 }
 
 async function SpendTrendSection() {
   const data = await fetchSpendTrend();
-  return <SpendTrendChart data={data} />;
+  return (
+    <BarChartSimple
+      title="Tendencia Mensual"
+      data={data.map((item) => {
+        const [, monthNum] = item.month.split('-');
+        return {
+          label: monthLabels[monthNum] || item.month,
+          value: item.total,
+          formattedValue: `${monthLabels[monthNum] || item.month}: ${formatCurrencyCompact(item.total)}`,
+        };
+      })}
+      legend="Actual"
+      highlightLast
+    />
+  );
 }
 
 export default function DashboardPage() {
   return (
-    <div className="p-6">
-      <PageHeader
-        title="Dashboard"
-        description="Resumen de tus proyectos"
-      />
+    <div className="space-y-8 animate-slide-up">
+      <DashboardGreeting />
 
-      <div className="space-y-6 animate-slide-up">
-        {/* KPIs Section */}
+      {/* KPIs Section */}
+      <Suspense
+        fallback={
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="h-32 p-4 shadow-soft border-border/50">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-8 w-1/2 mt-auto" />
+              </Card>
+            ))}
+          </div>
+        }
+      >
+        <DashboardKPIs />
+      </Suspense>
+
+      {/* Charts Section */}
+      <div className="grid gap-4 md:grid-cols-2 stagger-children">
         <Suspense
           fallback={
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="p-6 space-y-3">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-8 w-1/2" />
-                </Card>
-              ))}
-            </div>
-          }
-        >
-          <DashboardKPIs />
-        </Suspense>
-
-        {/* Charts Section */}
-        <div className="grid gap-4 md:grid-cols-2 stagger-children">
-          <Suspense
-            fallback={
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gasto por Proyecto</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-[300px] w-full" />
-                </CardContent>
-              </Card>
-            }
-          >
-            <SpendByProjectSection />
-          </Suspense>
-
-          <Suspense
-            fallback={
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tendencia Mensual</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-[300px] w-full" />
-                </CardContent>
-              </Card>
-            }
-          >
-            <SpendTrendSection />
-          </Suspense>
-        </div>
-
-        {/* Recent Receipts Section */}
-        <Suspense
-          fallback={
-            <Card>
-              <CardHeader>
-                <CardTitle>Comprobantes Recientes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              </CardContent>
+            <Card className="shadow-soft border-border/50 p-6">
+              <Skeleton className="h-4 w-40 mb-4" />
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-6 w-1/2" />
+              </div>
             </Card>
           }
         >
-          <RecentReceipts />
+          <SpendByProjectSection />
+        </Suspense>
+
+        <Suspense
+          fallback={
+            <Card className="shadow-soft border-border/50 p-6">
+              <Skeleton className="h-4 w-40 mb-4" />
+              <Skeleton className="h-40 w-full" />
+            </Card>
+          }
+        >
+          <SpendTrendSection />
         </Suspense>
       </div>
+
+      {/* Recent Receipts Section */}
+      <Suspense
+        fallback={
+          <div>
+            <Skeleton className="h-6 w-52 mb-4" />
+            <Card className="shadow-soft border-border/50 p-0">
+              <div className="divide-y divide-border">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-4 flex items-center gap-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        }
+      >
+        <RecentReceipts />
+      </Suspense>
     </div>
   );
 }
