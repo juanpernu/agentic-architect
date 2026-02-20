@@ -67,13 +67,9 @@ export async function POST(req: NextRequest) {
   }
 
   const projectId = body.project_id as string;
-  const snapshot = body.snapshot as Record<string, unknown>;
 
   if (!projectId) {
     return NextResponse.json({ error: 'project_id is required' }, { status: 400 });
-  }
-  if (!snapshot) {
-    return NextResponse.json({ error: 'snapshot is required' }, { status: 400 });
   }
 
   const db = getDb();
@@ -101,37 +97,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Project already has a budget' }, { status: 409 });
   }
 
-  // Calculate total (sum of all item subtotals across all sections)
-  const sections = (snapshot as { sections?: Array<{ items?: Array<{ subtotal?: number }> }> }).sections ?? [];
-  const totalAmount = sections.reduce((sum, s) =>
-    sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0)
-  , 0);
-
-  // Create budget
+  // Create budget as draft with empty snapshot
   const { data: budget, error: budgetError } = await db
     .from('budgets')
     .insert({
       project_id: projectId,
       organization_id: ctx.orgId,
-      current_version: 1,
+      current_version: 0,
+      status: 'draft',
+      snapshot: { sections: [] },
     })
     .select()
     .single();
 
   if (budgetError) return NextResponse.json({ error: budgetError.message }, { status: 500 });
-
-  // Create first version
-  const { error: versionError } = await db
-    .from('budget_versions')
-    .insert({
-      budget_id: budget.id,
-      version_number: 1,
-      snapshot,
-      total_amount: totalAmount,
-      created_by: ctx.dbUserId,
-    });
-
-  if (versionError) return NextResponse.json({ error: versionError.message }, { status: 500 });
 
   return NextResponse.json(budget, { status: 201 });
 }
