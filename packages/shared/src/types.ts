@@ -219,6 +219,8 @@ export interface DashboardStats {
   monthly_spend: number;
   weekly_receipts: number;
   pending_review: number;
+  new_projects_this_week: number;
+  previous_month_spend: number;
 }
 
 export interface SpendByProject {
