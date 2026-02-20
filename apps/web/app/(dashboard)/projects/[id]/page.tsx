@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Building2,
   MapPin,
-  Calculator,
   Upload,
   Edit,
   Trash2,
@@ -208,19 +207,33 @@ export default function ProjectDetailPage() {
           )}
         </section>
 
-        {/* Stats card */}
-        <div className="px-5 py-4">
-          <div className="bg-card rounded-xl shadow-sm p-4 border border-border/50 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
-                Gasto Total
-              </p>
-              <span className="text-xl font-bold">{formatCurrency(totalSpend)}</span>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Comprobantes</p>
-              <p className="text-sm font-medium">{receipts?.length ?? 0}</p>
-            </div>
+        {/* Stats cards */}
+        <div className="px-5 py-4 grid grid-cols-2 gap-3">
+          <div className="bg-card rounded-xl shadow-sm p-4 border border-border/50">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
+              Presupuesto
+            </p>
+            {budgets && budgets.length > 0 ? (
+              <>
+                <span className="text-xl font-bold">{formatCurrency(budgets[0].total_amount)}</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    v{budgets[0].current_version}
+                  </Badge>
+                </div>
+              </>
+            ) : (
+              <span className="text-xl font-bold text-muted-foreground/40">—</span>
+            )}
+          </div>
+          <div className="bg-card rounded-xl shadow-sm p-4 border border-border/50">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
+              Gasto Total
+            </p>
+            <span className="text-xl font-bold">{formatCurrency(totalSpend)}</span>
+            <p className="text-xs text-muted-foreground mt-1">
+              {receipts?.length ?? 0} comprobantes
+            </p>
           </div>
         </div>
 
@@ -261,47 +274,6 @@ export default function ProjectDetailPage() {
                   <span className="text-sm text-muted-foreground">Sin arquitecto asignado</span>
                 </>
               )}
-            </div>
-          </div>
-
-          {/* Budget + Total side by side */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-                Presupuesto
-              </label>
-              <div className="bg-card border border-border rounded-lg px-3 py-3">
-                {budgets && budgets.length > 0 ? (
-                  <>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                        v{budgets[0].current_version}
-                      </Badge>
-                    </div>
-                    <p className="text-sm font-bold">{formatCurrency(budgets[0].total_amount)}</p>
-                  </>
-                ) : (
-                  <>
-                    <Calculator className="h-3.5 w-3.5 text-muted-foreground mb-1" />
-                    <p className="text-sm text-muted-foreground">Sin presupuesto</p>
-                  </>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-                Gasto Total
-              </label>
-              <div className="bg-card border border-border rounded-lg px-3 py-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">
-                    {receipts?.length ?? 0} comp.
-                  </span>
-                </div>
-                <p className="text-sm font-bold">{formatCurrency(totalSpend)}</p>
-              </div>
             </div>
           </div>
 
