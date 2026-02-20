@@ -4,37 +4,31 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
-import { Building2, Calculator, Edit, Trash2, Upload } from 'lucide-react';
+import {
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Calculator,
+  Upload,
+  Edit,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Receipt,
+  User,
+  Loader2,
+} from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { BudgetListItem, ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
-import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { LoadingCards } from '@/components/ui/loading-skeleton';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +38,40 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { cn } from '@/lib/utils';
+
+function toArgDate(d: Date): Date {
+  return new Date(d.toLocaleString('en-US', { timeZone: 'America/Buenos_Aires' }));
+}
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / 86_400_000);
+
+  const argDate = toArgDate(date);
+  const argNow = toArgDate(now);
+  const today = new Date(argNow.getFullYear(), argNow.getMonth(), argNow.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const updateDay = new Date(argDate.getFullYear(), argDate.getMonth(), argDate.getDate());
+
+  if (updateDay.getTime() === today.getTime()) return 'Hoy';
+  if (updateDay.getTime() === yesterday.getTime()) return 'Ayer';
+  if (diffDays < 7) return `Hace ${diffDays}d`;
+  return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -54,6 +82,7 @@ export default function ProjectDetailPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [receiptsOpen, setReceiptsOpen] = useState(true);
 
   const { data: project, isLoading: isLoadingProject, error: projectError } = useSWR<ProjectDetail>(
     projectId ? `/api/projects/${projectId}` : null,
@@ -98,8 +127,7 @@ export default function ProjectDetailPage() {
 
   if (projectError) {
     return (
-      <div className="p-6">
-        <PageHeader title="Error" />
+      <div className="max-w-lg mx-auto p-6">
         <div className="text-red-600">Error al cargar el proyecto</div>
       </div>
     );
@@ -107,15 +135,15 @@ export default function ProjectDetailPage() {
 
   if (isLoadingProject) {
     return (
-      <div className="p-6">
-        <LoadingCards count={1} />
+      <div className="max-w-lg mx-auto p-6">
+        <LoadingCards count={2} />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="p-6">
+      <div className="max-w-lg mx-auto p-6">
         <EmptyState
           icon={Building2}
           title="Proyecto no encontrado"
@@ -130,218 +158,266 @@ export default function ProjectDetailPage() {
     );
   }
 
+  const projectColor = project.color ? PROJECT_COLOR_HEX[project.color] : '#3B82F6';
+
   return (
-    <div className="p-6 animate-slide-up">
-      <PageHeader
-        title={
-          <span className="flex items-center gap-2">
-            {project.color && (
-              <span
-                className="inline-block h-3 w-3 rounded-full shrink-0"
-                style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
-              />
-            )}
-            {project.name}
-          </span>
-        }
-        description={project.address ?? 'Sin dirección'}
-        action={
-          (isAdminOrSupervisor) ? (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowEditDialog(true)}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Editar
-              </Button>
-              {isAdmin && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar
-                </Button>
+    <div className="max-w-lg mx-auto flex flex-col min-h-screen bg-background animate-slide-up">
+      {/* Header */}
+      <header className="bg-card sticky top-0 z-20 px-4 py-4 flex items-center justify-between border-b border-border">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push('/projects')}
+            className="p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
+            aria-label="Volver a proyectos"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-lg font-semibold truncate">{project.name}</h1>
+        </div>
+        {isAdminOrSupervisor && (
+          <button
+            onClick={() => setShowEditDialog(true)}
+            className="text-primary font-medium text-sm"
+          >
+            Editar
+          </button>
+        )}
+      </header>
+
+      {/* Scrollable content */}
+      <main className="flex-1 overflow-y-auto pb-40">
+        {/* Color banner */}
+        <section className="relative h-24 border-b border-border" style={{ backgroundColor: projectColor }}>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10" />
+          <div className="absolute bottom-3 left-5 flex items-center gap-2">
+            <StatusBadge status={project.status} />
+          </div>
+        </section>
+
+        {/* Floating stats card */}
+        <div className="px-5 -mt-6 relative z-10 mb-6">
+          <div className="bg-card rounded-xl shadow-lg p-4 border border-border/50 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
+                Gasto Total
+              </p>
+              <span className="text-xl font-bold">{formatCurrency(totalSpend)}</span>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Comprobantes</p>
+              <p className="text-sm font-medium">{receipts?.length ?? 0}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Detail fields */}
+        <div className="px-5 space-y-5">
+          {/* Address */}
+          {project.address && (
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                Dirección
+              </label>
+              <div className="flex items-center gap-3 bg-card border border-border rounded-lg px-3 py-3">
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-sm">{project.address}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Architect */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+              Arquitecto
+            </label>
+            <div className="flex items-center gap-3 bg-card border border-border rounded-lg px-3 py-3">
+              {project.architect ? (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                    {getInitials(project.architect.full_name)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{project.architect.full_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{project.architect.email}</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-muted-foreground">Sin arquitecto asignado</span>
+                </>
               )}
             </div>
-          ) : undefined
-        }
-      />
+          </div>
 
-      <div className="grid gap-4 md:grid-cols-2 mb-6 stagger-children">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Gasto Total</CardTitle>
-            <CardAction>
-              <StatusBadge status={project.status} />
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">
-              {formatCurrency(totalSpend)}
+          {/* Budget + Total side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                Presupuesto
+              </label>
+              <div className="bg-card border border-border rounded-lg px-3 py-3">
+                {budgets && budgets.length > 0 ? (
+                  <>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                        v{budgets[0].current_version}
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-bold">{formatCurrency(budgets[0].total_amount)}</p>
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="h-3.5 w-3.5 text-muted-foreground mb-1" />
+                    <p className="text-sm text-muted-foreground">Sin presupuesto</p>
+                  </>
+                )}
+              </div>
             </div>
-            <CardDescription className="mt-2">
-              {receipts?.length ?? 0} comprobantes
-            </CardDescription>
-          </CardContent>
-          <CardFooter className="border-t pt-4 flex items-center gap-3">
-            {project.architect ? (
-              <>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={project.architect.avatar_url ?? undefined} alt={project.architect.full_name} />
-                  <AvatarFallback className="text-xs">
-                    {project.architect.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="text-sm font-medium">{project.architect.full_name}</div>
-                  <div className="text-xs text-muted-foreground">{project.architect.email}</div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                Gasto Total
+              </label>
+              <div className="bg-card border border-border rounded-lg px-3 py-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">
+                    {receipts?.length ?? 0} comp.
+                  </span>
                 </div>
-              </>
-            ) : (
-              <span className="text-sm text-muted-foreground">Sin arquitecto asignado</span>
-            )}
-          </CardFooter>
-        </Card>
+                <p className="text-sm font-bold">{formatCurrency(totalSpend)}</p>
+              </div>
+            </div>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Presupuesto</CardTitle>
-            {budgets && budgets.length > 0 && (
-              <CardAction>
-                <Badge variant="secondary">v{budgets[0].current_version}</Badge>
-              </CardAction>
-            )}
-          </CardHeader>
-          <CardContent>
-            {budgets && budgets.length > 0 ? (
-              <>
-                <div className="text-3xl font-bold tracking-tight">
-                  {formatCurrency(budgets[0].total_amount)}
-                </div>
-                <CardDescription className="mt-2">Version actual</CardDescription>
-              </>
-            ) : (
-              <>
-                <div className="text-3xl font-bold tracking-tight text-muted-foreground/40">
-                  —
-                </div>
-                <CardDescription className="mt-2">Sin presupuesto</CardDescription>
-              </>
-            )}
-          </CardContent>
-          <CardFooter className="border-t pt-4">
-            {budgets && budgets.length > 0 ? (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/budgets/${budgets[0].id}`}>
-                  <Calculator className="mr-2 h-4 w-4" />
-                  Ver presupuesto
-                </Link>
-              </Button>
-            ) : isAdminOrSupervisor ? (
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/budgets">
-                  <Calculator className="mr-2 h-4 w-4" />
-                  Crear presupuesto
-                </Link>
-              </Button>
-            ) : null}
-          </CardFooter>
-        </Card>
-      </div>
+          {/* Budget link */}
+          {budgets && budgets.length > 0 && (
+            <Link
+              href={`/budgets/${budgets[0].id}`}
+              className="block text-center text-primary text-sm font-medium hover:underline"
+            >
+              Ver presupuesto completo
+            </Link>
+          )}
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Comprobantes</h2>
-        <Button asChild>
-          <Link href={`/upload?project_id=${projectId}`}>
-            <Upload className="mr-2 h-4 w-4" />
-            Cargar Comprobante
-          </Link>
-        </Button>
-      </div>
+          <hr className="border-border my-2" />
 
-      {isLoadingReceipts && <LoadingTable rows={5} />}
+          {/* Receipts section */}
+          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+            <button
+              onClick={() => setReceiptsOpen(!receiptsOpen)}
+              className="w-full px-4 py-3 bg-muted/50 flex items-center justify-between text-left focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-primary" />
+                <span className="font-medium">Comprobantes</span>
+                <span className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full font-bold">
+                  {receipts?.length ?? 0}
+                </span>
+              </div>
+              {receiptsOpen ? (
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              )}
+            </button>
 
-      {!isLoadingReceipts && (!receipts || receipts.length === 0) && (
-        <EmptyState
-          icon={Upload}
-          title="No hay comprobantes"
-          description="Comienza cargando el primer comprobante de este proyecto"
-          action={
-            <Button asChild>
-              <Link href={`/upload?project_id=${projectId}`}>
-                <Upload className="mr-2" />
-                Cargar Comprobante
-              </Link>
-            </Button>
-          }
-        />
-      )}
+            {receiptsOpen && (
+              <div className="divide-y divide-border/50">
+                {isLoadingReceipts && (
+                  <div className="p-6 flex justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
 
-      {!isLoadingReceipts && receipts && receipts.length > 0 && (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Proveedor</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Monto</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Cargado por</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {receipts.map((receipt) => (
-                <TableRow
-                  key={receipt.id}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/receipts/${receipt.id}`)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/receipts/${receipt.id}`); }}
-                  tabIndex={0}
-                  role="link"
+                {!isLoadingReceipts && receipts && receipts.length > 0 && receipts.map((receipt) => (
+                  <div
+                    key={receipt.id}
+                    className="p-4 flex justify-between items-start gap-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/receipts/${receipt.id}`)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {receipt.vendor ?? 'Sin proveedor'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatRelativeDate(receipt.receipt_date)} · {receipt.uploader.full_name}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-semibold">
+                        {formatCurrency(receipt.total_amount)}
+                      </p>
+                      <div className="mt-1">
+                        <StatusBadge status={receipt.status} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!isLoadingReceipts && (!receipts || receipts.length === 0) && (
+                  <div className="text-center py-6 text-muted-foreground text-sm">
+                    No hay comprobantes cargados.
+                  </div>
+                )}
+
+                <Link
+                  href={`/upload?project_id=${projectId}`}
+                  className="w-full py-3 text-center text-primary text-sm font-medium hover:bg-muted/50 transition-colors flex items-center justify-center gap-1"
                 >
-                  <TableCell className="font-medium">
-                    {receipt.vendor ?? 'Sin proveedor'}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(receipt.receipt_date).toLocaleDateString('es-AR')}
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    {formatCurrency(receipt.total_amount)}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={receipt.status} />
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {receipt.uploader.full_name}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+                  <Upload className="h-4 w-4" />
+                  Cargar Comprobante
+                </Link>
+              </div>
+            )}
+          </div>
 
+          <div className="h-8" />
+        </div>
+      </main>
+
+      {/* Sticky footer */}
+      <footer className="bg-card border-t border-border p-4 pb-8 sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-col gap-3">
+          <Button
+            size="lg"
+            className="w-full py-4 rounded-xl shadow-lg shadow-primary/20 text-base"
+            asChild
+          >
+            <Link href={`/upload?project_id=${projectId}`}>
+              <Upload className="mr-2 h-5 w-5" />
+              Cargar Comprobante
+            </Link>
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full py-4 rounded-xl text-base text-destructive border-destructive/30 hover:bg-destructive/5"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-2 h-5 w-5" />
+              Eliminar Proyecto
+            </Button>
+          )}
+        </div>
+      </footer>
+
+      {/* Edit Dialog */}
       <ProjectFormDialog
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         project={project}
       />
 
+      {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Eliminar Proyecto</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar el proyecto "{project.name}"?
+              ¿Estás seguro de que deseas eliminar el proyecto &quot;{project.name}&quot;?
               Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
