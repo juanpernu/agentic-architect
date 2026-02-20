@@ -123,11 +123,14 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Budget is not in draft mode' }, { status: 409 });
   }
 
-  const snapshot = budget.snapshot as { sections?: Array<{ items?: Array<{ subtotal?: number }> }> };
+  const snapshot = budget.snapshot as {
+    sections?: Array<{ subtotal?: number; items?: Array<{ subtotal?: number }> }>;
+  };
   const sections = snapshot?.sections ?? [];
-  const totalAmount = sections.reduce((sum, s) =>
-    sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0)
-  , 0);
+  const totalAmount = sections.reduce((sum, s) => {
+    if (s.subtotal != null) return sum + Number(s.subtotal);
+    return sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0);
+  }, 0);
 
   const newVersion = budget.current_version + 1;
 
