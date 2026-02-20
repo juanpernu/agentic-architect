@@ -108,6 +108,8 @@ export async function DashboardKPIs() {
         iconBg="bg-blue-50 dark:bg-blue-900/20"
         iconColor="text-blue-600 dark:text-blue-400"
         badge={projectsBadge}
+        href="/projects"
+        actionLabel="Ver proyectos"
       />
       <StatCard
         title="Gasto Mensual"
