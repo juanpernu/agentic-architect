@@ -70,7 +70,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
 
   /* ---- Autosave ---- */
   const snapshot: BudgetSnapshot = { sections };
-  const { saveStatus, retry } = useAutosave(budget.id, snapshot, isDraft && isAdminOrSupervisor);
+  const { saveStatus, retry, flush } = useAutosave(budget.id, snapshot, isDraft && isAdminOrSupervisor);
 
   /* ---- Derived data ---- */
   const baseSections = sections.filter((s) => !s.is_additional);
@@ -252,6 +252,12 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   const handlePublish = async () => {
     setIsSaving(true);
     try {
+      // Flush any pending autosave changes before publishing
+      const flushed = await flush();
+      if (!flushed) {
+        throw new Error('No se pudieron guardar los cambios pendientes');
+      }
+
       const response = await fetch(`/api/budgets/${budget.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
