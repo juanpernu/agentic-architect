@@ -1,5 +1,4 @@
-export { costCenterSchema, type CostCenterFormData } from './cost-center';
-export { costCenterCreateSchema, costCenterUpdateSchema, type CostCenterCreateInput, type CostCenterUpdateInput } from './cost-center';
+export { rubroCreateSchema, rubroUpdateSchema, type RubroCreateInput, type RubroUpdateInput } from './rubro';
 export { inviteSchema, type InviteFormData } from './invite';
 export { inviteCreateSchema, type InviteCreateInput } from './invite';
 export { projectSchema, type ProjectFormData } from './project';

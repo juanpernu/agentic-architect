@@ -43,8 +43,9 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { PROJECT_COLOR_HEX, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
-import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, CostCenter, BankAccount } from '@architech/shared';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, Rubro, BankAccount } from '@architech/shared';
+import type { BudgetListItem } from '@/lib/api-types';
 
 interface ReceiptReviewProps {
   imageUrl: string;
@@ -76,7 +77,7 @@ export function ReceiptReview({
   const [date, setDate] = useState(extractionResult.receipt.date ?? '');
   const [total, setTotal] = useState(extractionResult.totals.total?.toString() ?? '');
   const [projectId, setProjectId] = useState(preSelectedProjectId ?? '');
-  const [costCenterId, setCostCenterId] = useState('');
+  const [rubroId, setRubroId] = useState('');
   const [bankAccountId, setBankAccountId] = useState('');
   const [items, setItems] = useState<EditableItem[]>(
     extractionResult.items.map((item, index) => ({
@@ -90,8 +91,15 @@ export function ReceiptReview({
   const [tempValue, setTempValue] = useState('');
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
-  const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: budgets } = useSWR<BudgetListItem[]>('/api/budgets', fetcher);
   const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
+
+  // Find the budget for the selected project, then fetch its rubros
+  const selectedBudget = budgets?.find((b) => b.project_id === projectId);
+  const { data: rubros } = useSWR<Rubro[]>(
+    selectedBudget ? `/api/rubros?budget_id=${selectedBudget.id}` : null,
+    fetcher
+  );
 
   const confidence = extractionResult.confidence;
 
@@ -187,13 +195,19 @@ export function ReceiptReview({
 
   const calculatedTotal = items.reduce((sum, item) => sum + item.subtotal, 0);
 
+  // Reset rubroId when project changes
+  const handleProjectChange = (newProjectId: string) => {
+    setProjectId(newProjectId);
+    setRubroId('');
+  };
+
   const handleConfirm = async () => {
     const result = receiptReviewSchema.safeParse({
       vendor,
       date,
       total,
       projectId,
-      costCenterId,
+      rubroId,
       items,
     });
 
@@ -208,7 +222,7 @@ export function ReceiptReview({
     try {
       const payload: ConfirmReceiptInput = {
         project_id: projectId,
-        cost_center_id: costCenterId,
+        rubro_id: rubroId,
         bank_account_id: bankAccountId || undefined,
         image_url: storagePath,
         ai_raw_response: { ...extractionResult },
@@ -431,7 +445,7 @@ export function ReceiptReview({
                 {/* Project */}
                 <Field>
                   <FieldLabel htmlFor="project">Proyecto *</FieldLabel>
-                  <Select value={projectId} onValueChange={setProjectId}>
+                  <Select value={projectId} onValueChange={handleProjectChange}>
                     <SelectTrigger id="project" className="w-full mt-1">
                       <SelectValue placeholder="Seleccionar proyecto" />
                     </SelectTrigger>
@@ -453,29 +467,35 @@ export function ReceiptReview({
                   </Select>
                 </Field>
 
-                {/* Cost Center */}
+                {/* Rubro */}
                 <Field>
-                  <FieldLabel htmlFor="cost-center">Centro de Costos *</FieldLabel>
-                  <Select value={costCenterId} onValueChange={setCostCenterId}>
-                    <SelectTrigger id="cost-center" className="w-full mt-1">
-                      <SelectValue placeholder="Seleccionar centro de costos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {costCenters?.map((cc) => (
-                        <SelectItem key={cc.id} value={cc.id}>
-                          <span className="flex items-center gap-2">
-                            {cc.color && (
-                              <span
-                                className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
-                              />
-                            )}
-                            {cc.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FieldLabel htmlFor="rubro">Rubro *</FieldLabel>
+                  {projectId && !selectedBudget ? (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Este proyecto no tiene presupuesto con rubros
+                    </p>
+                  ) : (
+                    <Select value={rubroId} onValueChange={setRubroId} disabled={!selectedBudget}>
+                      <SelectTrigger id="rubro" className="w-full mt-1">
+                        <SelectValue placeholder="Seleccionar rubro" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rubros?.map((rubro) => (
+                          <SelectItem key={rubro.id} value={rubro.id}>
+                            <span className="flex items-center gap-2">
+                              {rubro.color && (
+                                <span
+                                  className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: rubro.color }}
+                                />
+                              )}
+                              {rubro.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </Field>
 
                 {/* Bank Account */}

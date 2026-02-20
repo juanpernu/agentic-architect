@@ -174,46 +174,6 @@ export default function ProjectDetailPage() {
       <div className="grid gap-4 md:grid-cols-2 mb-6 stagger-children">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Gasto Total</CardTitle>
-            <CardAction>
-              <StatusBadge status={project.status} />
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">
-              {formatCurrency(totalSpend)}
-            </div>
-            <CardDescription className="mt-2">
-              {receipts?.length ?? 0} comprobantes
-            </CardDescription>
-          </CardContent>
-          <CardFooter className="border-t pt-4 flex items-center gap-3">
-            {project.architect ? (
-              <>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={project.architect.avatar_url ?? undefined} alt={project.architect.full_name} />
-                  <AvatarFallback className="text-xs">
-                    {project.architect.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="text-sm font-medium">{project.architect.full_name}</div>
-                  <div className="text-xs text-muted-foreground">{project.architect.email}</div>
-                </div>
-              </>
-            ) : (
-              <span className="text-sm text-muted-foreground">Sin arquitecto asignado</span>
-            )}
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Presupuesto</CardTitle>
             {budgets && budgets.length > 0 && (
               <CardAction>
@@ -254,6 +214,46 @@ export default function ProjectDetailPage() {
                 </Link>
               </Button>
             ) : null}
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Gasto Total</CardTitle>
+            <CardAction>
+              <StatusBadge status={project.status} />
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold tracking-tight">
+              {formatCurrency(totalSpend)}
+            </div>
+            <CardDescription className="mt-2">
+              {receipts?.length ?? 0} comprobantes
+            </CardDescription>
+          </CardContent>
+          <CardFooter className="border-t pt-4 flex items-center gap-3">
+            {project.architect ? (
+              <>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={project.architect.avatar_url ?? undefined} alt={project.architect.full_name} />
+                  <AvatarFallback className="text-xs">
+                    {project.architect.full_name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="text-sm font-medium">{project.architect.full_name}</div>
+                  <div className="text-xs text-muted-foreground">{project.architect.email}</div>
+                </div>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">Sin arquitecto asignado</span>
+            )}
           </CardFooter>
         </Card>
       </div>

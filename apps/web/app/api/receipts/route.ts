@@ -10,14 +10,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get('project_id');
   const status = searchParams.get('status');
-  const costCenterId = searchParams.get('cost_center_id');
+  const rubroId = searchParams.get('rubro_id');
   const limit = searchParams.get('limit');
 
   const db = getDb();
 
   let query = db
     .from('receipts')
-    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), cost_center:cost_centers(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
+    .select('*, project:projects!project_id(id, name, color), uploader:users!uploaded_by(id, full_name), rubro:rubros(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
     .order('created_at', { ascending: false });
 
   // Filter by org via projects
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   if (projectId) query = query.eq('project_id', projectId);
   if (status) query = query.eq('status', status);
-  if (costCenterId) query = query.eq('cost_center_id', costCenterId);
+  if (rubroId) query = query.eq('rubro_id', rubroId);
 
   // Architects only see own receipts
   if (ctx.role === 'architect') {
@@ -73,27 +73,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: guard.reason }, { status: 403 });
   }
 
-  if (!body.cost_center_id) {
+  if (!body.rubro_id) {
     return NextResponse.json(
-      { error: 'cost_center_id is required' },
+      { error: 'rubro_id is required' },
       { status: 400 }
     );
   }
 
   const db = getDb();
 
-  // Validate cost_center_id belongs to the same org and is active
-  const { data: validCC } = await db
-    .from('cost_centers')
-    .select('id')
-    .eq('id', body.cost_center_id as string)
-    .eq('organization_id', ctx.orgId)
-    .eq('is_active', true)
+  // Validate rubro_id belongs to the same org (via budget)
+  const { data: validRubro } = await db
+    .from('rubros')
+    .select('id, budget:budgets!budget_id(organization_id)')
+    .eq('id', body.rubro_id as string)
     .maybeSingle();
 
-  if (!validCC) {
+  if (!validRubro || (validRubro.budget as unknown as { organization_id: string })?.organization_id !== ctx.orgId) {
     return NextResponse.json(
-      { error: 'Centro de costos no válido o inactivo' },
+      { error: 'Rubro no válido' },
       { status: 400 }
     );
   }
@@ -185,7 +183,7 @@ export async function POST(req: NextRequest) {
     .from('receipts')
     .insert({
       project_id: body.project_id,
-      cost_center_id: body.cost_center_id,
+      rubro_id: body.rubro_id,
       bank_account_id: body.bank_account_id ?? null,
       uploaded_by: ctx.dbUserId,
       vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
