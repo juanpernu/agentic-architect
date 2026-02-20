@@ -131,6 +131,7 @@ export default function BudgetsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Proyecto</TableHead>
+                <TableHead>Estado</TableHead>
                 <TableHead>Version</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right">Ultima actualizacion</TableHead>
@@ -144,10 +145,17 @@ export default function BudgetsPage() {
                     {budget.project_name}
                   </TableCell>
                   <TableCell>
+                    {budget.status === 'draft' ? (
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-800">Borrador</Badge>
+                    ) : (
+                      <Badge variant="default" className="bg-green-100 text-green-800">Publicado</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Badge variant="secondary">v{budget.current_version}</Badge>
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatCurrency(budget.total_amount)}
+                    {budget.total_amount > 0 ? formatCurrency(budget.total_amount) : '—'}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {new Date(budget.updated_at).toLocaleDateString('es-AR')}
