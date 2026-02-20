@@ -13,6 +13,7 @@ import { useAutosave } from '@/lib/use-autosave';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import {
   Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -54,19 +55,15 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   const [showCost, setShowCost] = useState(true);
   const [isEditSwitching, setIsEditSwitching] = useState(false);
 
-  /* Re-sync when budget prop changes (e.g. after publish / revalidation) */
-  const prevBudgetIdRef = useRef(budget.id);
-  const prevStatusRef = useRef(budget.status);
+  /* Re-sync when server data changes (e.g. after SWR revalidation on navigation back) */
+  const serverSnapshotRef = useRef(JSON.stringify(budget.snapshot));
   useEffect(() => {
-    if (
-      prevBudgetIdRef.current !== budget.id ||
-      prevStatusRef.current !== budget.status
-    ) {
+    const serverSnapshot = JSON.stringify(budget.snapshot);
+    if (serverSnapshot !== serverSnapshotRef.current) {
       setSections(budget.snapshot?.sections ?? []);
-      prevBudgetIdRef.current = budget.id;
-      prevStatusRef.current = budget.status;
+      serverSnapshotRef.current = serverSnapshot;
     }
-  }, [budget.id, budget.status, budget.snapshot]);
+  }, [budget.snapshot]);
 
   /* ---- Autosave ---- */
   const snapshot: BudgetSnapshot = { sections };
@@ -346,17 +343,10 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
               ) : (
                 <div className="relative flex items-center justify-end">
                   <span className="absolute left-2 text-white font-bold text-sm pointer-events-none">$</span>
-                  <Input
-                    type="number"
-                    value={section.subtotal != null ? section.subtotal : ''}
-                    placeholder={formatCurrency(sectionSubtotal).replace('$', '').trim()}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      updateSectionField(sectionIdx, 'subtotal', raw === '' ? undefined : parseFloat(raw) || 0);
-                    }}
+                  <CurrencyInput
+                    value={section.subtotal != null ? section.subtotal : sectionSubtotal}
+                    onValueChange={(v) => updateSectionField(sectionIdx, 'subtotal', v === 0 ? undefined : v)}
                     className={`h-7 text-sm border-0 shadow-none focus-visible:ring-1 text-right font-bold w-32 pl-6 ${section.subtotal != null ? 'bg-slate-600 text-white placeholder:text-white' : 'bg-slate-700 text-white placeholder:text-white'}`}
-                    min={0}
-                    step="any"
                   />
                 </div>
               )}
@@ -368,17 +358,10 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
                 ) : (
                   <div className="relative flex items-center justify-end">
                     <span className="absolute left-2 text-white font-bold text-sm pointer-events-none">$</span>
-                    <Input
-                      type="number"
-                      value={section.cost != null ? section.cost : ''}
-                      placeholder={formatCurrency(sectionCost).replace('$', '').trim()}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        updateSectionField(sectionIdx, 'cost', raw === '' ? undefined : parseFloat(raw) || 0);
-                      }}
+                    <CurrencyInput
+                      value={section.cost != null ? section.cost : sectionCost}
+                      onValueChange={(v) => updateSectionField(sectionIdx, 'cost', v === 0 ? undefined : v)}
                       className={`h-7 text-sm border-0 shadow-none focus-visible:ring-1 text-right font-bold w-32 pl-6 ${section.cost != null ? 'bg-slate-600 text-white placeholder:text-white' : 'bg-slate-700 text-white placeholder:text-white'}`}
-                      min={0}
-                      step="any"
                     />
                   </div>
                 )}
@@ -426,37 +409,28 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
                 />
               </TableCell>
               <TableCell className="px-3 py-1">
-                <Input
-                  type="number"
-                  value={item.quantity || ''}
-                  onChange={(e) => updateItem(sectionIdx, itemIdx, 'quantity', parseFloat(e.target.value) || 0)}
+                <CurrencyInput
+                  value={item.quantity || 0}
+                  onValueChange={(v) => updateItem(sectionIdx, itemIdx, 'quantity', v)}
                   disabled={readOnly}
                   className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-transparent w-20"
-                  min={0}
-                  step="any"
                 />
               </TableCell>
               <TableCell className="px-3 py-1">
-                <Input
-                  type="number"
-                  value={item.subtotal || ''}
-                  onChange={(e) => updateItem(sectionIdx, itemIdx, 'subtotal', parseFloat(e.target.value) || 0)}
+                <CurrencyInput
+                  value={item.subtotal || 0}
+                  onValueChange={(v) => updateItem(sectionIdx, itemIdx, 'subtotal', v)}
                   disabled={readOnly}
                   className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-transparent text-right"
-                  min={0}
-                  step="any"
                 />
               </TableCell>
               {showCost && (
                 <TableCell className="px-3 py-1">
-                  <Input
-                    type="number"
-                    value={item.cost || ''}
-                    onChange={(e) => updateItem(sectionIdx, itemIdx, 'cost', parseFloat(e.target.value) || 0)}
+                  <CurrencyInput
+                    value={item.cost || 0}
+                    onValueChange={(v) => updateItem(sectionIdx, itemIdx, 'cost', v)}
                     disabled={readOnly}
                     className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-transparent text-right"
-                    min={0}
-                    step="any"
                   />
                 </TableCell>
               )}
