@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 
+/** Calculate total from a live snapshot's sections → items → subtotal */
+function snapshotTotal(snapshot: unknown): number {
+  const s = snapshot as { sections?: Array<{ items?: Array<{ subtotal?: number }> }> } | null;
+  if (!s?.sections) return 0;
+  return s.sections.reduce(
+    (sum, sec) => sum + (sec.items ?? []).reduce((iSum, i) => iSum + (Number(i.subtotal) || 0), 0),
+    0,
+  );
+}
+
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
@@ -48,7 +58,8 @@ export async function GET(req: NextRequest) {
   const budgets = (data ?? []).map(({ project, ...b }) => ({
     ...b,
     project_name: (project as { id: string; name: string })?.name ?? '',
-    total_amount: versionTotals[b.id] ?? 0,
+    // Use published version total when available, otherwise calculate from live snapshot
+    total_amount: versionTotals[b.id] || snapshotTotal(b.snapshot),
   }));
 
   return NextResponse.json(budgets);
