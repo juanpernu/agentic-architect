@@ -1,5 +1,3 @@
-'use client';
-
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -73,9 +71,11 @@ export function BarChartSimple({
           {data.map((item, index) => {
             const heightPercent = (item.value / maxValue) * 100;
             const isLast = index === data.length - 1;
-            const gradientIndex = data.length <= BAR_GRADIENT.length
-              ? index
-              : Math.floor((index / (data.length - 1)) * (BAR_GRADIENT.length - 1));
+            const gradientIndex = data.length <= 1
+              ? 0
+              : data.length <= BAR_GRADIENT.length
+                ? index
+                : Math.floor((index / (data.length - 1)) * (BAR_GRADIENT.length - 1));
             const barColor = isLast && highlightLast
               ? 'bg-primary'
               : BAR_GRADIENT[gradientIndex] ?? BAR_GRADIENT[BAR_GRADIENT.length - 1];

@@ -14,7 +14,7 @@ interface RecentReceipt {
   receipt_date: string;
   created_at: string;
   status: ReceiptStatus;
-  project: { id: string; name: string };
+  project: { id: string; name: string; organization_id: string };
 }
 
 async function fetchRecentReceipts(): Promise<RecentReceipt[]> {
@@ -25,7 +25,8 @@ async function fetchRecentReceipts(): Promise<RecentReceipt[]> {
 
   let query = db
     .from('receipts')
-    .select('id, vendor, total_amount, receipt_date, created_at, status, project:projects!project_id(id, name)')
+    .select('id, vendor, total_amount, receipt_date, created_at, status, project:projects!project_id!inner(id, name, organization_id)')
+    .eq('projects.organization_id', ctx.orgId)
     .order('created_at', { ascending: false })
     .limit(5);
 
@@ -51,15 +52,20 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: 'Rechazado',
 };
 
+function toArgDate(d: Date): Date {
+  return new Date(d.toLocaleString('en-US', { timeZone: 'America/Buenos_Aires' }));
+}
+
 function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const argDate = toArgDate(date);
+  const argNow = toArgDate(new Date());
+  const today = new Date(argNow.getFullYear(), argNow.getMonth(), argNow.getDate());
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  const receiptDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const receiptDay = new Date(argDate.getFullYear(), argDate.getMonth(), argDate.getDate());
 
-  const time = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  const time = argDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
   if (receiptDay.getTime() === today.getTime()) {
     return `Hoy, ${time}`;
@@ -67,7 +73,7 @@ function formatRelativeDate(dateStr: string): string {
   if (receiptDay.getTime() === yesterday.getTime()) {
     return `Ayer, ${time}`;
   }
-  return date.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Buenos_Aires' });
 }
 
 export async function RecentReceipts() {
