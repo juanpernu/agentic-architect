@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
@@ -20,11 +20,19 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
     ? `/api/budgets/${id}?version=${versionParam}`
     : `/api/budgets/${id}`;
 
-  const { data: budget, isLoading, error } = useSWR<BudgetDetail>(apiUrl, fetcher);
+  const { data: budget, isLoading, error, mutate } = useSWR<BudgetDetail>(apiUrl, fetcher);
 
   const isHistoricalVersion = versionParam && budget
     ? Number(versionParam) !== budget.current_version
     : false;
+
+  const handlePublish = useCallback(() => {
+    mutate();
+  }, [mutate]);
+
+  const handleEdit = useCallback(() => {
+    mutate();
+  }, [mutate]);
 
   if (isLoading) {
     return (
@@ -41,6 +49,15 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       </div>
     );
   }
+
+  // For historical version viewing, override the snapshot from the version
+  const budgetForTable = isHistoricalVersion && budget.latest_version
+    ? {
+        ...budget,
+        snapshot: budget.latest_version.snapshot,
+        status: 'published' as const, // historical versions are always read-only
+      }
+    : budget;
 
   return (
     <div className="p-6">
@@ -64,7 +81,11 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           </Link>
         )}
       </div>
-      <BudgetTable budget={budget} readOnly={isHistoricalVersion || undefined} />
+      <BudgetTable
+        budget={budgetForTable}
+        onPublish={handlePublish}
+        onEdit={handleEdit}
+      />
     </div>
   );
 }

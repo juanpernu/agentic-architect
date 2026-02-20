@@ -56,7 +56,7 @@ export interface BudgetDetail extends Budget {
     id: string;
     name: string;
   };
-  latest_version: BudgetVersion;
+  latest_version: BudgetVersion | null;
 }
 
 export interface BudgetVersionSummary {
