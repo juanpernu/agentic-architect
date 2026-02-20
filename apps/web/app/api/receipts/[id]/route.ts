@@ -85,7 +85,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         .eq('id', body.rubro_id as string)
         .maybeSingle();
 
-      if (!validRubro || (validRubro.budget as { organization_id: string })?.organization_id !== ctx.orgId) {
+      if (!validRubro || (validRubro.budget as unknown as { organization_id: string })?.organization_id !== ctx.orgId) {
         return NextResponse.json(
           { error: 'Rubro no válido' },
           { status: 400 }

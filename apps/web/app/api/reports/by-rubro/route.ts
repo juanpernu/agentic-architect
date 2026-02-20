@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
 
   for (const r of receipts ?? []) {
     if (!r.rubro || !r.project) continue;
-    const rubro = r.rubro as { id: string; name: string; color: string | null };
-    const project = r.project as { id: string; name: string };
+    const rubro = r.rubro as unknown as { id: string; name: string; color: string | null };
+    const project = r.project as unknown as { id: string; name: string };
     const key = `${project.id}:${rubro.id}`;
 
     const existing = map.get(key);

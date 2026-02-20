@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq('id', id)
     .single();
 
-  if (!rubro || (rubro.budget as { organization_id: string })?.organization_id !== ctx.orgId) {
+  if (!rubro || (rubro.budget as unknown as { organization_id: string })?.organization_id !== ctx.orgId) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
