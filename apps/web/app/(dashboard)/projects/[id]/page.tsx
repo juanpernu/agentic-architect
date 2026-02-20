@@ -44,6 +44,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { ImportBudgetDialog } from '@/components/import-budget-dialog';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -52,6 +53,7 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string;
 
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -207,12 +209,18 @@ export default function ProjectDetailPage() {
                 </Link>
               </Button>
             ) : isAdminOrSupervisor ? (
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/budgets">
-                  <Calculator className="mr-2 h-4 w-4" />
-                  Crear presupuesto
-                </Link>
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowImportDialog(true)}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Importar
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/budgets">
+                    <Calculator className="mr-2 h-4 w-4" />
+                    Crear presupuesto
+                  </Link>
+                </Button>
+              </div>
             ) : null}
           </CardFooter>
         </Card>
@@ -363,6 +371,12 @@ export default function ProjectDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportBudgetDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        projectId={projectId}
+      />
     </div>
   );
 }

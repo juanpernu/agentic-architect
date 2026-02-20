@@ -4,7 +4,7 @@ import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import { useRouter } from 'next/navigation';
 import { sileo } from 'sileo';
-import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
+import { Calculator, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -30,12 +30,14 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { CreateBudgetDialog } from '@/components/create-budget-dialog';
+import { ImportBudgetDialog } from '@/components/import-budget-dialog';
 
 export default function BudgetsPage() {
   const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [deletingBudget, setDeletingBudget] = useState<BudgetListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -83,10 +85,16 @@ export default function BudgetsPage() {
         description="Presupuestos de obra por proyecto"
         action={
           isAdminOrSupervisor ? (
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="mr-2" />
-              Nuevo Presupuesto
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowImportDialog(true)}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar
+              </Button>
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="mr-2" />
+                Nuevo Presupuesto
+              </Button>
+            </div>
           ) : undefined
         }
       />
@@ -183,6 +191,11 @@ export default function BudgetsPage() {
       <CreateBudgetDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
+      />
+
+      <ImportBudgetDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
       />
 
       <AlertDialog open={!!deletingBudget} onOpenChange={(open) => !open && setDeletingBudget(null)}>
