@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatusBadge } from '@/components/ui/status-badge';
+import { ArrowRight, Receipt as ReceiptIcon } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/format';
-import { ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import type { ReceiptStatus } from '@architech/shared';
@@ -12,6 +12,7 @@ interface RecentReceipt {
   vendor: string | null;
   total_amount: number;
   receipt_date: string;
+  created_at: string;
   status: ReceiptStatus;
   project: { id: string; name: string };
 }
@@ -24,11 +25,10 @@ async function fetchRecentReceipts(): Promise<RecentReceipt[]> {
 
   let query = db
     .from('receipts')
-    .select('id, vendor, total_amount, receipt_date, status, project:projects!project_id(id, name)')
+    .select('id, vendor, total_amount, receipt_date, created_at, status, project:projects!project_id(id, name)')
     .order('created_at', { ascending: false })
     .limit(5);
 
-  // Architects only see own receipts
   if (ctx.role === 'architect') {
     query = query.eq('uploaded_by', ctx.dbUserId);
   }
@@ -37,73 +37,102 @@ async function fetchRecentReceipts(): Promise<RecentReceipt[]> {
   return (data as unknown as RecentReceipt[]) ?? [];
 }
 
+const STATUS_STYLES: Record<string, string> = {
+  confirmed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+  processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  confirmed: 'Confirmado',
+  pending: 'Pendiente',
+  processing: 'Procesando',
+  rejected: 'Rechazado',
+};
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const receiptDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  const time = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+  if (receiptDay.getTime() === today.getTime()) {
+    return `Hoy, ${time}`;
+  }
+  if (receiptDay.getTime() === yesterday.getTime()) {
+    return `Ayer, ${time}`;
+  }
+  return date.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
 export async function RecentReceipts() {
   const receipts = await fetchRecentReceipts();
 
   if (receipts.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Comprobantes Recientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            No hay comprobantes disponibles
-          </div>
-        </CardContent>
-      </Card>
+      <section>
+        <div className="flex justify-between items-center mb-4 px-1">
+          <h3 className="font-bold text-lg">Comprobantes Recientes</h3>
+        </div>
+        <Card className="shadow-soft border-border/50 p-6">
+          <p className="text-sm text-muted-foreground">No hay comprobantes disponibles</p>
+        </Card>
+      </section>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Comprobantes Recientes</CardTitle>
-        <CardAction>
-          <Link
-            href="/receipts"
-            className="text-sm text-primary hover:underline flex items-center gap-1"
-          >
-            Ver todos
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+    <section>
+      <div className="flex justify-between items-center mb-4 px-1">
+        <h3 className="font-bold text-lg">Comprobantes Recientes</h3>
+        <Link href="/receipts" className="text-sm text-primary font-medium hover:underline">
+          Ver Todos
+        </Link>
+      </div>
+      <Card className="shadow-soft border-border/50 overflow-hidden p-0">
+        <ul className="divide-y divide-border">
           {receipts.map((receipt) => (
-            <Link
-              key={receipt.id}
-              href={`/receipts/${receipt.id}`}
-              className="block border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium truncate">{receipt.vendor || 'Sin proveedor'}</p>
-                    <StatusBadge status={receipt.status} />
+            <li key={receipt.id}>
+              <Link
+                href={`/receipts/${receipt.id}`}
+                className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <ReceiptIcon className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {receipt.project.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(receipt.receipt_date).toLocaleDateString('es-AR', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </p>
+                  <div>
+                    <p className="font-semibold text-sm">{receipt.vendor || 'Sin proveedor'}</p>
+                    <p className="text-xs text-muted-foreground">{formatRelativeDate(receipt.created_at)}</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">
-                    {formatCurrency(receipt.total_amount)}
-                  </p>
+                  <p className="font-bold text-sm">{formatCurrency(receipt.total_amount)}</p>
+                  <span className={cn(
+                    'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium mt-1',
+                    STATUS_STYLES[receipt.status] ?? STATUS_STYLES.pending
+                  )}>
+                    {STATUS_LABELS[receipt.status] ?? receipt.status}
+                  </span>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </li>
           ))}
+        </ul>
+        <div className="bg-muted/30 p-3 text-center border-t">
+          <Link
+            href="/receipts"
+            className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
+          >
+            Ver historial completo <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+    </section>
   );
 }
