@@ -1,49 +1,78 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import useSWR, { mutate } from 'swr';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { mutate } from 'swr';
 import { sileo } from 'sileo';
-import { Plus, Save, Trash2, ChevronUp, ChevronDown, EyeOff, Eye } from 'lucide-react';
-import { fetcher } from '@/lib/fetcher';
+import {
+  Plus, Save, Trash2, ChevronUp, ChevronDown,
+  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, RefreshCw,
+} from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { useAutosave } from '@/lib/use-autosave';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
   Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { SaveBudgetDialog } from '@/components/save-budget-dialog';
-import type { BudgetSnapshot, BudgetSection, BudgetItem, CostCenter } from '@architech/shared';
-import type { BudgetDetail } from '@/lib/api-types';
+import type { BudgetSnapshot, BudgetSection, BudgetItem, Rubro } from '@architech/shared';
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 
 interface BudgetTableProps {
-  budget: BudgetDetail;
-  readOnly?: boolean;
+  budget: {
+    id: string;
+    project_id: string;
+    status: 'draft' | 'published';
+    snapshot: BudgetSnapshot | null;
+    current_version: number;
+    project?: { id: string; name: string };
+  };
+  onPublish?: () => void;
+  onEdit?: () => void;
 }
 
-export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProps) {
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   const { isAdminOrSupervisor } = useCurrentUser();
-  const readOnly = forceReadOnly || !isAdminOrSupervisor;
+  const isDraft = budget.status === 'draft';
+  const readOnly = !isDraft || !isAdminOrSupervisor;
 
-  const { data: costCenters = [] } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
-
+  /* ---- Local snapshot state ---- */
   const [sections, setSections] = useState<BudgetSection[]>(
-    budget.latest_version?.snapshot?.sections ?? []
+    budget.snapshot?.sections ?? []
   );
-  const [isDirty, setIsDirty] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showCost, setShowCost] = useState(true);
+  const [isEditSwitching, setIsEditSwitching] = useState(false);
 
+  /* Re-sync when budget prop changes (e.g. after publish / revalidation) */
+  const prevBudgetIdRef = useRef(budget.id);
+  const prevStatusRef = useRef(budget.status);
   useEffect(() => {
-    setSections(budget.latest_version?.snapshot?.sections ?? []);
-    setIsDirty(false);
-  }, [budget.latest_version?.version_number]);
+    if (
+      prevBudgetIdRef.current !== budget.id ||
+      prevStatusRef.current !== budget.status
+    ) {
+      setSections(budget.snapshot?.sections ?? []);
+      prevBudgetIdRef.current = budget.id;
+      prevStatusRef.current = budget.status;
+    }
+  }, [budget.id, budget.status, budget.snapshot]);
 
+  /* ---- Autosave ---- */
+  const snapshot: BudgetSnapshot = { sections };
+  const { saveStatus, retry } = useAutosave(budget.id, snapshot, isDraft && isAdminOrSupervisor);
+
+  /* ---- Derived data ---- */
   const baseSections = sections.filter((s) => !s.is_additional);
   const additionalSections = sections.filter((s) => s.is_additional);
 
@@ -57,7 +86,8 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
     s.cost != null ? s.cost : calcItemsSum(s, 'cost');
 
   const sumSections = (secs: BudgetSection[], field: 'cost' | 'subtotal') =>
-    secs.reduce((sum, s) => sum + (field === 'subtotal' ? getEffectiveSubtotal(s) : getEffectiveCost(s)), 0);
+    secs.reduce((sum, s) =>
+      sum + (field === 'subtotal' ? getEffectiveSubtotal(s) : getEffectiveCost(s)), 0);
 
   const baseTotalSubtotal = sumSections(baseSections, 'subtotal');
   const baseTotalCost = sumSections(baseSections, 'cost');
@@ -67,14 +97,42 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
 
   const getSectionIndex = (section: BudgetSection) => sections.indexOf(section);
 
+  /* ---- Section mutations ---- */
+
   const updateSectionField = useCallback((sectionIndex: number, field: 'subtotal' | 'cost', value: number | undefined) => {
     setSections((prev) => {
       const next = [...prev];
       next[sectionIndex] = { ...next[sectionIndex], [field]: value };
       return next;
     });
-    setIsDirty(true);
   }, []);
+
+  const renameSectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const renameSection = useCallback((sectionIndex: number, newName: string) => {
+    setSections((prev) => {
+      const next = [...prev];
+      next[sectionIndex] = { ...next[sectionIndex], rubro_name: newName };
+      return next;
+    });
+
+    // Debounce the API call to rename the rubro
+    if (renameSectionDebounceRef.current) clearTimeout(renameSectionDebounceRef.current);
+    renameSectionDebounceRef.current = setTimeout(() => {
+      const rubroId = sections[sectionIndex]?.rubro_id;
+      if (rubroId && newName.trim()) {
+        fetch(`/api/rubros/${rubroId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName.trim() }),
+        }).catch(() => {
+          // Silent fail — autosave will persist the name in the snapshot
+        });
+      }
+    }, 1000);
+  }, [sections]);
+
+  /* ---- Item mutations ---- */
 
   const updateItem = useCallback((sectionIndex: number, itemIndex: number, field: keyof BudgetItem, value: string | number) => {
     setSections((prev) => {
@@ -86,7 +144,6 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       next[sectionIndex] = section;
       return next;
     });
-    setIsDirty(true);
   }, []);
 
   const addItem = useCallback((sectionIndex: number) => {
@@ -97,7 +154,6 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       next[sectionIndex] = section;
       return next;
     });
-    setIsDirty(true);
   }, []);
 
   const removeItem = useCallback((sectionIndex: number, itemIndex: number) => {
@@ -110,13 +166,29 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       next[sectionIndex] = updated;
       return next;
     });
-    setIsDirty(true);
   }, []);
 
-  const removeSection = useCallback((index: number) => {
+  /* ---- Section management ---- */
+
+  const removeSection = useCallback(async (index: number) => {
+    const section = sections[index];
+    if (!section) return;
+
+    // Delete the rubro from backend
+    try {
+      const res = await fetch(`/api/rubros/${section.rubro_id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = await res.json();
+        sileo.error({ title: body.error ?? 'Error al eliminar rubro' });
+        return;
+      }
+    } catch {
+      sileo.error({ title: 'Error al eliminar rubro' });
+      return;
+    }
+
     setSections((prev) => prev.filter((_, i) => i !== index));
-    setIsDirty(true);
-  }, []);
+  }, [sections]);
 
   const moveSection = useCallback((index: number, direction: 'up' | 'down') => {
     setSections((prev) => {
@@ -139,37 +211,50 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       [next[index], next[swapWith]] = [next[swapWith], next[index]];
       return next;
     });
-    setIsDirty(true);
   }, []);
 
-  const addSection = useCallback((costCenterId: string, isAdditional: boolean) => {
-    const cc = costCenters.find((c) => c.id === costCenterId);
-    if (!cc) return;
-    const newSection: BudgetSection = {
-      cost_center_id: cc.id,
-      cost_center_name: cc.name,
-      is_additional: isAdditional,
-      items: [{ description: '', unit: 'gl', quantity: 1, cost: 0, subtotal: 0 }],
-    };
-    setSections((prev) => {
-      if (isAdditional) return [...prev, newSection];
-      const firstAdditionalIdx = prev.findIndex((s) => s.is_additional);
-      if (firstAdditionalIdx === -1) return [...prev, newSection];
-      return [...prev.slice(0, firstAdditionalIdx), newSection, ...prev.slice(firstAdditionalIdx)];
-    });
-    setIsDirty(true);
-  }, [costCenters]);
+  const addRubro = useCallback(async (isAdditional: boolean) => {
+    try {
+      const res = await fetch('/api/rubros', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ budget_id: budget.id, name: 'Nuevo rubro' }),
+      });
 
-  const activeCostCenters = costCenters.filter((c) => c.is_active);
+      if (!res.ok) {
+        const body = await res.json();
+        sileo.error({ title: body.error ?? 'Error al crear rubro' });
+        return;
+      }
 
-  const handleSave = async () => {
+      const rubro: Rubro = await res.json();
+
+      const newSection: BudgetSection = {
+        rubro_id: rubro.id,
+        rubro_name: rubro.name,
+        is_additional: isAdditional,
+        items: [{ description: '', unit: 'gl', quantity: 1, cost: 0, subtotal: 0 }],
+      };
+
+      setSections((prev) => {
+        if (isAdditional) return [...prev, newSection];
+        const firstAdditionalIdx = prev.findIndex((s) => s.is_additional);
+        if (firstAdditionalIdx === -1) return [...prev, newSection];
+        return [...prev.slice(0, firstAdditionalIdx), newSection, ...prev.slice(firstAdditionalIdx)];
+      });
+    } catch {
+      sileo.error({ title: 'Error al crear rubro' });
+    }
+  }, [budget.id]);
+
+  /* ---- Publish (Guardar version) ---- */
+
+  const handlePublish = async () => {
     setIsSaving(true);
     try {
-      const snapshot: BudgetSnapshot = { sections };
       const response = await fetch(`/api/budgets/${budget.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ snapshot }),
       });
 
       if (!response.ok) {
@@ -179,10 +264,10 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
 
       const result = await response.json();
       sileo.success({ title: `Version ${result.version_number} guardada` });
-      setIsDirty(false);
       setShowSaveDialog(false);
       await mutate(`/api/budgets/${budget.id}`);
       await mutate('/api/budgets');
+      onPublish?.();
     } catch (error) {
       sileo.error({ title: error instanceof Error ? error.message : 'Error al guardar' });
     } finally {
@@ -190,13 +275,35 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
     }
   };
 
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (isDirty) e.preventDefault();
-    };
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [isDirty]);
+  /* ---- Edit mode (published -> draft) ---- */
+
+  const handleEditMode = async () => {
+    setIsEditSwitching(true);
+    try {
+      const res = await fetch(`/api/budgets/${budget.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'draft' }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? 'Error al cambiar a borrador');
+      }
+
+      await mutate(`/api/budgets/${budget.id}`);
+      await mutate('/api/budgets');
+      onEdit?.();
+    } catch (error) {
+      sileo.error({ title: error instanceof Error ? error.message : 'Error' });
+    } finally {
+      setIsEditSwitching(false);
+    }
+  };
+
+  /* ---- Render helpers ---- */
+
+  const colSpan = showCost ? (readOnly ? 6 : 7) : (readOnly ? 5 : 6);
 
   let sectionNumber = 0;
 
@@ -209,10 +316,22 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
       const sectionSubtotal = section.items.reduce((sum, i) => sum + (Number(i.subtotal) || 0), 0);
 
       return (
-        <TableBody key={`${section.cost_center_id}-${sectionIdx}`}>
+        <TableBody key={`${section.rubro_id}-${sectionIdx}`}>
+          {/* Section header */}
           <TableRow className="bg-slate-800 text-white hover:bg-slate-800">
             <TableCell className="px-3 py-2 font-bold">{currentSectionNum}</TableCell>
-            <TableCell className="px-3 py-2 font-bold">{section.cost_center_name}</TableCell>
+            <TableCell className="px-3 py-2 font-bold">
+              {readOnly ? (
+                section.rubro_name
+              ) : (
+                <Input
+                  value={section.rubro_name}
+                  onChange={(e) => renameSection(sectionIdx, e.target.value)}
+                  className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-slate-700 text-white font-bold placeholder:text-slate-400"
+                  placeholder="Nombre del rubro"
+                />
+              )}
+            </TableCell>
             <TableCell className="px-3 py-2" />
             <TableCell className="px-3 py-2" />
             <TableCell className="px-3 py-2 text-right font-bold">
@@ -276,6 +395,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             )}
           </TableRow>
 
+          {/* Item rows */}
           {section.items.map((item, itemIdx) => (
             <TableRow key={itemIdx} className="hover:bg-gray-50">
               <TableCell className="px-3 py-1 text-sm text-muted-foreground">
@@ -347,7 +467,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
           {/* Section subtotal row */}
           <TableRow className="bg-muted/20 hover:bg-muted/20">
             <TableCell className="px-3 py-1" />
-            <TableCell className="px-3 py-1 text-sm font-medium text-muted-foreground">Subtotal {section.cost_center_name}</TableCell>
+            <TableCell className="px-3 py-1 text-sm font-medium text-muted-foreground">Subtotal {section.rubro_name}</TableCell>
             <TableCell className="px-3 py-1" />
             <TableCell className="px-3 py-1" />
             <TableCell className="px-3 py-1 text-right text-sm font-semibold">{formatCurrency(getEffectiveSubtotal(section))}</TableCell>
@@ -355,9 +475,10 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             {!readOnly && <TableCell className="px-3 py-1" />}
           </TableRow>
 
+          {/* Add item button */}
           {!readOnly && (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={showCost ? 7 : 6} className="px-3 py-1">
+              <TableCell colSpan={colSpan} className="px-3 py-1">
                 <Button variant="ghost" size="sm" onClick={() => addItem(sectionIdx)} className="h-6 text-xs">
                   <Plus className="mr-1 h-3 w-3" /> Agregar item
                 </Button>
@@ -369,15 +490,77 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
     });
   };
 
+  /* ---- Autosave status indicator ---- */
+
+  const renderSaveStatus = () => {
+    if (!isDraft) return null;
+
+    switch (saveStatus) {
+      case 'saving':
+        return (
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Guardando...
+          </span>
+        );
+      case 'saved':
+        return (
+          <span className="flex items-center gap-1 text-sm text-green-600">
+            <CheckCircle2 className="h-3 w-3" />
+            Borrador guardado
+          </span>
+        );
+      case 'error':
+        return (
+          <span className="flex items-center gap-1 text-sm text-red-600">
+            <AlertCircle className="h-3 w-3" />
+            Error al guardar
+            <Button variant="ghost" size="sm" className="h-5 px-1 text-xs" onClick={retry}>
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Reintentar
+            </Button>
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  /* ---- Main render ---- */
+
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{(budget.project as { name: string })?.name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">
+              {(budget.project as { name: string })?.name}
+            </h1>
+            {isDraft ? (
+              <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
+                Borrador
+              </Badge>
+            ) : (
+              <Badge variant="secondary">v{budget.current_version}</Badge>
+            )}
+          </div>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary">v{budget.current_version}</Badge>
-            <span className="text-muted-foreground">·</span>
+            {!isDraft && (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  Presupuesto v{budget.current_version}
+                </span>
+                <span className="text-muted-foreground">·</span>
+              </>
+            )}
             <span className="text-lg font-semibold">{formatCurrency(grandTotalSubtotal)}</span>
+            {isDraft && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                {renderSaveStatus()}
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -385,15 +568,33 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             {showCost ? <EyeOff className="mr-1 h-4 w-4" /> : <Eye className="mr-1 h-4 w-4" />}
             Costo
           </Button>
-          {!readOnly && (
-            <Button onClick={() => setShowSaveDialog(true)} disabled={!isDirty}>
+          {isDraft && isAdminOrSupervisor && (
+            <Button onClick={() => setShowSaveDialog(true)}>
               <Save className="mr-2 h-4 w-4" />
-              Guardar
+              Guardar version
+            </Button>
+          )}
+          {!isDraft && isAdminOrSupervisor && (
+            <Button variant="outline" onClick={handleEditMode} disabled={isEditSwitching}>
+              {isEditSwitching ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Pencil className="mr-2 h-4 w-4" />
+              )}
+              Editar presupuesto
             </Button>
           )}
         </div>
       </div>
 
+      {/* Draft banner */}
+      {isDraft && isAdminOrSupervisor && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          Editando · Los cambios se guardan automaticamente
+        </div>
+      )}
+
+      {/* Table */}
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
@@ -410,6 +611,7 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
 
           {renderSectionRows(baseSections)}
 
+          {/* Base total */}
           {baseSections.length > 0 && (
             <TableFooter>
               <TableRow className="bg-muted/30 border-t-2 border-slate-300 font-bold">
@@ -424,11 +626,12 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
             </TableFooter>
           )}
 
+          {/* Additional sections */}
           {additionalSections.length > 0 && (
             <>
               <TableBody>
                 <TableRow className="bg-amber-50 border-t-2 border-amber-300 hover:bg-amber-50">
-                  <TableCell colSpan={showCost ? (readOnly ? 6 : 7) : (readOnly ? 5 : 6)} className="px-3 py-2 font-bold text-amber-800">
+                  <TableCell colSpan={colSpan} className="px-3 py-2 font-bold text-amber-800">
                     Adicional
                   </TableCell>
                 </TableRow>
@@ -450,36 +653,25 @@ export function BudgetTable({ budget, readOnly: forceReadOnly }: BudgetTableProp
         </Table>
       </div>
 
-      {!readOnly && activeCostCenters.length > 0 && (
+      {/* Add rubro buttons */}
+      {!readOnly && (
         <div className="flex items-center gap-2">
-          <Plus className="h-4 w-4 text-muted-foreground" />
-          <Select key={`base-${sections.length}`} onValueChange={(id) => addSection(id, false)}>
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Agregar rubro base..." />
-            </SelectTrigger>
-            <SelectContent>
-              {activeCostCenters.map((cc) => (
-                <SelectItem key={cc.id} value={cc.id}>{cc.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select key={`add-${sections.length}`} onValueChange={(id) => addSection(id, true)}>
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Agregar adicional..." />
-            </SelectTrigger>
-            <SelectContent>
-              {activeCostCenters.map((cc) => (
-                <SelectItem key={cc.id} value={cc.id}>{cc.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Button variant="outline" size="sm" onClick={() => addRubro(false)}>
+            <Plus className="mr-1 h-4 w-4" />
+            Agregar rubro
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addRubro(true)} className="border-amber-300 text-amber-700 hover:bg-amber-50">
+            <Plus className="mr-1 h-4 w-4" />
+            Agregar adicional
+          </Button>
         </div>
       )}
 
+      {/* Save (publish) dialog */}
       <SaveBudgetDialog
         open={showSaveDialog}
         onOpenChange={setShowSaveDialog}
-        onConfirm={handleSave}
+        onConfirm={handlePublish}
         isSaving={isSaving}
       />
     </div>
