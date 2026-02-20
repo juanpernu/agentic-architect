@@ -162,18 +162,15 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="max-w-lg mx-auto flex flex-col min-h-screen bg-background animate-slide-up">
-      {/* Header */}
-      <header className="bg-card sticky top-0 z-20 px-4 py-4 flex items-center justify-between border-b border-border">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push('/projects')}
-            className="p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
-            aria-label="Volver a proyectos"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-lg font-semibold truncate">{project.name}</h1>
-        </div>
+      {/* Nav bar */}
+      <header className="bg-card sticky top-0 z-20 px-4 py-3 flex items-center justify-between border-b border-border">
+        <button
+          onClick={() => router.push('/projects')}
+          className="p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
+          aria-label="Volver a proyectos"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
         {isAdminOrSupervisor && (
           <button
             onClick={() => setShowEditDialog(true)}
@@ -186,17 +183,34 @@ export default function ProjectDetailPage() {
 
       {/* Scrollable content */}
       <main className="flex-1 overflow-y-auto pb-40">
-        {/* Color banner */}
-        <section className="relative h-24 border-b border-border" style={{ backgroundColor: projectColor }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10" />
-          <div className="absolute bottom-3 left-5 flex items-center gap-2">
+        {/* Project header */}
+        <section className="px-5 pt-5 pb-4 bg-card border-b border-border">
+          <div className="flex items-center justify-between mb-3">
             <StatusBadge status={project.status} />
+            <span className="text-xs text-muted-foreground font-mono">
+              ID: #{project.id.slice(0, 8).toUpperCase()}
+            </span>
           </div>
+          <h1 className="text-2xl font-bold tracking-tight mb-1">
+            {project.color && (
+              <span
+                className="inline-block h-3 w-3 rounded-full mr-2 align-middle"
+                style={{ backgroundColor: projectColor }}
+              />
+            )}
+            {project.name}
+          </h1>
+          {project.address && (
+            <div className="flex items-center text-muted-foreground text-sm mt-1">
+              <MapPin className="h-3.5 w-3.5 mr-1 shrink-0" />
+              <p>{project.address}</p>
+            </div>
+          )}
         </section>
 
-        {/* Floating stats card */}
-        <div className="px-5 -mt-6 relative z-10 mb-6">
-          <div className="bg-card rounded-xl shadow-lg p-4 border border-border/50 flex items-center justify-between">
+        {/* Stats card */}
+        <div className="px-5 py-4">
+          <div className="bg-card rounded-xl shadow-sm p-4 border border-border/50 flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
                 Gasto Total
