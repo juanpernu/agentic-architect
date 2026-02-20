@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data, error } = await db
     .from('receipts')
-    .select('*, project:projects!inner(id, name, color, organization_id), uploader:users!uploaded_by(id, full_name), receipt_items(*), cost_center:cost_centers(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
+    .select('*, project:projects!inner(id, name, color, organization_id), uploader:users!uploaded_by(id, full_name), receipt_items(*), rubro:rubros(id, name, color), bank_account:bank_accounts(id, name, bank_name)')
     .eq('id', id)
     .eq('project.organization_id', ctx.orgId)
     .single();
@@ -76,25 +76,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const updateFields: Record<string, unknown> = {};
-  if (body.cost_center_id !== undefined) {
-    // Validate cost_center_id belongs to the same org and is active
-    if (body.cost_center_id !== null) {
-      const { data: validCC } = await db
-        .from('cost_centers')
-        .select('id')
-        .eq('id', body.cost_center_id as string)
-        .eq('organization_id', ctx.orgId)
-        .eq('is_active', true)
+  if (body.rubro_id !== undefined) {
+    // Validate rubro_id belongs to the same org (via budget)
+    if (body.rubro_id !== null) {
+      const { data: validRubro } = await db
+        .from('rubros')
+        .select('id, budget:budgets!budget_id(organization_id)')
+        .eq('id', body.rubro_id as string)
         .maybeSingle();
 
-      if (!validCC) {
+      if (!validRubro || (validRubro.budget as { organization_id: string })?.organization_id !== ctx.orgId) {
         return NextResponse.json(
-          { error: 'Centro de costos no válido o inactivo' },
+          { error: 'Rubro no válido' },
           { status: 400 }
         );
       }
     }
-    updateFields.cost_center_id = body.cost_center_id;
+    updateFields.rubro_id = body.rubro_id;
   }
 
   if (body.bank_account_id !== undefined) {
