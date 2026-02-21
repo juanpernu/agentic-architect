@@ -27,13 +27,13 @@ export default function AdministrationPage() {
   const queryString = params.toString();
 
   // Fetch summary data
-  const { data: summary, isLoading: isLoadingSummary } = useSWR(
+  const { data: summary, isLoading: isLoadingSummary, error: summaryError } = useSWR(
     `/api/administration/summary?${queryString}`,
     fetcher
   );
 
   // Fetch cashflow data
-  const { data: cashflow, isLoading: isLoadingCashflow } = useSWR(
+  const { data: cashflow, isLoading: isLoadingCashflow, error: cashflowError } = useSWR(
     `/api/administration/cashflow?${queryString}`,
     fetcher
   );
@@ -73,6 +73,13 @@ export default function AdministrationPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Error */}
+      {(summaryError || cashflowError) && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+          Error al cargar los datos de administracion. Intenta recargar la pagina.
+        </div>
+      )}
 
       {/* KPIs */}
       {isLoadingSummary ? (

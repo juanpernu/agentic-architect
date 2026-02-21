@@ -5,8 +5,10 @@ import { usePathname } from 'next/navigation';
 import { ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { usePlan } from '@/lib/use-plan';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 const tabs = [
   { href: '/administration', label: 'Resumen' },
@@ -17,6 +19,7 @@ const tabs = [
 export default function AdministrationLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { role, isLoaded } = useCurrentUser();
+  const { isFreePlan } = usePlan();
 
   if (!isLoaded) return null;
 
@@ -28,6 +31,18 @@ export default function AdministrationLayout({ children }: { children: React.Rea
           icon={ShieldAlert}
           title="Acceso denegado"
           description="No tenes permisos para ver el modulo de administracion."
+        />
+      </div>
+    );
+  }
+
+  // Free plan cannot access
+  if (isFreePlan) {
+    return (
+      <div className="p-6 animate-slide-up">
+        <PageHeader title="Administracion" description="Gestiona los ingresos y egresos de tus obras" />
+        <UpgradeBanner
+          message="El modulo de Administracion esta disponible en los planes Advance y Enterprise."
         />
       </div>
     );

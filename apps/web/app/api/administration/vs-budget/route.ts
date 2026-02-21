@@ -8,6 +8,17 @@ export async function GET(req: NextRequest) {
   if (ctx.role === 'architect') return forbidden();
 
   const db = getDb();
+
+  // Plan guard: free plan cannot access administration
+  const { data: org } = await db
+    .from('organizations')
+    .select('plan')
+    .eq('id', ctx.orgId)
+    .single();
+
+  if (org?.plan === 'free') {
+    return NextResponse.json({ error: 'Upgrade required' }, { status: 403 });
+  }
   const projectId = req.nextUrl.searchParams.get('projectId');
   if (!projectId) return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
 

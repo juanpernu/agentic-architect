@@ -77,7 +77,7 @@ export default function ExpensesPage() {
   };
 
   const expensesUrl = buildUrl();
-  const { data: expenses, isLoading } = useSWR<ExpenseRow[]>(expensesUrl, fetcher);
+  const { data: expenses, isLoading, error } = useSWR<ExpenseRow[]>(expensesUrl, fetcher);
 
   // When project filter changes, reset rubro filter
   const handleProjectChange = (value: string) => {
@@ -187,6 +187,13 @@ export default function ExpensesPage() {
           </Button>
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+          Error al cargar los egresos. Intenta recargar la pagina.
+        </div>
+      )}
 
       {/* Table */}
       {isLoading ? (

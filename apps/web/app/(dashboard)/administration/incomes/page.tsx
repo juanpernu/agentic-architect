@@ -62,7 +62,7 @@ export default function IncomesPage() {
   };
 
   const incomesUrl = buildUrl();
-  const { data: incomes, isLoading } = useSWR<IncomeRow[]>(incomesUrl, fetcher);
+  const { data: incomes, isLoading, error } = useSWR<IncomeRow[]>(incomesUrl, fetcher);
 
   // Open edit dialog
   const handleEdit = (income: IncomeRow) => {
@@ -149,6 +149,13 @@ export default function IncomesPage() {
           </Button>
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+          Error al cargar los ingresos. Intenta recargar la pagina.
+        </div>
+      )}
 
       {/* Table */}
       {isLoading ? (
