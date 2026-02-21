@@ -6,7 +6,7 @@
 -- ============================================================
 CREATE TABLE income_types (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  org_id text NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
@@ -40,7 +40,7 @@ CREATE POLICY "income_types_delete" ON income_types
 -- ============================================================
 CREATE TABLE expense_types (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  org_id text NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
@@ -74,7 +74,7 @@ CREATE POLICY "expense_types_delete" ON expense_types
 -- ============================================================
 CREATE TABLE incomes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  org_id text NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   amount numeric(12,2) NOT NULL,
   date date NOT NULL,
@@ -113,7 +113,7 @@ CREATE POLICY "incomes_delete" ON incomes
 -- ============================================================
 CREATE TABLE expenses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  org_id text NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   amount numeric(12,2) NOT NULL,
   date date NOT NULL,
