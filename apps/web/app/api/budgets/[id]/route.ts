@@ -20,26 +20,37 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (error || !budget) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  let versionQuery = db
-    .from('budget_versions')
-    .select('*')
-    .eq('budget_id', id);
-
+  // If a specific version is requested, fetch from budget_versions for historical view
   if (versionParam) {
-    versionQuery = versionQuery.eq('version_number', parseInt(versionParam, 10));
-  } else {
-    versionQuery = versionQuery.eq('version_number', budget.current_version);
+    const { data: version } = await db
+      .from('budget_versions')
+      .select('*')
+      .eq('budget_id', id)
+      .eq('version_number', parseInt(versionParam, 10))
+      .single();
+
+    return NextResponse.json({
+      ...budget,
+      latest_version: version,
+    });
   }
 
-  const { data: version } = await versionQuery.single();
-
+  // Otherwise return live snapshot from the budget row
   return NextResponse.json({
     ...budget,
-    latest_version: version,
+    latest_version: budget.current_version > 0
+      ? (await db
+          .from('budget_versions')
+          .select('*')
+          .eq('budget_id', id)
+          .eq('version_number', budget.current_version)
+          .single()
+        ).data
+      : null,
   });
 }
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
@@ -53,41 +64,88 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const snapshot = body.snapshot;
-  if (!snapshot) {
-    return NextResponse.json({ error: 'snapshot is required' }, { status: 400 });
-  }
-
-  try {
-    budgetSnapshotSchema.parse(snapshot);
-  } catch (validationError) {
-    return NextResponse.json({ error: 'Invalid snapshot format' }, { status: 400 });
-  }
-
   const db = getDb();
 
   const { data: budget } = await db
     .from('budgets')
-    .select('id, current_version')
+    .select('id, status')
     .eq('id', id)
     .eq('organization_id', ctx.orgId)
     .single();
 
   if (!budget) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const newVersion = budget.current_version + 1;
+  // Status change: published -> draft
+  if (body.status === 'draft' && budget.status === 'published') {
+    const { error } = await db
+      .from('budgets')
+      .update({ status: 'draft' })
+      .eq('id', id);
 
-  const sections = (snapshot as { sections?: Array<{ items?: Array<{ subtotal?: number }> }> }).sections ?? [];
-  const totalAmount = sections.reduce((sum, s) =>
-    sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0)
-  , 0);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ status: 'draft' });
+  }
+
+  // Autosave: update snapshot (only when draft)
+  if (body.snapshot !== undefined) {
+    if (budget.status !== 'draft') {
+      return NextResponse.json({ error: 'Budget is published. Click "Editar presupuesto" first.' }, { status: 409 });
+    }
+
+    const parsed = budgetSnapshotSchema.safeParse(body.snapshot);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid snapshot format' }, { status: 400 });
+    }
+
+    const { error } = await db
+      .from('budgets')
+      .update({ snapshot: parsed.data })
+      .eq('id', id);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ saved: true });
+  }
+
+  return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
+}
+
+export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext();
+  if (!ctx) return unauthorized();
+  if (ctx.role === 'architect') return forbidden();
+
+  const { id } = await params;
+  const db = getDb();
+
+  const { data: budget } = await db
+    .from('budgets')
+    .select('id, current_version, snapshot, status')
+    .eq('id', id)
+    .eq('organization_id', ctx.orgId)
+    .single();
+
+  if (!budget) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (budget.status !== 'draft') {
+    return NextResponse.json({ error: 'Budget is not in draft mode' }, { status: 409 });
+  }
+
+  const snapshot = budget.snapshot as {
+    sections?: Array<{ subtotal?: number; items?: Array<{ subtotal?: number }> }>;
+  };
+  const sections = snapshot?.sections ?? [];
+  const totalAmount = sections.reduce((sum, s) => {
+    if (s.subtotal != null) return sum + Number(s.subtotal);
+    return sum + (s.items ?? []).reduce((itemSum, i) => itemSum + (Number(i.subtotal) || 0), 0);
+  }, 0);
+
+  const newVersion = budget.current_version + 1;
 
   const { error: versionError } = await db
     .from('budget_versions')
     .insert({
       budget_id: id,
       version_number: newVersion,
-      snapshot,
+      snapshot: budget.snapshot,
       total_amount: totalAmount,
       created_by: ctx.dbUserId,
     });
@@ -96,10 +154,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { error: updateError } = await db
     .from('budgets')
-    .update({ current_version: newVersion })
+    .update({ current_version: newVersion, status: 'published' })
     .eq('id', id);
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) {
+    // Compensate: remove the orphaned version row
+    await db.from('budget_versions').delete()
+      .eq('budget_id', id).eq('version_number', newVersion);
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ version_number: newVersion, total_amount: totalAmount });
 }

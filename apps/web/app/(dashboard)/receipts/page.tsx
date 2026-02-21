@@ -34,15 +34,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Project, CostCenter, BankAccount } from '@architech/shared';
-import { PROJECT_BADGE_STYLES, COST_CENTER_BADGE_STYLES, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
+import type { Project, Rubro, BankAccount } from '@architech/shared';
+import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
 
 export default function ReceiptsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [costCenterFilter, setCostCenterFilter] = useState<string>('all');
+  const [rubroFilter, setRubroFilter] = useState<string>('all');
   const [bankAccountFilter, setBankAccountFilter] = useState<string>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [dateFrom, setDateFrom] = useState('');
@@ -54,7 +54,7 @@ export default function ReceiptsPage() {
   );
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
-  const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: rubros } = useSWR<Rubro[]>('/api/rubros', fetcher);
   const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
 
   const filteredReceipts = receipts
@@ -66,13 +66,13 @@ export default function ReceiptsPage() {
         projectFilter === 'all' || receipt.project_id === projectFilter;
       const matchesStatus =
         statusFilter === 'all' || receipt.status === statusFilter;
-      const matchesCostCenter =
-        costCenterFilter === 'all' || receipt.cost_center_id === costCenterFilter;
+      const matchesRubro =
+        rubroFilter === 'all' || receipt.rubro_id === rubroFilter;
       const matchesBankAccount =
         bankAccountFilter === 'all' || receipt.bank_account_id === bankAccountFilter;
       const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
       const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
-      return matchesSearch && matchesProject && matchesStatus && matchesCostCenter && matchesBankAccount && matchesDateFrom && matchesDateTo;
+      return matchesSearch && matchesProject && matchesStatus && matchesRubro && matchesBankAccount && matchesDateFrom && matchesDateTo;
     })
     .sort((a, b) => {
       const cmp = a.receipt_date.localeCompare(b.receipt_date);
@@ -146,23 +146,23 @@ export default function ReceiptsPage() {
             </Select>
           </Field>
           <Field className="sm:w-auto">
-            <FieldLabel>Centro de Costos</FieldLabel>
-            <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
+            <FieldLabel>Rubro</FieldLabel>
+            <Select value={rubroFilter} onValueChange={setRubroFilter}>
               <SelectTrigger className="sm:w-[220px]">
-                <SelectValue placeholder="Centro de Costos" />
+                <SelectValue placeholder="Rubro" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los centros</SelectItem>
-                {costCenters?.map((cc) => (
-                  <SelectItem key={cc.id} value={cc.id}>
+                <SelectItem value="all">Todos los rubros</SelectItem>
+                {rubros?.map((rubro) => (
+                  <SelectItem key={rubro.id} value={rubro.id}>
                     <span className="flex items-center gap-2">
-                      {cc.color && (
+                      {rubro.color && (
                         <span
                           className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
+                          style={{ backgroundColor: rubro.color }}
                         />
                       )}
-                      {cc.name}
+                      {rubro.name}
                     </span>
                   </SelectItem>
                 ))}
@@ -218,7 +218,7 @@ export default function ReceiptsPage() {
           icon={Receipt}
           title="No hay comprobantes"
           description={
-            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || costCenterFilter !== 'all' || bankAccountFilter !== 'all' || dateFrom || dateTo
+            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || rubroFilter !== 'all' || bankAccountFilter !== 'all' || dateFrom || dateTo
               ? 'No se encontraron comprobantes con los filtros seleccionados'
               : 'Los comprobantes cargados aparecerán aquí'
           }
@@ -233,7 +233,7 @@ export default function ReceiptsPage() {
                 <TableRow>
                   <TableHead>Proveedor</TableHead>
                   <TableHead>Proyecto</TableHead>
-                  <TableHead className="hidden lg:table-cell">Centro de Costos</TableHead>
+                  <TableHead className="hidden lg:table-cell">Rubro</TableHead>
                   <TableHead className="hidden xl:table-cell">Banco</TableHead>
                   <TableHead>
                     <Button
@@ -297,19 +297,19 @@ export default function ReceiptsPage() {
                       )}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {receipt.cost_center ? (
+                      {receipt.rubro ? (
                         <Badge
                           variant="secondary"
                           style={
-                            receipt.cost_center.color
+                            receipt.rubro.color
                               ? {
-                                  backgroundColor: COST_CENTER_BADGE_STYLES[receipt.cost_center.color].bg,
-                                  color: COST_CENTER_BADGE_STYLES[receipt.cost_center.color].text,
+                                  backgroundColor: `${receipt.rubro.color}18`,
+                                  color: receipt.rubro.color,
                                 }
                               : undefined
                           }
                         >
-                          {receipt.cost_center.name}
+                          {receipt.rubro.name}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground">—</span>

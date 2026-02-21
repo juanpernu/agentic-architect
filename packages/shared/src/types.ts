@@ -67,7 +67,7 @@ export interface Receipt {
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;
-  cost_center_id: string | null;
+  rubro_id: string | null;
   bank_account_id: string | null;
   status: ReceiptStatus;
   created_at: string;
@@ -101,15 +101,13 @@ export interface Supplier {
   updated_at: string;
 }
 
-export interface CostCenter {
+export interface Rubro {
   id: string;
-  organization_id: string;
+  budget_id: string;
   name: string;
-  description: string | null;
-  color: ProjectColor | null;
-  is_active: boolean;
+  color: string | null;
+  sort_order: number;
   created_at: string;
-  updated_at: string;
 }
 
 export interface BankAccount {
@@ -184,7 +182,7 @@ export interface UpdateProjectInput {
 
 export interface ConfirmReceiptInput {
   project_id: string;
-  cost_center_id: string;
+  rubro_id: string;
   bank_account_id?: string;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
@@ -234,10 +232,12 @@ export interface SpendTrend {
   total: number;
 }
 
-export interface CostCenterSpend {
-  cost_center_id: string;
-  cost_center_name: string;
-  cost_center_color: string | null;
+export interface RubroSpend {
+  project_id: string;
+  project_name: string;
+  rubro_id: string;
+  rubro_name: string;
+  rubro_color: string | null;
   total_amount: number;
   receipt_count: number;
 }
@@ -252,8 +252,8 @@ export interface BudgetItem {
 }
 
 export interface BudgetSection {
-  cost_center_id: string;
-  cost_center_name: string;
+  rubro_id: string;
+  rubro_name: string;
   is_additional: boolean;
   subtotal?: number;
   cost?: number;
@@ -269,6 +269,8 @@ export interface Budget {
   project_id: string;
   organization_id: string;
   current_version: number;
+  status: 'draft' | 'published';
+  snapshot: BudgetSnapshot | null;
   created_at: string;
   updated_at: string;
 }

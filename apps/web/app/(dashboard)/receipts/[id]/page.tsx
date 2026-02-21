@@ -19,10 +19,10 @@ import {
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
-import { PROJECT_COLOR_HEX, COST_CENTER_COLOR_HEX } from '@/lib/project-colors';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
-import type { CostCenter, BankAccount } from '@architech/shared';
+import type { Rubro, BankAccount } from '@architech/shared';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -70,8 +70,8 @@ export default function ReceiptDetailPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
-  const [selectedCostCenterId, setSelectedCostCenterId] = useState('');
-  const [isSavingCostCenter, setIsSavingCostCenter] = useState(false);
+  const [selectedRubroId, setSelectedRubroId] = useState('');
+  const [isSavingRubro, setIsSavingRubro] = useState(false);
   const [selectedBankAccountId, setSelectedBankAccountId] = useState('');
   const [isSavingBankAccount, setIsSavingBankAccount] = useState(false);
 
@@ -80,7 +80,7 @@ export default function ReceiptDetailPage() {
     fetcher
   );
 
-  const { data: costCenters } = useSWR<CostCenter[]>('/api/cost-centers', fetcher);
+  const { data: rubros } = useSWR<Rubro[]>('/api/rubros', fetcher);
   const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
 
   const handleDelete = async () => {
@@ -111,25 +111,25 @@ export default function ReceiptDetailPage() {
     }
   };
 
-  const handleSaveCostCenter = async () => {
-    if (!selectedCostCenterId) return;
-    setIsSavingCostCenter(true);
+  const handleSaveRubro = async () => {
+    if (!selectedRubroId) return;
+    setIsSavingRubro(true);
     try {
       const response = await fetch(`/api/receipts/${receiptId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cost_center_id: selectedCostCenterId }),
+        body: JSON.stringify({ rubro_id: selectedRubroId }),
       });
       if (!response.ok) {
         const errorBody = await response.json();
-        throw new Error(errorBody.error ?? 'Error al asignar centro de costos');
+        throw new Error(errorBody.error ?? 'Error al asignar rubro');
       }
-      sileo.success({ title: 'Centro de costos asignado' });
+      sileo.success({ title: 'Rubro asignado' });
       await mutate(`/api/receipts/${receiptId}`);
     } catch (error) {
       sileo.error({ title: error instanceof Error ? error.message : 'Error al asignar' });
     } finally {
-      setIsSavingCostCenter(false);
+      setIsSavingRubro(false);
     }
   };
 
@@ -319,43 +319,43 @@ export default function ReceiptDetailPage() {
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1.5 text-muted-foreground">
                     <Layers className="h-3.5 w-3.5" />
-                    Centro de Costos
+                    Rubro
                   </Label>
-                  {receipt.cost_center ? (
+                  {receipt.rubro ? (
                     <div className="flex items-center gap-2">
-                      {receipt.cost_center.color && (
+                      {receipt.rubro.color && (
                         <span
                           className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: COST_CENTER_COLOR_HEX[receipt.cost_center.color] }}
+                          style={{ backgroundColor: receipt.rubro.color }}
                         />
                       )}
-                      <span className="text-sm font-medium">{receipt.cost_center.name}</span>
+                      <span className="text-sm font-medium">{receipt.rubro.name}</span>
                     </div>
                   ) : isAdminOrSupervisor ? (
                     <div className="flex items-center gap-2">
-                      <Select value={selectedCostCenterId} onValueChange={setSelectedCostCenterId}>
+                      <Select value={selectedRubroId} onValueChange={setSelectedRubroId}>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Asignar centro de costos" />
+                          <SelectValue placeholder="Asignar rubro" />
                         </SelectTrigger>
                         <SelectContent>
-                          {costCenters?.map((cc) => (
-                            <SelectItem key={cc.id} value={cc.id}>
+                          {rubros?.map((rubro) => (
+                            <SelectItem key={rubro.id} value={rubro.id}>
                               <span className="flex items-center gap-2">
-                                {cc.color && (
+                                {rubro.color && (
                                   <span
                                     className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: COST_CENTER_COLOR_HEX[cc.color] }}
+                                    style={{ backgroundColor: rubro.color }}
                                   />
                                 )}
-                                {cc.name}
+                                {rubro.name}
                               </span>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      {selectedCostCenterId && (
-                        <Button size="sm" onClick={handleSaveCostCenter} disabled={isSavingCostCenter}>
-                          {isSavingCostCenter ? 'Guardando...' : 'Asignar'}
+                      {selectedRubroId && (
+                        <Button size="sm" onClick={handleSaveRubro} disabled={isSavingRubro}>
+                          {isSavingRubro ? 'Guardando...' : 'Asignar'}
                         </Button>
                       )}
                     </div>
