@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import { Pencil, Trash2, ShieldAlert, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Pencil, Trash2, ShieldAlert, ArrowDownCircle, ArrowUpCircle, type LucideIcon } from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -156,7 +156,7 @@ export default function AdministrationPage() {
   const renderTypeSection = (
     category: TypeCategory,
     title: string,
-    icon: React.ElementType,
+    icon: LucideIcon,
     types: (IncomeType | ExpenseType)[] | undefined,
     error: unknown,
   ) => {
