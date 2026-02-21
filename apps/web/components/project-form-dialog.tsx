@@ -159,7 +159,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {project ? 'Editar Proyecto' : 'Nuevo Proyecto'}
@@ -171,9 +171,9 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Project info */}
-          <FieldGroup className="space-y-4">
+          <FieldGroup className="space-y-1">
             <Field data-invalid={!!errors.name}>
               <FieldLabel htmlFor="name">
                 Nombre <span className="text-red-500">*</span>
