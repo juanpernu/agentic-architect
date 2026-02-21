@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
-import { Building2, Calculator, Edit, Trash2, Upload } from 'lucide-react';
+import { BarChart3, Building2, Calculator, Edit, Trash2, Upload } from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
@@ -44,6 +44,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { VsBudgetTable } from '@/components/administration/vs-budget-table';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -330,6 +331,9 @@ export default function ProjectDetailPage() {
         </Card>
       )}
 
+      {/* Financial section — visible to admin and supervisor */}
+      {isAdminOrSupervisor && <FinancialSection projectId={projectId} />}
+
       <ProjectFormDialog
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
@@ -363,6 +367,42 @@ export default function ProjectDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function FinancialSection({ projectId }: { projectId: string }) {
+  const { data: vsBudget, isLoading } = useSWR(
+    `/api/administration/vs-budget?projectId=${projectId}`,
+    fetcher
+  );
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center gap-2 mb-4">
+        <BarChart3 className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-xl font-semibold">Financiero</h2>
+      </div>
+
+      {isLoading && <LoadingTable rows={4} />}
+
+      {!isLoading && vsBudget && !vsBudget.hasPublishedBudget && (
+        <EmptyState
+          icon={BarChart3}
+          title="Sin presupuesto publicado"
+          description="Este proyecto no tiene un presupuesto publicado. Publica un presupuesto para ver la comparacion financiera."
+        />
+      )}
+
+      {!isLoading && vsBudget?.hasPublishedBudget && (
+        <VsBudgetTable
+          rubros={vsBudget.rubros}
+          totalBudgeted={vsBudget.totalBudgeted}
+          totalActual={vsBudget.totalActual}
+          totalDifference={vsBudget.totalDifference}
+          globalPercentage={vsBudget.globalPercentage}
+        />
+      )}
     </div>
   );
 }
