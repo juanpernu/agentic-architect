@@ -52,7 +52,6 @@ interface ReceiptReviewProps {
 
 interface EditableItem extends ExtractionItem {
   id: string;
-  expanded: boolean;
 }
 
 export function ReceiptReview({
@@ -77,7 +76,6 @@ export function ReceiptReview({
     extractionResult.items.map((item, index) => ({
       ...item,
       id: `item-${index}`,
-      expanded: false,
     }))
   );
 
@@ -126,7 +124,6 @@ export function ReceiptReview({
       quantity: 1,
       unit_price: 0,
       subtotal: 0,
-      expanded: false,
     };
     setItems([...items, newItem]);
     setEditingItemId(newItem.id);

@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { sileo } from 'sileo';
-import { Calculator, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { formatRelativeShort } from '@/lib/date-utils';
+import { getInitials, getAvatarColor } from '@/lib/avatar-utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { BudgetListItem } from '@/lib/api-types';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -21,60 +22,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { CreateBudgetDialog } from '@/components/create-budget-dialog';
 import { cn } from '@/lib/utils';
-
-const AVATAR_COLORS = [
-  { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400' },
-  { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400' },
-  { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400' },
-  { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400' },
-  { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400' },
-  { bg: 'bg-teal-100 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400' },
-];
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
-
-function getAvatarColor(name: string) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function toArgDate(d: Date): Date {
-  return new Date(d.toLocaleString('en-US', { timeZone: 'America/Buenos_Aires' }));
-}
-
-function formatRelativeUpdate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / 3_600_000);
-  const diffDays = Math.floor(diffMs / 86_400_000);
-
-  const argDate = toArgDate(date);
-  const argNow = toArgDate(now);
-  const today = new Date(argNow.getFullYear(), argNow.getMonth(), argNow.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const updateDay = new Date(argDate.getFullYear(), argDate.getMonth(), argDate.getDate());
-
-  if (updateDay.getTime() === today.getTime()) {
-    if (diffHours < 1) return 'Hace un momento';
-    return `Hace ${diffHours}h`;
-  }
-  if (updateDay.getTime() === yesterday.getTime()) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays}d`;
-  return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-}
 
 export default function BudgetsPage() {
   const router = useRouter();
@@ -138,17 +85,14 @@ export default function BudgetsPage() {
             aria-label="Buscar presupuestos"
           />
         </div>
-        <Button variant="outline" size="icon" className="shrink-0">
-          <SlidersHorizontal className="h-4 w-4" />
-        </Button>
       </div>
 
       {/* CTA Card — New Budget */}
       {isAdminOrSupervisor && (
-        <div className="bg-gradient-to-r from-primary to-blue-600 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
+        <div className="bg-primary rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-lg font-bold mb-1">Nuevo Presupuesto</h2>
-            <p className="text-blue-100 text-sm mb-4">
+            <p className="text-primary-foreground/80 text-sm mb-4">
               Crea una cotización rápida o usa el asistente de IA.
             </p>
             <Button
@@ -203,8 +147,11 @@ export default function BudgetsPage() {
             return (
               <div
                 key={budget.id}
+                role="button"
+                tabIndex={0}
                 className="group bg-card rounded-xl p-4 shadow-soft border border-border/50 active:scale-[0.99] transition-all cursor-pointer hover:border-primary/50"
                 onClick={() => router.push(`/budgets/${budget.id}`)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/budgets/${budget.id}`); } }}
               >
                 {/* Top row: avatar + name + version badge */}
                 <div className="flex justify-between items-start mb-3">
@@ -240,14 +187,14 @@ export default function BudgetsPage() {
                   <div className="text-right flex flex-col items-end">
                     <span className="text-[10px] text-muted-foreground">Actualizado</span>
                     <span className="text-xs font-medium text-muted-foreground">
-                      {formatRelativeUpdate(budget.updated_at)}
+                      {formatRelativeShort(budget.updated_at)}
                     </span>
                   </div>
                 </div>
 
                 {/* Delete action for admins */}
                 {isAdminOrSupervisor && (
-                  <div className="mt-3 pt-2 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-3 pt-2 border-t border-border md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       className="text-xs text-destructive hover:underline flex items-center gap-1"
                       onClick={(e) => {

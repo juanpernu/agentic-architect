@@ -54,13 +54,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const { errors, validate, clearErrors } = useFormValidation(projectSchema);
   const [formData, setFormData] = useState<{
     name: string;
-    address: string;
     status: ProjectStatus;
     architect_id: string;
     color: ProjectColor | '';
   }>({
     name: '',
-    address: '',
     status: 'active',
     architect_id: '',
     color: '',
@@ -76,7 +74,6 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
     if (project) {
       setFormData({
         name: project.name,
-        address: project.address ?? '',
         status: project.status,
         architect_id: project.architect_id ?? '',
         color: project.color ?? '',
@@ -89,7 +86,6 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
     } else {
       setFormData({
         name: '',
-        address: '',
         status: 'active',
         architect_id: '',
         color: '',

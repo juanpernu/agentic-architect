@@ -10,7 +10,6 @@ import {
   Calculator,
   MapPin,
   Upload,
-  Edit,
   Trash2,
   ChevronDown,
   ChevronUp,
@@ -21,6 +20,8 @@ import {
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { formatRelativeDay } from '@/lib/date-utils';
+import { getInitials } from '@/lib/avatar-utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { BudgetListItem, ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
@@ -39,39 +40,6 @@ import {
 } from '@/components/ui/dialog';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { cn } from '@/lib/utils';
-
-function toArgDate(d: Date): Date {
-  return new Date(d.toLocaleString('en-US', { timeZone: 'America/Buenos_Aires' }));
-}
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / 86_400_000);
-
-  const argDate = toArgDate(date);
-  const argNow = toArgDate(now);
-  const today = new Date(argNow.getFullYear(), argNow.getMonth(), argNow.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const updateDay = new Date(argDate.getFullYear(), argDate.getMonth(), argDate.getDate());
-
-  if (updateDay.getTime() === today.getTime()) return 'Hoy';
-  if (updateDay.getTime() === yesterday.getTime()) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays}d`;
-  return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -323,15 +291,18 @@ export default function ProjectDetailPage() {
                 {!isLoadingReceipts && receipts && receipts.length > 0 && receipts.map((receipt) => (
                   <div
                     key={receipt.id}
+                    role="button"
+                    tabIndex={0}
                     className="p-4 flex justify-between items-start gap-3 hover:bg-muted/30 transition-colors cursor-pointer"
                     onClick={() => router.push(`/receipts/${receipt.id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/receipts/${receipt.id}`); } }}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {receipt.vendor ?? 'Sin proveedor'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatRelativeDate(receipt.receipt_date)} · {receipt.uploader.full_name}
+                        {formatRelativeDay(receipt.receipt_date)} · {receipt.uploader.full_name}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
