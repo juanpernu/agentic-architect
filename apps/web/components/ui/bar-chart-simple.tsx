@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 

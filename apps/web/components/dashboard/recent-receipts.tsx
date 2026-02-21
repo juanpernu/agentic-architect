@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Receipt as ReceiptIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/format';
+import { formatRelativeWithTime } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
@@ -38,43 +39,17 @@ async function fetchRecentReceipts(): Promise<RecentReceipt[]> {
   return (data as unknown as RecentReceipt[]) ?? [];
 }
 
-const STATUS_STYLES: Record<string, string> = {
+const STATUS_STYLES: Record<ReceiptStatus, string> = {
   confirmed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
   pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
-const STATUS_LABELS: Record<string, string> = {
+const STATUS_LABELS: Record<ReceiptStatus, string> = {
   confirmed: 'Confirmado',
   pending: 'Pendiente',
-  processing: 'Procesando',
   rejected: 'Rechazado',
 };
-
-function toArgDate(d: Date): Date {
-  return new Date(d.toLocaleString('en-US', { timeZone: 'America/Buenos_Aires' }));
-}
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const argDate = toArgDate(date);
-  const argNow = toArgDate(new Date());
-  const today = new Date(argNow.getFullYear(), argNow.getMonth(), argNow.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const receiptDay = new Date(argDate.getFullYear(), argDate.getMonth(), argDate.getDate());
-
-  const time = argDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-
-  if (receiptDay.getTime() === today.getTime()) {
-    return `Hoy, ${time}`;
-  }
-  if (receiptDay.getTime() === yesterday.getTime()) {
-    return `Ayer, ${time}`;
-  }
-  return date.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Buenos_Aires' });
-}
 
 export async function RecentReceipts() {
   const receipts = await fetchRecentReceipts();
@@ -114,7 +89,7 @@ export async function RecentReceipts() {
                   </div>
                   <div>
                     <p className="font-semibold text-sm">{receipt.vendor || 'Sin proveedor'}</p>
-                    <p className="text-xs text-muted-foreground">{formatRelativeDate(receipt.created_at)}</p>
+                    <p className="text-xs text-muted-foreground">{formatRelativeWithTime(receipt.created_at)}</p>
                   </div>
                 </div>
                 <div className="text-right">
