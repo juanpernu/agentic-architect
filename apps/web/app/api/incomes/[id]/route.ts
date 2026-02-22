@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { incomeUpdateSchema } from '@/lib/schemas';
+import { requireAdministrationAccess } from '@/lib/plan-guard';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,6 +33,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
+
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
 
   const result = await validateBody(incomeUpdateSchema, req);
   if ('error' in result) return result.error;
@@ -63,8 +67,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!project) return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
   }
 
+  // If income_type_id changes, verify it belongs to org
+  if (body.income_type_id !== undefined) {
+    const { data: incomeType } = await db
+      .from('income_types')
+      .select('id')
+      .eq('id', body.income_type_id)
+      .eq('org_id', ctx.orgId)
+      .eq('is_active', true)
+      .single();
+    if (!incomeType) return NextResponse.json({ error: 'Tipo de ingreso no válido' }, { status: 400 });
+  }
+
   // Build update object dynamically from provided fields
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const updates: Record<string, unknown> = {};
   if (body.project_id !== undefined) updates.project_id = body.project_id;
   if (body.amount !== undefined) updates.amount = body.amount;
   if (body.date !== undefined) updates.date = body.date;
@@ -88,6 +104,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
+
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
 
   const db = getDb();
   const { data, error } = await db

@@ -25,7 +25,7 @@ export type ExpenseTypeUpdateInput = z.infer<typeof expenseTypeUpdateSchema>;
 export const incomeCreateSchema = z.object({
   project_id: z.string().uuid(),
   amount: z.number().positive(),
-  date: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be in YYYY-MM-DD format'),
   income_type_id: z.string().uuid(),
   description: z.string().optional().transform(v => v?.trim() || null),
 });
@@ -38,7 +38,7 @@ export type IncomeUpdateInput = z.infer<typeof incomeUpdateSchema>;
 export const expenseCreateSchema = z.object({
   project_id: z.string().uuid(),
   amount: z.number().positive(),
-  date: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be in YYYY-MM-DD format'),
   expense_type_id: z.string().uuid(),
   rubro_id: z.string().uuid().nullable().optional(),
   receipt_id: z.string().uuid().nullable().optional(),

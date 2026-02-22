@@ -18,7 +18,7 @@ export default function AdministrationPage() {
   const [year, setYear] = useState<string>(currentYear.toString());
 
   // Fetch projects for filter
-  const { data: projects } = useSWR('/api/projects', fetcher);
+  const { data: projects } = useSWR<Array<{ id: string; name: string }>>('/api/projects', fetcher);
 
   // Build query params
   const params = new URLSearchParams();
@@ -57,7 +57,7 @@ export default function AdministrationPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los proyectos</SelectItem>
-            {(projects ?? []).map((p: any) => (
+            {(projects ?? []).map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
             ))}
           </SelectContent>

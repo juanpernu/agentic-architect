@@ -9,6 +9,7 @@ import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { usePlan } from '@/lib/use-plan';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import type { BudgetListItem, ProjectDetail, ReceiptWithDetails } from '@/lib/api-types';
 import { PageHeader } from '@/components/ui/page-header';
@@ -372,10 +373,13 @@ export default function ProjectDetailPage() {
 }
 
 function FinancialSection({ projectId }: { projectId: string }) {
+  const { canViewAdministration } = usePlan();
   const { data: vsBudget, isLoading } = useSWR(
-    `/api/administration/vs-budget?projectId=${projectId}`,
+    canViewAdministration ? `/api/administration/vs-budget?projectId=${projectId}` : null,
     fetcher
   );
+
+  if (!canViewAdministration) return null;
 
   return (
     <div className="mt-8">

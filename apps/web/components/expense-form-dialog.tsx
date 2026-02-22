@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import {
@@ -65,7 +65,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
 
   // Fetch receipts for selected project
   const { data: receipts } = useSWR<Array<{ id: string; vendor: string | null; total_amount: number }>>(
-    projectId ? `/api/receipts?project_id=${projectId}` : null,
+    projectId ? `/api/receipts?project_id=${projectId}&status=confirmed&limit=100` : null,
     fetcher
   );
 

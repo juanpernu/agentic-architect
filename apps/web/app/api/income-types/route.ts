@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { incomeTypeCreateSchema } from '@/lib/schemas';
+import { requireAdministrationAccess } from '@/lib/plan-guard';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -24,6 +25,9 @@ export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
 
   const result = await validateBody(incomeTypeCreateSchema, req);
   if ('error' in result) return result.error;

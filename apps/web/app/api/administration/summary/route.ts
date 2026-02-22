@@ -1,30 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { requireAdministrationAccess } from '@/lib/plan-guard';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
 
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
+
   const db = getDb();
-
-  // Plan guard: free plan cannot access administration
-  const { data: org } = await db
-    .from('organizations')
-    .select('plan')
-    .eq('id', ctx.orgId)
-    .single();
-
-  if (org?.plan === 'free') {
-    return NextResponse.json({ error: 'Upgrade required' }, { status: 403 });
-  }
   const { searchParams } = req.nextUrl;
   const projectId = searchParams.get('projectId');
-  const year = searchParams.get('year') || new Date().getFullYear().toString();
+  const rawYear = searchParams.get('year');
+  const yearInt = rawYear ? parseInt(rawYear, 10) : new Date().getFullYear();
+  if (isNaN(yearInt) || yearInt < 2000 || yearInt > 2100) {
+    return NextResponse.json({ error: 'Invalid year parameter' }, { status: 400 });
+  }
 
-  const dateFrom = `${year}-01-01`;
-  const dateTo = `${year}-12-31`;
+  const dateFrom = `${yearInt}-01-01`;
+  const dateTo = `${yearInt}-12-31`;
 
   // Build income query
   let incomeQuery = db

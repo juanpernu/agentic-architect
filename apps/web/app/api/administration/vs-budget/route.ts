@@ -1,24 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { requireAdministrationAccess } from '@/lib/plan-guard';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
 
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
+
   const db = getDb();
-
-  // Plan guard: free plan cannot access administration
-  const { data: org } = await db
-    .from('organizations')
-    .select('plan')
-    .eq('id', ctx.orgId)
-    .single();
-
-  if (org?.plan === 'free') {
-    return NextResponse.json({ error: 'Upgrade required' }, { status: 403 });
-  }
   const projectId = req.nextUrl.searchParams.get('projectId');
   if (!projectId) return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
 

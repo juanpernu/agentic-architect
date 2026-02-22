@@ -3,11 +3,15 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { incomeTypeUpdateSchema } from '@/lib/schemas';
+import { requireAdministrationAccess } from '@/lib/plan-guard';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
 
   const { id } = await params;
 
@@ -36,6 +40,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
 
   const { id } = await params;
   const db = getDb();

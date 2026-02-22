@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { requireAdministrationAccess } from '@/lib/plan-guard';
 
 const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -9,24 +10,20 @@ export async function GET(req: NextRequest) {
   if (!ctx) return unauthorized();
   if (ctx.role === 'architect') return forbidden();
 
+  const planError = await requireAdministrationAccess(ctx.orgId);
+  if (planError) return planError;
+
   const db = getDb();
-
-  // Plan guard: free plan cannot access administration
-  const { data: org } = await db
-    .from('organizations')
-    .select('plan')
-    .eq('id', ctx.orgId)
-    .single();
-
-  if (org?.plan === 'free') {
-    return NextResponse.json({ error: 'Upgrade required' }, { status: 403 });
-  }
   const { searchParams } = req.nextUrl;
   const projectId = searchParams.get('projectId');
-  const year = searchParams.get('year') || new Date().getFullYear().toString();
+  const rawYear = searchParams.get('year');
+  const yearInt = rawYear ? parseInt(rawYear, 10) : new Date().getFullYear();
+  if (isNaN(yearInt) || yearInt < 2000 || yearInt > 2100) {
+    return NextResponse.json({ error: 'Invalid year parameter' }, { status: 400 });
+  }
 
-  const dateFrom = `${year}-01-01`;
-  const dateTo = `${year}-12-31`;
+  const dateFrom = `${yearInt}-01-01`;
+  const dateTo = `${yearInt}-12-31`;
 
   // Build income query
   let incomeQuery = db
@@ -63,15 +60,15 @@ export async function GET(req: NextRequest) {
     balance: 0,
   }));
 
-  // Group incomes by month
+  // Group incomes by month (parse directly to avoid timezone issues)
   for (const inc of incomes) {
-    const monthIndex = new Date(inc.date).getMonth();
+    const monthIndex = parseInt(inc.date.slice(5, 7), 10) - 1;
     months[monthIndex].totalIncome += Number(inc.amount);
   }
 
   // Group expenses by month
   for (const exp of expenses) {
-    const monthIndex = new Date(exp.date).getMonth();
+    const monthIndex = parseInt(exp.date.slice(5, 7), 10) - 1;
     months[monthIndex].totalExpense += Number(exp.amount);
   }
 

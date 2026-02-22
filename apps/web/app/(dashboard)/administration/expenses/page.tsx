@@ -77,7 +77,8 @@ export default function ExpensesPage() {
   };
 
   const expensesUrl = buildUrl();
-  const { data: expenses, isLoading, error } = useSWR<ExpenseRow[]>(expensesUrl, fetcher);
+  const { data: expensesResponse, isLoading, error } = useSWR<{ data: ExpenseRow[]; total: number }>(expensesUrl, fetcher);
+  const expenses = expensesResponse?.data;
 
   // When project filter changes, reset rubro filter
   const handleProjectChange = (value: string) => {

@@ -62,7 +62,8 @@ export default function IncomesPage() {
   };
 
   const incomesUrl = buildUrl();
-  const { data: incomes, isLoading, error } = useSWR<IncomeRow[]>(incomesUrl, fetcher);
+  const { data: incomesResponse, isLoading, error } = useSWR<{ data: IncomeRow[]; total: number }>(incomesUrl, fetcher);
+  const incomes = incomesResponse?.data;
 
   // Open edit dialog
   const handleEdit = (income: IncomeRow) => {
