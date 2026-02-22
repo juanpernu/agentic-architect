@@ -41,7 +41,7 @@ export default function IncomesPage() {
   const [deletingIncome, setDeletingIncome] = useState<IncomeRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Data fetching: projects and income types for filters
+  // Data fetching: projects for filters
   const { data: projects } = useSWR<Array<{ id: string; name: string }>>(
     '/api/projects',
     fetcher

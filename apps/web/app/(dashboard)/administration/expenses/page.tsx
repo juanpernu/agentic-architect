@@ -43,7 +43,7 @@ export default function ExpensesPage() {
   const [deletingExpense, setDeletingExpense] = useState<ExpenseRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Data fetching: projects and expense types for filters
+  // Data fetching: projects for filters
   const { data: projects } = useSWR<Array<{ id: string; name: string }>>(
     '/api/projects',
     fetcher

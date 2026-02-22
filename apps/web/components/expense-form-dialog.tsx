@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/select';
 import type { Expense } from '@architech/shared';
 
-
 interface ExpenseFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
