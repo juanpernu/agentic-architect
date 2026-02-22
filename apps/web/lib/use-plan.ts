@@ -33,6 +33,8 @@ export function usePlan() {
     data?.maxSeats === Infinity ||
     (data?.currentSeats ?? 0) < (data?.maxSeats ?? 1);
 
+  const canViewAdministration = limits.administration === true;
+
   return {
     plan,
     limits,
@@ -44,6 +46,7 @@ export function usePlan() {
     currentProjects: data?.currentProjects ?? 0,
     canCreateProject,
     canInviteUser,
+    canViewAdministration,
     isFreePlan: plan === 'free',
     isPastDue: data?.subscriptionStatus === 'past_due',
     isLoading,

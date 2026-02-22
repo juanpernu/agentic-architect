@@ -4,6 +4,7 @@ export const PLAN_LIMITS = {
     maxReceiptsPerProject: 20,
     maxSeats: 1,
     reports: false,
+    administration: false,
     prioritySupport: false,
   },
   advance: {
@@ -11,6 +12,7 @@ export const PLAN_LIMITS = {
     maxReceiptsPerProject: Infinity,
     maxSeats: null, // dynamic — uses org.max_seats from Stripe
     reports: true,
+    administration: true,
     prioritySupport: false,
   },
   enterprise: {
@@ -18,6 +20,7 @@ export const PLAN_LIMITS = {
     maxReceiptsPerProject: Infinity,
     maxSeats: Infinity,
     reports: true,
+    administration: true,
     prioritySupport: true,
   },
 } as const;

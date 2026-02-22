@@ -293,3 +293,48 @@ export interface CreateBudgetInput {
 export interface UpdateBudgetInput {
   snapshot: BudgetSnapshot;
 }
+
+// Administration types
+export interface IncomeType {
+  id: string;
+  org_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ExpenseType {
+  id: string;
+  org_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Income {
+  id: string;
+  org_id: string;
+  project_id: string;
+  amount: number;
+  date: string;
+  income_type_id: string;
+  description: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Expense {
+  id: string;
+  org_id: string;
+  project_id: string;
+  amount: number;
+  date: string;
+  expense_type_id: string;
+  rubro_id: string | null;
+  receipt_id: string | null;
+  description: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}

@@ -1,7 +1,27 @@
+import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/supabase';
 import { PLAN_LIMITS } from '@architech/shared/plans';
 
 type Resource = 'project' | 'receipt' | 'user' | 'reports';
+
+/**
+ * Returns a 403 NextResponse if the org is on the free plan,
+ * or null if administration access is allowed.
+ */
+export async function requireAdministrationAccess(
+  orgId: string
+): Promise<NextResponse | null> {
+  const db = getDb();
+  const { data: org } = await db
+    .from('organizations')
+    .select('plan')
+    .eq('id', orgId)
+    .single();
+  if (org?.plan === 'free') {
+    return NextResponse.json({ error: 'Upgrade required' }, { status: 403 });
+  }
+  return null;
+}
 
 interface Allowed {
   allowed: true;
