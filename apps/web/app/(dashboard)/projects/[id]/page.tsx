@@ -515,7 +515,7 @@ export default function ProjectDetailPage() {
                             onClick={() => router.push(`/receipts/${receipt.id}`)}
                             onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/receipts/${receipt.id}`); }}
                             tabIndex={0}
-                            role="link"
+                            aria-label={`Ver comprobante de ${receipt.vendor || 'Sin proveedor'}`}
                           >
                             <td className="py-4 px-6 text-muted-foreground font-medium whitespace-nowrap">
                               {new Date(receipt.receipt_date).toLocaleDateString('es-AR', {
@@ -559,14 +559,18 @@ export default function ProjectDetailPage() {
                                     <Eye className="mr-2 h-4 w-4" />
                                     Ver comprobante
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setReceiptToDelete(receipt.id)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Eliminar
-                                  </DropdownMenuItem>
+                                  {isAdminOrSupervisor && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() => setReceiptToDelete(receipt.id)}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Eliminar
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </td>

@@ -182,7 +182,7 @@ export default function BillingPage() {
           <div className="mt-6 pt-4 border-t border-gray-700 flex gap-3">
             <button
               type="button"
-              className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+              className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 text-white"
               onClick={handleManageSubscription}
               disabled={isRedirecting}
             >
@@ -190,7 +190,7 @@ export default function BillingPage() {
             </button>
             <button
               type="button"
-              className="flex-1 bg-white text-gray-900 hover:bg-gray-100 transition-colors py-2.5 rounded-lg text-sm font-bold shadow-md disabled:opacity-50"
+              className="flex-1 bg-white dark:bg-gray-100 text-gray-900 hover:bg-gray-100 dark:hover:bg-white transition-colors py-2.5 rounded-lg text-sm font-bold shadow-md disabled:opacity-50"
               onClick={handleManageSubscription}
               disabled={isRedirecting}
             >

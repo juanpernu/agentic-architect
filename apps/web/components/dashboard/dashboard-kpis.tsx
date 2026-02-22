@@ -95,6 +95,9 @@ export async function DashboardKPIs() {
   }
 
   const spendBadge = getSpendChange(data.monthly_spend, data.previous_month_spend);
+  const projectsBadge = data.new_projects_this_week > 0
+    ? { label: `+${data.new_projects_this_week}`, variant: 'positive' as const }
+    : undefined;
 
   return (
     <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
@@ -102,25 +105,34 @@ export async function DashboardKPIs() {
         title="Proyectos Activos"
         value={data.active_projects}
         icon={Building2}
-        subtitle={data.new_projects_this_week > 0 ? `+${data.new_projects_this_week} esta semana` : 'Sin cambios'}
+        iconBg="bg-blue-50 dark:bg-blue-900/20"
+        iconColor="text-blue-600 dark:text-blue-400"
+        badge={projectsBadge}
+        href="/projects"
+        actionLabel="Ver proyectos"
       />
       <StatCard
         title="Gasto Mensual"
         value={formatCurrency(data.monthly_spend)}
         icon={DollarSign}
+        iconBg="bg-emerald-50 dark:bg-emerald-900/20"
+        iconColor="text-emerald-600 dark:text-emerald-400"
         badge={spendBadge}
       />
       <StatCard
         title="Comprobantes (Sem)"
         value={data.weekly_receipts}
         icon={Receipt}
+        iconBg="bg-purple-50 dark:bg-purple-900/20"
+        iconColor="text-purple-600 dark:text-purple-400"
         subtitle="Esta semana"
       />
       <StatCard
         title="Pendientes Review"
         value={data.pending_review}
         icon={Clock}
-        iconColor={data.pending_review > 0 ? 'text-orange-500' : undefined}
+        iconBg="bg-amber-50 dark:bg-amber-900/20"
+        iconColor="text-amber-600 dark:text-amber-400"
         subtitle={data.pending_review > 0 ? 'Requiere atención' : 'Al día'}
         subtitleVariant={data.pending_review > 0 ? 'warning' : 'muted'}
         pulse={data.pending_review > 0}

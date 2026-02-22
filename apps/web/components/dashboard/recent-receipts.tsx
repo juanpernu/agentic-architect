@@ -108,9 +108,10 @@ export async function RecentReceipts() {
               {receipts.map((receipt) => {
                 const vendor = receipt.vendor || 'Sin proveedor';
                 return (
-                  <tr
+                  <Link
                     key={receipt.id}
-                    className="border-b border-border last:border-0 transition-colors hover:bg-muted/50"
+                    href={`/receipts/${receipt.id}`}
+                    className="table-row border-b border-border last:border-0 transition-colors hover:bg-muted/50 cursor-pointer"
                   >
                     <td className="p-6 align-middle font-medium text-xs">
                       #{receipt.id.slice(0, 8)}
@@ -139,14 +140,11 @@ export async function RecentReceipts() {
                       </span>
                     </td>
                     <td className="p-2 align-middle text-right">
-                      <Link
-                        href={`/receipts/${receipt.id}`}
-                        className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted"
-                      >
+                      <span className="text-muted-foreground inline-flex items-center justify-center h-8 w-8">
                         <MoreVertical className="h-4 w-4" />
-                      </Link>
+                      </span>
                     </td>
-                  </tr>
+                  </Link>
                 );
               })}
             </tbody>
