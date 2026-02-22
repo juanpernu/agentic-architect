@@ -5,29 +5,36 @@ import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldLabel, FieldError, FieldSet, FieldLegend, FieldGroup } from '@/components/ui/field';
+import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { organizationSchema } from '@/lib/schemas';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, Upload, Loader2 } from 'lucide-react';
+import { Building2, Upload, Loader2, Save } from 'lucide-react';
 import { sileo } from 'sileo';
 import type { Organization } from '@architech/shared';
 
 function OrgSettingsFormSkeleton() {
   return (
-    <div className="rounded-lg border bg-card p-6 mb-8">
-      <Skeleton className="h-6 w-32 mb-4" />
-      <div className="flex items-center gap-4 mb-6">
-        <Skeleton className="h-16 w-16 rounded-full" />
-        <Skeleton className="h-8 w-28" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-9 w-full" />
+    <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <Skeleton className="h-5 w-40 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-6">
+            <Skeleton className="h-20 w-20 rounded-full" />
+            <Skeleton className="h-9 w-28" />
           </div>
-        ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -123,62 +130,77 @@ export function OrgSettingsForm() {
   };
 
   return (
-    <div className="rounded-lg border bg-card p-6 mb-8">
-      <h2 className="text-lg font-semibold mb-4">Organización</h2>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Profile / Organization info */}
+      <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h2 className="text-lg font-semibold">Información de la Organización</h2>
+          <p className="text-sm text-muted-foreground mt-1">Actualiza la información de tu cuenta y logo.</p>
+        </div>
+        <div className="p-6 space-y-6">
+          {/* Logo */}
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20 border-2 border-background shadow-sm">
+              <AvatarImage src={logoPreview ?? org.logo_url ?? undefined} alt={org.name} />
+              <AvatarFallback className="text-2xl"><Building2 className="h-8 w-8" /></AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                  {uploading ? 'Subiendo...' : 'Cambiar foto'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">JPG, PNG o WebP. Max 1MB.</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleLogoUpload}
+              />
+            </div>
+          </div>
 
-      {/* Logo */}
-      <div className="flex items-center gap-4 mb-6">
-        <Avatar className="h-16 w-16">
-          <AvatarImage src={logoPreview ?? org.logo_url ?? undefined} alt={org.name} />
-          <AvatarFallback><Building2 className="h-8 w-8" /></AvatarFallback>
-        </Avatar>
-        <div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={uploading}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-            {uploading ? 'Subiendo...' : 'Cambiar logo'}
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleLogoUpload}
-          />
+          {/* Main fields */}
+          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Field data-invalid={!!fieldErrors.name}>
+              <FieldLabel htmlFor="name">Nombre</FieldLabel>
+              <Input id="name" name="name" defaultValue={org.name} aria-invalid={!!fieldErrors.name} />
+              <FieldError>{fieldErrors.name}</FieldError>
+            </Field>
+            <Field data-invalid={!!fieldErrors.contact_email}>
+              <FieldLabel htmlFor="contact_email">Email de contacto</FieldLabel>
+              <Input id="contact_email" name="contact_email" type="email" defaultValue={org.contact_email ?? ''} aria-invalid={!!fieldErrors.contact_email} />
+              <FieldError>{fieldErrors.contact_email}</FieldError>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
+              <Input id="phone" name="phone" defaultValue={org.phone ?? ''} />
+            </Field>
+            <Field data-invalid={!!fieldErrors.website}>
+              <FieldLabel htmlFor="website">Website</FieldLabel>
+              <Input id="website" name="website" defaultValue={org.website ?? ''} aria-invalid={!!fieldErrors.website} />
+              <FieldError>{fieldErrors.website}</FieldError>
+            </Field>
+          </FieldGroup>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field data-invalid={!!fieldErrors.name}>
-            <FieldLabel htmlFor="name">Nombre</FieldLabel>
-            <Input id="name" name="name" defaultValue={org.name} aria-invalid={!!fieldErrors.name} />
-            <FieldError>{fieldErrors.name}</FieldError>
-          </Field>
-          <Field data-invalid={!!fieldErrors.contact_email}>
-            <FieldLabel htmlFor="contact_email">Email de contacto</FieldLabel>
-            <Input id="contact_email" name="contact_email" type="email" defaultValue={org.contact_email ?? ''} aria-invalid={!!fieldErrors.contact_email} />
-            <FieldError>{fieldErrors.contact_email}</FieldError>
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
-            <Input id="phone" name="phone" defaultValue={org.phone ?? ''} />
-          </Field>
-          <Field data-invalid={!!fieldErrors.website}>
-            <FieldLabel htmlFor="website">Website</FieldLabel>
-            <Input id="website" name="website" defaultValue={org.website ?? ''} aria-invalid={!!fieldErrors.website} />
-            <FieldError>{fieldErrors.website}</FieldError>
-          </Field>
-        </FieldGroup>
-
-        <FieldSet>
-          <FieldLegend variant="label" className="text-muted-foreground">Dirección</FieldLegend>
-          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Address */}
+      <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h2 className="text-lg font-semibold">Dirección</h2>
+          <p className="text-sm text-muted-foreground mt-1">Información de ubicación de la organización.</p>
+        </div>
+        <div className="p-6">
+          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Field>
               <FieldLabel htmlFor="address_street">Calle</FieldLabel>
               <Input id="address_street" name="address_street" defaultValue={org.address_street ?? ''} />
@@ -196,11 +218,17 @@ export function OrgSettingsForm() {
               <Input id="address_postal_code" name="address_postal_code" defaultValue={org.address_postal_code ?? ''} />
             </Field>
           </FieldGroup>
-        </FieldSet>
+        </div>
+      </div>
 
-        <FieldSet>
-          <FieldLegend variant="label" className="text-muted-foreground">Redes sociales</FieldLegend>
-          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Social */}
+      <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h2 className="text-lg font-semibold">Redes Sociales</h2>
+          <p className="text-sm text-muted-foreground mt-1">Links a perfiles de la organización.</p>
+        </div>
+        <div className="p-6">
+          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Field>
               <FieldLabel htmlFor="social_instagram">Instagram</FieldLabel>
               <Input id="social_instagram" name="social_instagram" placeholder="@usuario" defaultValue={org.social_instagram ?? ''} />
@@ -210,15 +238,19 @@ export function OrgSettingsForm() {
               <Input id="social_linkedin" name="social_linkedin" placeholder="URL o nombre" defaultValue={org.social_linkedin ?? ''} />
             </Field>
           </FieldGroup>
-        </FieldSet>
-
-        <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </Button>
         </div>
-      </form>
-    </div>
+      </div>
+
+      {/* Actions footer */}
+      <div className="flex items-center justify-end gap-4 pt-2 pb-8">
+        <Button type="button" variant="ghost" disabled={saving}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+          {saving ? 'Guardando...' : 'Guardar Cambios'}
+        </Button>
+      </div>
+    </form>
   );
 }

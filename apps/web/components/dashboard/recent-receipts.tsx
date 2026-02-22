@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Receipt as ReceiptIcon } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { MoreVertical } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { formatRelativeWithTime } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
@@ -51,69 +50,107 @@ const STATUS_LABELS: Record<ReceiptStatus, string> = {
   rejected: 'Rechazado',
 };
 
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'America/Buenos_Aires',
+  });
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export async function RecentReceipts() {
   const receipts = await fetchRecentReceipts();
 
-  if (receipts.length === 0) {
-    return (
-      <section>
-        <div className="flex justify-between items-center mb-4 px-1">
-          <h3 className="font-bold text-lg">Comprobantes Recientes</h3>
-        </div>
-        <Card className="shadow-soft border-border/50 p-6">
-          <p className="text-sm text-muted-foreground">No hay comprobantes disponibles</p>
-        </Card>
-      </section>
-    );
-  }
-
   return (
-    <section>
-      <div className="flex justify-between items-center mb-4 px-1">
-        <h3 className="font-bold text-lg">Comprobantes Recientes</h3>
-        <Link href="/receipts" className="text-sm text-primary font-medium hover:underline">
-          Ver Todos
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+      <div className="p-6 flex flex-row items-center justify-between pb-4 border-b border-border/50">
+        <div className="space-y-1">
+          <h3 className="font-semibold leading-none tracking-tight">Comprobantes Recientes</h3>
+          <p className="text-sm text-muted-foreground">Gestione las últimas facturas recibidas.</p>
+        </div>
+        <Link
+          href="/receipts"
+          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+        >
+          Ver todos
         </Link>
       </div>
-      <Card className="shadow-soft border-border/50 overflow-hidden p-0">
-        <ul className="divide-y divide-border">
-          {receipts.map((receipt) => (
-            <li key={receipt.id}>
-              <Link
-                href={`/receipts/${receipt.id}`}
-                className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <ReceiptIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">{receipt.vendor || 'Sin proveedor'}</p>
-                    <p className="text-xs text-muted-foreground">{formatRelativeWithTime(receipt.created_at)}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-sm">{formatCurrency(receipt.total_amount)}</p>
-                  <span className={cn(
-                    'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium mt-1',
-                    STATUS_STYLES[receipt.status] ?? STATUS_STYLES.pending
-                  )}>
-                    {STATUS_LABELS[receipt.status] ?? receipt.status}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <div className="bg-muted/30 p-3 text-center border-t">
-          <Link
-            href="/receipts"
-            className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
-          >
-            Ver historial completo <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+
+      {receipts.length === 0 ? (
+        <div className="p-6">
+          <p className="text-sm text-muted-foreground">No hay comprobantes disponibles</p>
         </div>
-      </Card>
-    </section>
+      ) : (
+        <div className="relative w-full overflow-auto">
+          <table className="w-full caption-bottom text-sm text-left">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">ID</th>
+                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">Proyecto</th>
+                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">Proveedor</th>
+                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">Fecha</th>
+                <th className="h-12 px-6 text-right align-middle font-medium text-muted-foreground">Monto (ARS)</th>
+                <th className="h-12 px-6 text-right align-middle font-medium text-muted-foreground">Estado</th>
+                <th className="h-12 px-2 align-middle"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {receipts.map((receipt) => {
+                const vendor = receipt.vendor || 'Sin proveedor';
+                return (
+                  <Link
+                    key={receipt.id}
+                    href={`/receipts/${receipt.id}`}
+                    className="table-row border-b border-border last:border-0 transition-colors hover:bg-muted/50 cursor-pointer"
+                  >
+                    <td className="p-6 align-middle font-medium text-xs">
+                      #{receipt.id.slice(0, 8)}
+                    </td>
+                    <td className="p-6 align-middle">{receipt.project.name}</td>
+                    <td className="p-6 align-middle">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                          {getInitials(vendor)}
+                        </div>
+                        <span className="truncate">{vendor}</span>
+                      </div>
+                    </td>
+                    <td className="p-6 align-middle text-muted-foreground">
+                      {formatDate(receipt.receipt_date)}
+                    </td>
+                    <td className="p-6 align-middle text-right font-medium">
+                      {formatCurrency(receipt.total_amount)}
+                    </td>
+                    <td className="p-6 align-middle text-right">
+                      <span className={cn(
+                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                        STATUS_STYLES[receipt.status] ?? STATUS_STYLES.pending
+                      )}>
+                        {STATUS_LABELS[receipt.status] ?? receipt.status}
+                      </span>
+                    </td>
+                    <td className="p-2 align-middle text-right">
+                      <span className="text-muted-foreground inline-flex items-center justify-center h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </span>
+                    </td>
+                  </Link>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
