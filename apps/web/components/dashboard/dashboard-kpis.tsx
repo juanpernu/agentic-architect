@@ -1,6 +1,6 @@
 import { Building2, DollarSign, Receipt, Clock } from 'lucide-react';
 import { StatCard } from '@/components/ui/stat-card';
-import { formatCurrencyCompact } from '@/lib/format';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import type { DashboardStats } from '@architech/shared';
@@ -72,13 +72,13 @@ async function fetchStats(): Promise<DashboardStats | null> {
   };
 }
 
-function getSpendBadge(current: number, previous: number): { label: string; variant: 'positive' | 'negative' } | undefined {
+function getSpendChange(current: number, previous: number): { label: string; variant: 'positive' | 'negative' } | undefined {
   if (previous === 0) return undefined;
   const pctChange = Math.round(((current - previous) / previous) * 100);
   if (pctChange === 0) return undefined;
-  const arrow = pctChange > 0 ? '\u2191' : '\u2193';
+  const sign = pctChange > 0 ? '+' : '';
   return {
-    label: `${arrow} ${Math.abs(pctChange)}%`,
+    label: `${sign}${pctChange}% vs mes anterior`,
     variant: pctChange > 0 ? 'negative' : 'positive',
   };
 }
@@ -94,13 +94,13 @@ export async function DashboardKPIs() {
     );
   }
 
-  const spendBadge = getSpendBadge(data.monthly_spend, data.previous_month_spend);
+  const spendBadge = getSpendChange(data.monthly_spend, data.previous_month_spend);
   const projectsBadge = data.new_projects_this_week > 0
     ? { label: `+${data.new_projects_this_week}`, variant: 'positive' as const }
     : undefined;
 
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
       <StatCard
         title="Proyectos Activos"
         value={data.active_projects}
@@ -113,7 +113,7 @@ export async function DashboardKPIs() {
       />
       <StatCard
         title="Gasto Mensual"
-        value={formatCurrencyCompact(data.monthly_spend)}
+        value={formatCurrency(data.monthly_spend)}
         icon={DollarSign}
         iconBg="bg-emerald-50 dark:bg-emerald-900/20"
         iconColor="text-emerald-600 dark:text-emerald-400"
@@ -125,6 +125,7 @@ export async function DashboardKPIs() {
         icon={Receipt}
         iconBg="bg-purple-50 dark:bg-purple-900/20"
         iconColor="text-purple-600 dark:text-purple-400"
+        subtitle="Esta semana"
       />
       <StatCard
         title="Pendientes Review"
@@ -132,6 +133,8 @@ export async function DashboardKPIs() {
         icon={Clock}
         iconBg="bg-amber-50 dark:bg-amber-900/20"
         iconColor="text-amber-600 dark:text-amber-400"
+        subtitle={data.pending_review > 0 ? 'Requiere atención' : 'Al día'}
+        subtitleVariant={data.pending_review > 0 ? 'warning' : 'muted'}
         pulse={data.pending_review > 0}
       />
     </div>

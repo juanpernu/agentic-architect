@@ -6,23 +6,26 @@ import Image from 'next/image';
 import useSWR, { mutate } from 'swr';
 import { sileo } from 'sileo';
 import {
-  Check,
-  X,
-  Edit2,
-  Plus,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  AlertTriangle,
+  ArrowLeft,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
+  Store,
+  Calendar,
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
+  Receipt,
+  Plus,
+  Trash2,
+  Loader2,
+  ZoomIn,
+  ArrowRight,
 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
-import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { receiptReviewSchema } from '@/lib/schemas';
 import {
   Select,
@@ -32,18 +35,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
 import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
+import { cn } from '@/lib/utils';
 import type { ExtractionResult, ExtractionItem, ConfirmReceiptInput, Project, Rubro, BankAccount } from '@architech/shared';
 import type { BudgetListItem } from '@/lib/api-types';
 
@@ -55,11 +51,8 @@ interface ReceiptReviewProps {
   onDiscard: () => void;
 }
 
-type EditableField = 'vendor' | 'date' | 'total' | null;
-
 interface EditableItem extends ExtractionItem {
   id: string;
-  expanded: boolean;
 }
 
 export function ReceiptReview({
@@ -72,6 +65,7 @@ export function ReceiptReview({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [itemsOpen, setItemsOpen] = useState(true);
 
   const [vendor, setVendor] = useState(extractionResult.supplier.name ?? '');
   const [date, setDate] = useState(extractionResult.receipt.date ?? '');
@@ -83,12 +77,10 @@ export function ReceiptReview({
     extractionResult.items.map((item, index) => ({
       ...item,
       id: `item-${index}`,
-      expanded: false,
     }))
   );
 
-  const [editingField, setEditingField] = useState<EditableField>(null);
-  const [tempValue, setTempValue] = useState('');
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
   const { data: budgets } = useSWR<BudgetListItem[]>('/api/budgets', fetcher);
@@ -103,82 +95,34 @@ export function ReceiptReview({
 
   const confidence = extractionResult.confidence;
 
-  const getConfidenceBadge = () => {
+  const getConfidenceInfo = () => {
     if (confidence > 0.85) {
-      return (
-        <Badge className="bg-green-100 text-green-800 border-green-200">
-          <CheckCircle2 className="mr-1 h-3 w-3" />
-          Alta confianza
-        </Badge>
-      );
+      return { label: 'Alta', icon: CheckCircle2, color: 'text-green-500' };
     } else if (confidence >= 0.6) {
-      return (
-        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-          <AlertCircle className="mr-1 h-3 w-3" />
-          Confianza media
-        </Badge>
-      );
-    } else {
-      return (
-        <Badge className="bg-red-100 text-red-800 border-red-200">
-          <AlertTriangle className="mr-1 h-3 w-3" />
-          Baja confianza
-        </Badge>
-      );
+      return { label: 'Media', icon: AlertCircle, color: 'text-yellow-500' };
     }
+    return { label: 'Baja', icon: AlertTriangle, color: 'text-red-500' };
   };
 
-  const startEditing = (field: EditableField, currentValue: string) => {
-    setEditingField(field);
-    setTempValue(currentValue);
-  };
-
-  const cancelEditing = () => {
-    setEditingField(null);
-    setTempValue('');
-  };
-
-  const saveField = () => {
-    switch (editingField) {
-      case 'vendor':
-        setVendor(tempValue);
-        break;
-      case 'date':
-        setDate(tempValue);
-        break;
-      case 'total':
-        setTotal(tempValue);
-        break;
-    }
-    setEditingField(null);
-    setTempValue('');
-  };
-
-  const toggleItemExpanded = (id: string) => {
-    setItems(items.map(item =>
-      item.id === id ? { ...item, expanded: !item.expanded } : item
-    ));
-  };
+  const confidenceInfo = getConfidenceInfo();
+  const ConfidenceIcon = confidenceInfo.icon;
 
   const updateItem = (id: string, field: keyof ExtractionItem, value: string | number) => {
     setItems(items.map(item => {
       if (item.id !== id) return item;
-
       const updated = { ...item, [field]: value };
-
-      // Recalculate subtotal if quantity or unit_price changed
       if (field === 'quantity' || field === 'unit_price') {
         const qty = field === 'quantity' ? Number(value) : item.quantity;
         const price = field === 'unit_price' ? Number(value) : item.unit_price;
         updated.subtotal = qty * price;
       }
-
       return updated;
     }));
   };
 
   const deleteItem = (id: string) => {
     setItems(items.filter(item => item.id !== id));
+    if (editingItemId === id) setEditingItemId(null);
   };
 
   const addItem = () => {
@@ -188,9 +132,10 @@ export function ReceiptReview({
       quantity: 1,
       unit_price: 0,
       subtotal: 0,
-      expanded: true,
     };
     setItems([...items, newItem]);
+    setEditingItemId(newItem.id);
+    setItemsOpen(true);
   };
 
   const calculatedTotal = items.reduce((sum, item) => sum + item.subtotal, 0);
@@ -270,7 +215,6 @@ export function ReceiptReview({
 
       sileo.success({ title: 'Comprobante confirmado con éxito' });
 
-      // Refresh data
       await mutate('/api/receipts');
       await mutate(`/api/receipts?project_id=${projectId}`);
       await mutate(`/api/projects/${projectId}`);
@@ -285,357 +229,360 @@ export function ReceiptReview({
   };
 
   return (
-    <div className="p-6">
-      <PageHeader
-        title="Revisar Comprobante"
-        description="Verifica y edita la información extraída"
-      />
-
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Confidence Badge */}
-        <div className="flex justify-between items-center">
-          {getConfidenceBadge()}
-          {confidence < 0.85 && (
-            <p className="text-sm text-muted-foreground">
-              {confidence < 0.6 ? 'Revisá todos los campos cuidadosamente' : 'Verificá los campos destacados'}
-            </p>
-          )}
+    <div className="max-w-lg mx-auto flex flex-col min-h-screen bg-background animate-slide-up">
+      {/* Header */}
+      <header className="bg-card sticky top-0 z-20 px-4 py-4 flex items-center justify-between border-b border-border">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onDiscard}
+            className="p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
+            aria-label="Volver"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-lg font-semibold">Revisar Comprobante</h1>
         </div>
+      </header>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Image Preview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Imagen del Comprobante</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div
-                className="relative rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setShowImageDialog(true)}
-              >
-                <Image
-                  src={imageUrl}
-                  alt="Comprobante"
-                  width={400}
-                  height={300}
-                  className="w-full h-auto max-h-80 object-contain"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Click para ampliar
+      {/* Scrollable content */}
+      <main className="flex-1 overflow-y-auto pb-40">
+        {/* Image preview */}
+        <section className="relative bg-muted border-b border-border">
+          <div
+            className="h-48 w-full relative overflow-hidden flex items-center justify-center group cursor-pointer"
+            onClick={() => setShowImageDialog(true)}
+          >
+            <Image
+              src={imageUrl}
+              alt="Comprobante"
+              fill
+              className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+              sizes="(max-width: 512px) 100vw, 512px"
+            />
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+              <span className="bg-black/50 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm flex items-center gap-1">
+                <ZoomIn className="h-3.5 w-3.5" />
+                Tocar para ampliar
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Confidence card overlapping image */}
+        <div className="px-5 -mt-6 relative z-10 mb-6">
+          <div className="bg-card rounded-xl shadow-lg p-4 border border-border/50 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-0.5">
+                Confianza IA
               </p>
-            </CardContent>
-          </Card>
-
-          {/* Extracted Fields */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Datos del Comprobante</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup className="space-y-4">
-                {/* Vendor */}
-                <Field>
-                  <FieldLabel>Proveedor</FieldLabel>
-                  {editingField === 'vendor' ? (
-                    <div className="flex gap-2">
-                      <Input
-                        value={tempValue}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        autoFocus
-                      />
-                      <Button size="sm" onClick={saveField}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={cancelEditing}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="relative cursor-pointer" onClick={() => startEditing('vendor', vendor)}>
-                      <Input
-                        readOnly
-                        value={vendor || ''}
-                        placeholder="Sin proveedor"
-                        className="cursor-pointer pr-9"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter') startEditing('vendor', vendor); }}
-                        aria-label="Editar proveedor"
-                      />
-                      <Edit2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  )}
-                </Field>
-
-                {/* Date */}
-                <Field>
-                  <FieldLabel>Fecha</FieldLabel>
-                  {editingField === 'date' ? (
-                    <div className="flex gap-2">
-                      <Input
-                        type="date"
-                        value={tempValue}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        autoFocus
-                      />
-                      <Button size="sm" onClick={saveField}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={cancelEditing}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="relative cursor-pointer" onClick={() => startEditing('date', date)}>
-                      <Input
-                        readOnly
-                        value={date ? new Date(date).toLocaleDateString('es-AR') : ''}
-                        placeholder="Sin fecha"
-                        className="cursor-pointer pr-9"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter') startEditing('date', date); }}
-                        aria-label="Editar fecha"
-                      />
-                      <Edit2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  )}
-                </Field>
-
-                {/* Total */}
-                <Field>
-                  <FieldLabel>Total</FieldLabel>
-                  {editingField === 'total' ? (
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={tempValue}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        autoFocus
-                      />
-                      <Button size="sm" onClick={saveField}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={cancelEditing}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="relative cursor-pointer" onClick={() => startEditing('total', total)}>
-                      <Input
-                        readOnly
-                        value={formatCurrency(parseFloat(total) || 0)}
-                        className="cursor-pointer pr-9 font-semibold"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter') startEditing('total', total); }}
-                        aria-label="Editar total"
-                      />
-                      <Edit2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  )}
-                  {Math.abs((parseFloat(total) || 0) - calculatedTotal) > 0.01 && (
-                    <p className="text-xs text-yellow-600 mt-1">
-                      Total de ítems: {formatCurrency(calculatedTotal)}
-                    </p>
-                  )}
-                </Field>
-
-                {/* Project */}
-                <Field>
-                  <FieldLabel htmlFor="project">Proyecto *</FieldLabel>
-                  <Select value={projectId} onValueChange={handleProjectChange}>
-                    <SelectTrigger id="project" className="w-full mt-1">
-                      <SelectValue placeholder="Seleccionar proyecto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects?.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          <span className="flex items-center gap-2">
-                            {project.color && (
-                              <span
-                                className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
-                              />
-                            )}
-                            {project.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-
-                {/* Rubro */}
-                <Field>
-                  <FieldLabel htmlFor="rubro">Rubro *</FieldLabel>
-                  {projectId && !selectedBudget ? (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Este proyecto no tiene presupuesto con rubros
-                    </p>
-                  ) : (
-                    <Select value={rubroId} onValueChange={setRubroId} disabled={!selectedBudget}>
-                      <SelectTrigger id="rubro" className="w-full mt-1">
-                        <SelectValue placeholder="Seleccionar rubro" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {rubros?.map((rubro) => (
-                          <SelectItem key={rubro.id} value={rubro.id}>
-                            <span className="flex items-center gap-2">
-                              {rubro.color && (
-                                <span
-                                  className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: rubro.color }}
-                                />
-                              )}
-                              {rubro.name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </Field>
-
-                {/* Bank Account */}
-                <Field>
-                  <FieldLabel>Cuenta Bancaria (opcional)</FieldLabel>
-                  <Select value={bankAccountId} onValueChange={setBankAccountId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar cuenta bancaria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bankAccounts?.map((ba) => (
-                        <SelectItem key={ba.id} value={ba.id}>
-                          {ba.name} ({ba.bank_name})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                </FieldGroup>
-              </CardContent>
-            </Card>
+              <div className="flex items-center gap-1.5">
+                <ConfidenceIcon className={cn('h-5 w-5', confidenceInfo.color)} />
+                <span className={cn('font-bold', confidenceInfo.color)}>
+                  {confidenceInfo.label}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Escaneado</p>
+              <p className="text-sm font-medium">Hace un momento</p>
+            </div>
           </div>
         </div>
 
-        {/* Line Items */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ítems del Comprobante</CardTitle>
-            <CardAction>
-              <Button size="sm" variant="outline" onClick={addItem}>
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Ítem
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {items.map((item) => (
-              <div key={item.id} className="border rounded-lg">
-                <div
-                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50"
-                  onClick={() => toggleItemExpanded(item.id)}
-                >
-                  <div className="flex-1">
-                    <div className="font-medium">{item.description || 'Sin descripción'}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatCurrency(item.subtotal)}
-                    </div>
-                  </div>
-                  {item.expanded ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
+        {/* Form fields */}
+        <div className="px-5 space-y-5">
+          {/* Vendor */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="vendor">
+              Proveedor
+            </label>
+            <div className="relative">
+              <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="vendor"
+                value={vendor}
+                onChange={(e) => setVendor(e.target.value)}
+                className="pl-10 py-3 text-base"
+                placeholder="Nombre del proveedor"
+              />
+            </div>
+          </div>
 
-                {item.expanded && (
-                  <div className="p-3 border-t bg-muted/30">
-                    <FieldGroup className="space-y-3">
-                      <Field>
-                        <FieldLabel htmlFor={`desc-${item.id}`}>Descripción</FieldLabel>
-                        <Input
-                          id={`desc-${item.id}`}
-                          value={item.description}
-                          onChange={(e) =>
-                            updateItem(item.id, 'description', e.target.value)
-                          }
-                          placeholder="Descripción del ítem"
+          {/* Date + Total side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="date">
+                Fecha
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="pl-10 py-3 text-base"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="total">
+                Total
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="total"
+                  type="number"
+                  step="0.01"
+                  value={total}
+                  onChange={(e) => setTotal(e.target.value)}
+                  className="pl-10 py-3 text-base text-right font-semibold"
+                />
+              </div>
+              {Math.abs((parseFloat(total) || 0) - calculatedTotal) > 0.01 && items.length > 0 && (
+                <p className="text-xs text-yellow-600 mt-1">
+                  Total ítems: {formatCurrency(calculatedTotal)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Project */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+              Proyecto *
+            </label>
+            <Select value={projectId} onValueChange={handleProjectChange}>
+              <SelectTrigger className="w-full py-3 text-base">
+                <SelectValue placeholder="Seleccionar proyecto" />
+              </SelectTrigger>
+              <SelectContent>
+                {projects?.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    <span className="flex items-center gap-2">
+                      {project.color && (
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }}
                         />
-                      </Field>
-                      <div className="grid grid-cols-2 gap-3">
-                        <Field>
-                          <FieldLabel htmlFor={`qty-${item.id}`}>Cantidad</FieldLabel>
-                          <Input
-                            id={`qty-${item.id}`}
-                            type="number"
-                            step="0.01"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
-                            }
+                      )}
+                      {project.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Rubro */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+              Rubro *
+            </label>
+            {projectId && !selectedBudget ? (
+              <p className="text-sm text-muted-foreground">
+                Este proyecto no tiene presupuesto con rubros
+              </p>
+            ) : (
+              <Select value={rubroId} onValueChange={setRubroId} disabled={!selectedBudget}>
+                <SelectTrigger className="w-full py-3 text-base">
+                  <SelectValue placeholder="Seleccionar rubro" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rubros?.map((rubro) => (
+                    <SelectItem key={rubro.id} value={rubro.id}>
+                      <span className="flex items-center gap-2">
+                        {rubro.color && (
+                          <span
+                            className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: rubro.color }}
                           />
-                        </Field>
-                        <Field>
-                          <FieldLabel htmlFor={`price-${item.id}`}>Precio Unitario</FieldLabel>
-                          <Input
-                            id={`price-${item.id}`}
-                            type="number"
-                            step="0.01"
-                            value={item.unit_price}
-                            onChange={(e) =>
-                              updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </Field>
+                        )}
+                        {rubro.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {/* Bank Account */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+              Cuenta Bancaria (opcional)
+            </label>
+            <Select value={bankAccountId} onValueChange={setBankAccountId}>
+              <SelectTrigger className="w-full py-3 text-base">
+                <SelectValue placeholder="Seleccionar cuenta bancaria" />
+              </SelectTrigger>
+              <SelectContent>
+                {bankAccounts?.map((ba) => (
+                  <SelectItem key={ba.id} value={ba.id}>
+                    {ba.name} ({ba.bank_name})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <hr className="border-border my-2" />
+
+          {/* Items section */}
+          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+            <button
+              onClick={() => setItemsOpen(!itemsOpen)}
+              className="w-full px-4 py-3 bg-muted/50 flex items-center justify-between text-left focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-primary" />
+                <span className="font-medium">Items del comprobante</span>
+                <span className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full font-bold">
+                  {items.length}
+                </span>
+              </div>
+              {itemsOpen ? (
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              )}
+            </button>
+
+            {itemsOpen && (
+              <div className="divide-y divide-border/50">
+                {items.map((item) => (
+                  <div key={item.id}>
+                    {editingItemId === item.id ? (
+                      /* Editing mode */
+                      <div className="p-4 space-y-3 bg-muted/30">
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                          placeholder="Descripción"
+                          autoFocus
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">Cantidad</label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">Precio Unit.</label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.unit_price}
+                              onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-sm font-medium">
+                            Subtotal: {formatCurrency(item.subtotal)}
+                          </span>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteItem(item.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => setEditingItemId(null)}
+                            >
+                              Listo
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </FieldGroup>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium">
-                        Subtotal: {formatCurrency(item.subtotal)}
+                    ) : (
+                      /* Display mode */
+                      <div className="p-4 flex justify-between items-start gap-3 hover:bg-muted/30 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {item.description || 'Sin descripción'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Cant: {item.quantity} x {formatCurrency(item.unit_price)}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold">
+                            {formatCurrency(item.subtotal)}
+                          </p>
+                          <button
+                            className="text-primary text-xs font-medium mt-1"
+                            onClick={() => setEditingItemId(item.id)}
+                          >
+                            Editar
+                          </button>
+                        </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    )}
+                  </div>
+                ))}
+
+                {items.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground text-sm">
+                    No hay ítems. Agrega al menos uno.
                   </div>
                 )}
-              </div>
-            ))}
 
-            {items.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No hay ítems. Agrega al menos uno para continuar.
+                <button
+                  onClick={addItem}
+                  className="w-full py-3 text-center text-primary text-sm font-medium hover:bg-muted/50 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Agregar Item Manualmente
+                </button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Actions */}
-        <div className="flex gap-3">
+          <div className="h-8" />
+        </div>
+      </main>
+
+      {/* Sticky footer */}
+      <footer className="bg-card border-t border-border p-4 pb-8 sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-col gap-3">
+          <Button
+            size="lg"
+            className="w-full py-4 rounded-xl shadow-lg shadow-primary/20 text-base"
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Confirmando...
+              </>
+            ) : (
+              <>
+                Confirmar Comprobante
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </>
+            )}
+          </Button>
           <Button
             variant="outline"
+            size="lg"
+            className="w-full py-4 rounded-xl text-base"
             onClick={onDiscard}
             disabled={isSubmitting}
-            className="flex-1"
           >
             Descartar
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={isSubmitting}
-            className="flex-1"
-          >
-            {isSubmitting ? 'Confirmando...' : 'Confirmar Comprobante'}
-          </Button>
         </div>
-      </div>
+      </footer>
 
       {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>

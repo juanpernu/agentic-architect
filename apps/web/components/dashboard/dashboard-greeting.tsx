@@ -10,9 +10,9 @@ export function DashboardGreeting() {
 
   if (!isUserLoaded || !isOrgLoaded) {
     return (
-      <div className="space-y-2 mb-6">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-8 w-56" />
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-9 w-64" />
       </div>
     );
   }
@@ -21,13 +21,13 @@ export function DashboardGreeting() {
   const orgName = organization?.name ?? '';
 
   return (
-    <div className="mb-6">
+    <div className="flex flex-col gap-1">
       {orgName && (
         <p className="text-sm font-medium text-muted-foreground">{orgName}</p>
       )}
-      <h1 className="text-2xl font-bold mt-0.5">
+      <h2 className="text-3xl font-bold tracking-tight">
         Hola, {firstName}!
-      </h1>
+      </h2>
     </div>
   );
 }

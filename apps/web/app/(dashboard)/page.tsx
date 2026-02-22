@@ -5,7 +5,6 @@ import { RecentReceipts } from '@/components/dashboard/recent-receipts';
 import { ProgressBarList } from '@/components/ui/progress-bar-list';
 import { BarChartSimple } from '@/components/ui/bar-chart-simple';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card } from '@/components/ui/card';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { formatCurrencyCompact } from '@/lib/format';
@@ -83,6 +82,7 @@ async function SpendByProjectSection() {
   return (
     <ProgressBarList
       title="Gasto por Proyecto"
+      description="Distribución de costos acumulados este año."
       items={data.map((p) => ({
         id: p.project_id,
         label: p.project_name,
@@ -101,6 +101,7 @@ async function SpendTrendSection() {
   return (
     <BarChartSimple
       title="Tendencia Mensual"
+      description="Flujo de gastos en los últimos 6 meses."
       data={data.map((item) => {
         const [, monthNum] = item.month.split('-');
         return {
@@ -115,78 +116,79 @@ async function SpendTrendSection() {
   );
 }
 
+function KPISkeleton() {
+  return (
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="rounded-xl border border-border bg-card p-6 flex flex-col gap-2">
+          <div className="flex justify-between items-center pb-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-5 rounded" />
+          </div>
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="p-6 pb-4 border-b border-border/50">
+        <Skeleton className="h-5 w-40 mb-2" />
+        <Skeleton className="h-4 w-60" />
+      </div>
+      <div className="p-6">
+        <Skeleton className="h-40 w-full" />
+      </div>
+    </div>
+  );
+}
+
+function ReceiptsSkeleton() {
+  return (
+    <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="p-6 pb-4 border-b border-border/50">
+        <Skeleton className="h-5 w-48 mb-2" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <div className="p-6 space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-4">
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="flex flex-col gap-8 animate-slide-up">
+      {/* Header */}
       <DashboardGreeting />
 
-      {/* KPIs Section */}
-      <Suspense
-        fallback={
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="h-32 p-4 shadow-soft border-border/50">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-8 w-1/2 mt-auto" />
-              </Card>
-            ))}
-          </div>
-        }
-      >
+      {/* KPI Cards */}
+      <Suspense fallback={<KPISkeleton />}>
         <DashboardKPIs />
       </Suspense>
 
-      {/* Charts Section */}
-      <div className="grid gap-4 md:grid-cols-2 stagger-children">
-        <Suspense
-          fallback={
-            <Card className="shadow-soft border-border/50 p-6">
-              <Skeleton className="h-4 w-40 mb-4" />
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-6 w-1/2" />
-              </div>
-            </Card>
-          }
-        >
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Suspense fallback={<ChartSkeleton />}>
           <SpendByProjectSection />
         </Suspense>
-
-        <Suspense
-          fallback={
-            <Card className="shadow-soft border-border/50 p-6">
-              <Skeleton className="h-4 w-40 mb-4" />
-              <Skeleton className="h-40 w-full" />
-            </Card>
-          }
-        >
+        <Suspense fallback={<ChartSkeleton />}>
           <SpendTrendSection />
         </Suspense>
       </div>
 
-      {/* Recent Receipts Section */}
-      <Suspense
-        fallback={
-          <div>
-            <Skeleton className="h-6 w-52 mb-4" />
-            <Card className="shadow-soft border-border/50 p-0">
-              <div className="divide-y divide-border">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="p-4 flex items-center gap-4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        }
-      >
+      {/* Recent Receipts */}
+      <Suspense fallback={<ReceiptsSkeleton />}>
         <RecentReceipts />
       </Suspense>
     </div>

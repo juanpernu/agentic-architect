@@ -7,29 +7,21 @@ import { sileo } from 'sileo';
 import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { formatRelativeShort } from '@/lib/date-utils';
+import { getInitials, getAvatarColor } from '@/lib/avatar-utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { BudgetListItem } from '@/lib/api-types';
-import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { LoadingTable } from '@/components/ui/loading-skeleton';
+import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { CreateBudgetDialog } from '@/components/create-budget-dialog';
+import { cn } from '@/lib/utils';
 
 export default function BudgetsPage() {
   const router = useRouter();
@@ -69,40 +61,61 @@ export default function BudgetsPage() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <PageHeader title="Presupuestos" />
+      <div className="space-y-6 animate-slide-up">
+        <h1 className="text-2xl font-bold tracking-tight">Presupuestos</h1>
         <div className="text-red-600">Error al cargar presupuestos</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <PageHeader
-        title="Presupuestos"
-        description="Presupuestos de obra por proyecto"
-        action={
-          isAdminOrSupervisor ? (
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="mr-2" />
-              Nuevo Presupuesto
-            </Button>
-          ) : undefined
-        }
-      />
+    <div className="space-y-6 animate-slide-up">
+      {/* Header */}
+      <h1 className="text-2xl font-bold tracking-tight">Presupuestos</h1>
 
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por proyecto..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 max-w-md"
-          aria-label="Buscar presupuestos"
-        />
+      {/* Search */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por obra o cliente..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+            aria-label="Buscar presupuestos"
+          />
+        </div>
       </div>
 
-      {isLoading && <LoadingTable />}
+      {/* CTA Card — New Budget */}
+      {isAdminOrSupervisor && (
+        <div className="bg-primary rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-lg font-bold mb-1">Nuevo Presupuesto</h2>
+            <p className="text-primary-foreground/80 text-sm mb-4">
+              Crea una cotización rápida o usa el asistente de IA.
+            </p>
+            <Button
+              variant="secondary"
+              className="bg-white text-primary hover:bg-gray-50 shadow"
+              onClick={() => setShowCreateDialog(true)}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Crear ahora
+            </Button>
+          </div>
+          <div className="absolute -right-6 -bottom-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl" />
+        </div>
+      )}
+
+      {/* Section header */}
+      {!isLoading && filteredBudgets && filteredBudgets.length > 0 && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Recientes</h3>
+        </div>
+      )}
+
+      {isLoading && <LoadingCards count={4} />}
 
       {!isLoading && filteredBudgets?.length === 0 && (
         <EmptyState
@@ -116,7 +129,7 @@ export default function BudgetsPage() {
           action={
             !searchQuery && isAdminOrSupervisor ? (
               <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Crear Presupuesto
               </Button>
             ) : undefined
@@ -124,60 +137,80 @@ export default function BudgetsPage() {
         />
       )}
 
+      {/* Budget cards */}
       {!isLoading && filteredBudgets && filteredBudgets.length > 0 && (
-        <Card>
-          <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Proyecto</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Version</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Ultima actualizacion</TableHead>
-                {isAdminOrSupervisor && <TableHead className="w-[50px]" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBudgets.map((budget) => (
-                <TableRow key={budget.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/budgets/${budget.id}`)}>
-                  <TableCell className="font-medium">
-                    {budget.project_name}
-                  </TableCell>
-                  <TableCell>
-                    {budget.status === 'draft' ? (
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800">Borrador</Badge>
-                    ) : (
-                      <Badge variant="default" className="bg-green-100 text-green-800">Publicado</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">v{budget.current_version}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {budget.total_amount > 0 ? formatCurrency(budget.total_amount) : '—'}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {new Date(budget.updated_at).toLocaleDateString('es-AR')}
-                  </TableCell>
-                  {isAdminOrSupervisor && (
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => { e.stopPropagation(); setDeletingBudget(budget); }}
-                      >
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          </div>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
+          {filteredBudgets.map((budget) => {
+            const avatarColor = getAvatarColor(budget.project_name);
+            const initials = getInitials(budget.project_name);
+
+            return (
+              <div
+                key={budget.id}
+                role="button"
+                tabIndex={0}
+                className="group bg-card rounded-xl p-4 shadow-soft border border-border/50 active:scale-[0.99] transition-all cursor-pointer hover:border-primary/50"
+                onClick={() => router.push(`/budgets/${budget.id}`)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/budgets/${budget.id}`); } }}
+              >
+                {/* Top row: avatar + name + version badge */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={cn(
+                        'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0',
+                        avatarColor.bg,
+                        avatarColor.text
+                      )}
+                    >
+                      {initials}
+                    </div>
+                    <h4 className="font-semibold leading-tight truncate">
+                      {budget.project_name}
+                    </h4>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200 border border-purple-200 dark:border-purple-800/50 shrink-0 ml-2">
+                    v{budget.current_version}
+                  </span>
+                </div>
+
+                {/* Divider + total + date */}
+                <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                      Total
+                    </span>
+                    <span className="text-base font-bold">
+                      {formatCurrency(budget.total_amount)}
+                    </span>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <span className="text-[10px] text-muted-foreground">Actualizado</span>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {formatRelativeShort(budget.updated_at)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Delete action for admins */}
+                {isAdminOrSupervisor && (
+                  <div className="mt-3 pt-2 border-t border-border md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button
+                      className="text-xs text-destructive hover:underline flex items-center gap-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingBudget(budget);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <CreateBudgetDialog
@@ -190,7 +223,7 @@ export default function BudgetsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar presupuesto</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminara el presupuesto de <strong>{deletingBudget?.project_name}</strong> y todas sus versiones. Esta accion no se puede deshacer.
+              Se eliminará el presupuesto de <strong>{deletingBudget?.project_name}</strong> y todas sus versiones. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

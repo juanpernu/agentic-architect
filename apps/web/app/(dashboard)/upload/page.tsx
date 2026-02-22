@@ -2,13 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Camera, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Camera, FolderOpen, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { sileo } from 'sileo';
-import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { ReceiptReview } from '@/components/receipt-review';
 import { CameraCapture } from '@/components/camera-capture';
+import { cn } from '@/lib/utils';
 import type { ExtractionResult } from '@architech/shared';
 
 type UploadStep = 'upload' | 'processing' | 'review';
@@ -62,6 +61,25 @@ function normalizeImageToJpeg(file: File): Promise<File> {
 
     img.src = url;
   });
+}
+
+const STEPS = ['upload', 'processing', 'review'] as const;
+
+function StepIndicator({ current }: { current: UploadStep }) {
+  const idx = STEPS.indexOf(current);
+  return (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {STEPS.map((s, i) => (
+        <div
+          key={s}
+          className={cn(
+            'h-2 w-8 rounded-full transition-colors',
+            i <= idx ? 'bg-primary' : 'bg-muted'
+          )}
+        />
+      ))}
+    </div>
+  );
 }
 
 export default function UploadPage() {
@@ -121,10 +139,8 @@ export default function UploadPage() {
     setStep('processing');
 
     try {
-      // Normalize HEIC/unsupported formats to JPEG before upload and extraction
       const normalizedFile = await normalizeImageToJpeg(selectedFile);
 
-      // Step 1: Upload normalized image to storage
       const formData = new FormData();
       formData.append('file', normalizedFile);
 
@@ -141,7 +157,6 @@ export default function UploadPage() {
       setImageUrl(image_url);
       setStoragePath(storage_path);
 
-      // Step 2: Convert normalized file to base64 for AI extraction
       const arrayBuffer = await normalizedFile.arrayBuffer();
       const base64Data = btoa(
         new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
@@ -206,12 +221,14 @@ export default function UploadPage() {
 
   if (step === 'processing') {
     return (
-      <div className="p-6">
-        <PageHeader title="Cargar Comprobante" />
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <h3 className="text-lg font-medium">Analizando comprobante...</h3>
-          <p className="text-muted-foreground mt-1">
+      <div className="max-w-md mx-auto flex flex-col min-h-[60vh] animate-slide-up">
+        <StepIndicator current="processing" />
+        <div className="flex-1 flex flex-col items-center justify-center py-12">
+          <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Analizando comprobante...</h2>
+          <p className="text-muted-foreground text-sm text-center">
             Extrayendo información con IA. Esto puede tomar unos segundos.
           </p>
         </div>
@@ -220,98 +237,103 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="p-6">
-      <PageHeader
-        title="Cargar Comprobante"
-        description="Sube una foto del comprobante para procesarlo con IA"
-      />
+    <div className="max-w-md mx-auto flex flex-col min-h-[60vh] animate-slide-up">
+      <StepIndicator current="upload" />
 
-      <div className="max-w-2xl mx-auto">
-        {!selectedFile ? (
-          <Card>
-            <CardContent className="p-8">
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-                role="button"
-                aria-label="Seleccionar imagen para subir"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
-              >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="rounded-full bg-primary/10 p-4">
-                    <ImageIcon className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">
-                      Selecciona o arrastra una imagen
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      JPG, PNG, WebP y fotos de cámara
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button type="button" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Seleccionar Archivo
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCamera(true);
-                      }}
-                      className="md:hidden"
-                    >
-                      <Camera className="mr-2 h-4 w-4" />
-                      Tomar Foto
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                className="hidden"
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="relative rounded-lg overflow-hidden bg-muted">
-                  <img
-                    src={previewUrl!}
-                    alt="Preview"
-                    className="w-full h-auto max-h-96 object-contain mx-auto"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleDiscard}
-                    className="flex-1"
-                  >
-                    Descartar
-                  </Button>
-                  <Button
-                    onClick={processReceipt}
-                    className="flex-1"
-                  >
-                    Procesar Comprobante
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      {/* Title */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-2">Subí tu factura</h2>
+        <p className="text-muted-foreground text-sm">
+          Nuestra IA procesará los detalles automáticamente para extraer los ítems.
+        </p>
       </div>
+
+      {!selectedFile ? (
+        <>
+          {/* Drop zone */}
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onClick={() => fileInputRef.current?.click()}
+            role="button"
+            aria-label="Seleccionar imagen para subir"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
+            className="flex-1 flex flex-col items-center justify-center bg-card border-2 border-dashed border-border rounded-2xl p-8 mb-6 shadow-sm cursor-pointer group hover:border-primary/50 transition-all active:border-primary active:bg-primary/5"
+          >
+            <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6 group-hover:scale-105 transition-transform">
+              <ImageIcon className="h-12 w-12 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-center mb-2">
+              Selecciona o arrastra una imagen
+            </h3>
+            <p className="text-center text-sm text-muted-foreground">
+              JPG, PNG, WebP y fotos de cámara<br />hasta 10MB
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="space-y-3 mt-auto">
+            <Button
+              type="button"
+              size="lg"
+              className="w-full py-4 rounded-xl shadow-lg shadow-primary/30 text-base"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <FolderOpen className="mr-2 h-5 w-5" />
+              Seleccionar Archivo
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full py-4 rounded-xl border-2 border-primary text-primary hover:bg-primary/5 text-base md:hidden"
+              onClick={() => setShowCamera(true)}
+            >
+              <Camera className="mr-2 h-5 w-5" />
+              Tomar Foto
+            </Button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+        </>
+      ) : (
+        <>
+          {/* Preview */}
+          <div className="flex-1 flex flex-col">
+            <div className="relative rounded-2xl overflow-hidden bg-muted mb-6">
+              <img
+                src={previewUrl!}
+                alt="Preview del comprobante"
+                className="w-full h-auto max-h-96 object-contain mx-auto"
+              />
+            </div>
+            <div className="space-y-3 mt-auto">
+              <Button
+                size="lg"
+                className="w-full py-4 rounded-xl shadow-lg shadow-primary/30 text-base"
+                onClick={processReceipt}
+              >
+                Procesar Comprobante
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full py-4 rounded-xl border-2 text-base"
+                onClick={handleDiscard}
+              >
+                Descartar
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
