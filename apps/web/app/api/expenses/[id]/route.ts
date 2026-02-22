@@ -16,7 +16,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .from('expenses')
     .select(`
       *,
-      expense_type:expense_types(id, name),
       project:projects(id, name),
       rubro:rubros(id, name),
       receipt:receipts(id, vendor, total_amount, image_url)
@@ -71,18 +70,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!project) return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
   }
 
-  // If expense_type_id changes, verify it belongs to org
-  if (body.expense_type_id !== undefined) {
-    const { data: expenseType } = await db
-      .from('expense_types')
-      .select('id')
-      .eq('id', body.expense_type_id)
-      .eq('org_id', ctx.orgId)
-      .eq('is_active', true)
-      .single();
-    if (!expenseType) return NextResponse.json({ error: 'Tipo de egreso no válido' }, { status: 400 });
-  }
-
   // If rubro_id changes, verify it belongs to the (possibly new) project and org
   if (body.rubro_id !== undefined && body.rubro_id !== null) {
     const { data: rubro } = await db
@@ -112,7 +99,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.project_id !== undefined) updates.project_id = body.project_id;
   if (body.amount !== undefined) updates.amount = body.amount;
   if (body.date !== undefined) updates.date = body.date;
-  if (body.expense_type_id !== undefined) updates.expense_type_id = body.expense_type_id;
+  if (body.category !== undefined) updates.category = body.category;
   if (body.rubro_id !== undefined) updates.rubro_id = body.rubro_id || null;
   if (body.receipt_id !== undefined) updates.receipt_id = body.receipt_id || null;
   if (body.description !== undefined) updates.description = body.description;

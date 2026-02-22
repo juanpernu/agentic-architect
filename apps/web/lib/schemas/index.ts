@@ -9,12 +9,8 @@ export { receiptReviewSchema, type ReceiptReviewFormData } from './receipt-revie
 export { bankAccountSchema, bankAccountCreateSchema, bankAccountUpdateSchema, type BankAccountFormData, type BankAccountCreateInput, type BankAccountUpdateInput } from './bank-account';
 export { budgetSnapshotSchema, budgetItemSchema, budgetSectionSchema, type BudgetSnapshotFormData } from './budget';
 export {
-  incomeTypeCreateSchema, incomeTypeUpdateSchema,
-  expenseTypeCreateSchema, expenseTypeUpdateSchema,
   incomeCreateSchema, incomeUpdateSchema,
   expenseCreateSchema, expenseUpdateSchema,
-  type IncomeTypeCreateInput, type IncomeTypeUpdateInput,
-  type ExpenseTypeCreateInput, type ExpenseTypeUpdateInput,
   type IncomeCreateInput, type IncomeUpdateInput,
   type ExpenseCreateInput, type ExpenseUpdateInput,
 } from './administration';

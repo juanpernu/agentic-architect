@@ -28,13 +28,11 @@ import type { Income } from '@architech/shared';
 
 type IncomeRow = Income & {
   project?: { id: string; name: string };
-  income_type?: { id: string; name: string };
 };
 
 export default function IncomesPage() {
   // Filter state
   const [projectId, setProjectId] = useState('all');
-  const [incomeTypeId, setIncomeTypeId] = useState('all');
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
@@ -48,16 +46,10 @@ export default function IncomesPage() {
     '/api/projects',
     fetcher
   );
-  const { data: incomeTypes } = useSWR<Array<{ id: string; name: string }>>(
-    '/api/income-types',
-    fetcher
-  );
-
   // Build income list URL based on filters
   const buildUrl = () => {
     const params = new URLSearchParams();
     if (projectId && projectId !== 'all') params.set('projectId', projectId);
-    if (incomeTypeId && incomeTypeId !== 'all') params.set('incomeTypeId', incomeTypeId);
     return `/api/incomes?${params.toString()}`;
   };
 
@@ -128,21 +120,6 @@ export default function IncomesPage() {
           </Select>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Tipo de ingreso</label>
-          <Select value={incomeTypeId} onValueChange={setIncomeTypeId}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {(incomeTypes ?? []).map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="ml-auto">
           <Button onClick={handleCreate}>
             <Plus className="h-4 w-4 mr-2" />
@@ -180,7 +157,7 @@ export default function IncomesPage() {
               <TableRow>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Obra</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Categoría</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
                 <TableHead>Descripcion</TableHead>
                 <TableHead className="w-[50px]" />
@@ -193,7 +170,7 @@ export default function IncomesPage() {
                     {new Date(income.date).toLocaleDateString('es-AR')}
                   </TableCell>
                   <TableCell>{income.project?.name ?? '-'}</TableCell>
-                  <TableCell>{income.income_type?.name ?? '-'}</TableCell>
+                  <TableCell>{income.category}</TableCell>
                   <TableCell className="text-right font-medium whitespace-nowrap">
                     {formatCurrency(income.amount)}
                   </TableCell>

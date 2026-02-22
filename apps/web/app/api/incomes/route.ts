@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const db = getDb();
   const { searchParams } = req.nextUrl;
   const projectId = searchParams.get('projectId');
-  const incomeTypeId = searchParams.get('incomeTypeId');
+  const category = searchParams.get('category');
   const dateFrom = searchParams.get('dateFrom');
   const dateTo = searchParams.get('dateTo');
 
@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
     .from('incomes')
     .select(`
       *,
-      income_type:income_types(id, name),
       project:projects(id, name)
     `, { count: 'exact' })
     .eq('org_id', ctx.orgId)
@@ -33,7 +32,7 @@ export async function GET(req: NextRequest) {
     .range(rangeFrom, rangeFrom + pageSize - 1);
 
   if (projectId) query = query.eq('project_id', projectId);
-  if (incomeTypeId) query = query.eq('income_type_id', incomeTypeId);
+  if (category) query = query.ilike('category', `%${category}%`);
   if (dateFrom) query = query.gte('date', dateFrom);
   if (dateTo) query = query.lte('date', dateTo);
 
@@ -65,16 +64,6 @@ export async function POST(req: NextRequest) {
     .single();
   if (!project) return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
 
-  // Verify income_type belongs to org
-  const { data: incomeType } = await db
-    .from('income_types')
-    .select('id')
-    .eq('id', body.income_type_id)
-    .eq('org_id', ctx.orgId)
-    .eq('is_active', true)
-    .single();
-  if (!incomeType) return NextResponse.json({ error: 'Tipo de ingreso no válido' }, { status: 400 });
-
   const { data, error } = await db
     .from('incomes')
     .insert({
@@ -82,7 +71,7 @@ export async function POST(req: NextRequest) {
       project_id: body.project_id,
       amount: body.amount,
       date: body.date,
-      income_type_id: body.income_type_id,
+      category: body.category,
       description: body.description,
       created_by: ctx.dbUserId,
     })

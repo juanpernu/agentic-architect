@@ -17,12 +17,12 @@ import {
 } from '@/components/ui/select';
 import type { Expense } from '@architech/shared';
 
+
 interface ExpenseFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense?: Expense & {
     project?: { id: string; name: string };
-    expense_type?: { id: string; name: string };
     rubro?: { id: string; name: string } | null;
   };
   onSaved?: () => void;
@@ -31,7 +31,7 @@ interface ExpenseFormDialogProps {
 export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: ExpenseFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectId, setProjectId] = useState('');
-  const [expenseTypeId, setExpenseTypeId] = useState('');
+  const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [rubroId, setRubroId] = useState('');
@@ -41,12 +41,6 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
   // Load projects
   const { data: projects } = useSWR<Array<{ id: string; name: string }>>(
     open ? '/api/projects' : null,
-    fetcher
-  );
-
-  // Load expense types
-  const { data: expenseTypes } = useSWR<Array<{ id: string; name: string }>>(
-    open ? '/api/expense-types' : null,
     fetcher
   );
 
@@ -81,7 +75,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
   useEffect(() => {
     if (expense && open) {
       setProjectId(expense.project_id);
-      setExpenseTypeId(expense.expense_type_id);
+      setCategory(expense.category);
       setAmount(String(expense.amount));
       setDate(expense.date);
       setRubroId(expense.rubro_id ?? '');
@@ -89,7 +83,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
       setDescription(expense.description ?? '');
     } else if (!expense && open) {
       setProjectId('');
-      setExpenseTypeId('');
+      setCategory('');
       setAmount('');
       setDate(new Date().toISOString().split('T')[0]);
       setRubroId('');
@@ -104,7 +98,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
     try {
       const payload = {
         project_id: projectId,
-        expense_type_id: expenseTypeId,
+        category: category,
         amount: parseFloat(amount),
         date: date,
         rubro_id: rubroId || null,
@@ -163,19 +157,16 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
             </Select>
           </div>
 
-          {/* Expense type */}
+          {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="exp-type">Tipo de egreso <span className="text-red-500">*</span></Label>
-            <Select value={expenseTypeId} onValueChange={setExpenseTypeId} required>
-              <SelectTrigger id="exp-type" className="w-full">
-                <SelectValue placeholder="Selecciona el tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {(expenseTypes ?? []).map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="exp-category">Categoría <span className="text-red-500">*</span></Label>
+            <Input
+              id="exp-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Ej: Materiales, Mano de obra, Transporte"
+              required
+            />
           </div>
 
           {/* Amount and Date */}
@@ -265,7 +256,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !projectId || !expenseTypeId || !amount || !date}>
+            <Button type="submit" disabled={isSubmitting || !projectId || !category || !amount || !date}>
               {isSubmitting ? 'Guardando...' : expense ? 'Actualizar' : 'Registrar'}
             </Button>
           </DialogFooter>

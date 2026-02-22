@@ -22,7 +22,6 @@ interface IncomeFormDialogProps {
   onOpenChange: (open: boolean) => void;
   income?: Income & {
     project?: { id: string; name: string };
-    income_type?: { id: string; name: string };
   };
   onSaved?: () => void;
 }
@@ -30,7 +29,7 @@ interface IncomeFormDialogProps {
 export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: IncomeFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectId, setProjectId] = useState('');
-  const [incomeTypeId, setIncomeTypeId] = useState('');
+  const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
@@ -41,23 +40,17 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
     fetcher
   );
 
-  // Load income types
-  const { data: incomeTypes } = useSWR<Array<{ id: string; name: string }>>(
-    open ? '/api/income-types' : null,
-    fetcher
-  );
-
   // Pre-populate form when editing
   useEffect(() => {
     if (income && open) {
       setProjectId(income.project_id);
-      setIncomeTypeId(income.income_type_id);
+      setCategory(income.category);
       setAmount(String(income.amount));
       setDate(income.date);
       setDescription(income.description ?? '');
     } else if (!income && open) {
       setProjectId('');
-      setIncomeTypeId('');
+      setCategory('');
       setAmount('');
       setDate(new Date().toISOString().split('T')[0]);
       setDescription('');
@@ -70,7 +63,7 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
     try {
       const payload = {
         project_id: projectId,
-        income_type_id: incomeTypeId,
+        category: category,
         amount: parseFloat(amount),
         date: date,
         description: description || null,
@@ -127,19 +120,16 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
             </Select>
           </div>
 
-          {/* Income type */}
+          {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="inc-type">Tipo de ingreso <span className="text-red-500">*</span></Label>
-            <Select value={incomeTypeId} onValueChange={setIncomeTypeId} required>
-              <SelectTrigger id="inc-type" className="w-full">
-                <SelectValue placeholder="Selecciona el tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {(incomeTypes ?? []).map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="inc-category">Categoría <span className="text-red-500">*</span></Label>
+            <Input
+              id="inc-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Ej: Certificado, Anticipo, Ajuste"
+              required
+            />
           </div>
 
           {/* Amount and Date */}
@@ -185,7 +175,7 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !projectId || !incomeTypeId || !amount || !date}>
+            <Button type="submit" disabled={isSubmitting || !projectId || !category || !amount || !date}>
               {isSubmitting ? 'Guardando...' : income ? 'Actualizar' : 'Registrar'}
             </Button>
           </DialogFooter>

@@ -16,7 +16,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .from('incomes')
     .select(`
       *,
-      income_type:income_types(id, name),
       project:projects(id, name)
     `)
     .eq('id', id)
@@ -67,24 +66,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!project) return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
   }
 
-  // If income_type_id changes, verify it belongs to org
-  if (body.income_type_id !== undefined) {
-    const { data: incomeType } = await db
-      .from('income_types')
-      .select('id')
-      .eq('id', body.income_type_id)
-      .eq('org_id', ctx.orgId)
-      .eq('is_active', true)
-      .single();
-    if (!incomeType) return NextResponse.json({ error: 'Tipo de ingreso no válido' }, { status: 400 });
-  }
-
   // Build update object dynamically from provided fields
   const updates: Record<string, unknown> = {};
   if (body.project_id !== undefined) updates.project_id = body.project_id;
   if (body.amount !== undefined) updates.amount = body.amount;
   if (body.date !== undefined) updates.date = body.date;
-  if (body.income_type_id !== undefined) updates.income_type_id = body.income_type_id;
+  if (body.category !== undefined) updates.category = body.category;
   if (body.description !== undefined) updates.description = body.description;
 
   const { data, error } = await db

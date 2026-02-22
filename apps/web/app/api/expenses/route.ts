@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const db = getDb();
   const { searchParams } = req.nextUrl;
   const projectId = searchParams.get('projectId');
-  const expenseTypeId = searchParams.get('expenseTypeId');
+  const category = searchParams.get('category');
   const rubroId = searchParams.get('rubroId');
   const dateFrom = searchParams.get('dateFrom');
   const dateTo = searchParams.get('dateTo');
@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
     .from('expenses')
     .select(`
       *,
-      expense_type:expense_types(id, name),
       project:projects(id, name),
       rubro:rubros(id, name)
     `, { count: 'exact' })
@@ -35,7 +34,7 @@ export async function GET(req: NextRequest) {
     .range(rangeFrom, rangeFrom + pageSize - 1);
 
   if (projectId) query = query.eq('project_id', projectId);
-  if (expenseTypeId) query = query.eq('expense_type_id', expenseTypeId);
+  if (category) query = query.ilike('category', `%${category}%`);
   if (rubroId) query = query.eq('rubro_id', rubroId);
   if (dateFrom) query = query.gte('date', dateFrom);
   if (dateTo) query = query.lte('date', dateTo);
@@ -68,16 +67,6 @@ export async function POST(req: NextRequest) {
     .single();
   if (!project) return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
 
-  // Verify expense_type belongs to org
-  const { data: expenseType } = await db
-    .from('expense_types')
-    .select('id')
-    .eq('id', body.expense_type_id)
-    .eq('org_id', ctx.orgId)
-    .eq('is_active', true)
-    .single();
-  if (!expenseType) return NextResponse.json({ error: 'Tipo de egreso no válido' }, { status: 400 });
-
   // If rubroId provided, verify it belongs to a budget of this project and org
   if (body.rubro_id) {
     const { data: rubro } = await db
@@ -109,7 +98,7 @@ export async function POST(req: NextRequest) {
       project_id: body.project_id,
       amount: body.amount,
       date: body.date,
-      expense_type_id: body.expense_type_id,
+      category: body.category,
       rubro_id: body.rubro_id || null,
       receipt_id: body.receipt_id || null,
       description: body.description,

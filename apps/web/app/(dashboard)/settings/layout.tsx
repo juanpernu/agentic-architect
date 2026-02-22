@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Settings, Users, Landmark, CreditCard, ClipboardList } from 'lucide-react';
+import { Settings, Users, Landmark, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 
@@ -11,7 +11,6 @@ const tabs = [
   { href: '/settings/users', label: 'Usuarios', icon: Users, roles: ['admin'] },
   { href: '/settings/banks', label: 'Bancos', icon: Landmark, roles: ['admin', 'supervisor'] },
   { href: '/settings/billing', label: 'Facturación', icon: CreditCard, roles: ['admin'] },
-  { href: '/settings/administration', label: 'Administración', icon: ClipboardList, roles: ['admin'] },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

@@ -28,14 +28,12 @@ import type { Expense } from '@architech/shared';
 
 type ExpenseRow = Expense & {
   project?: { id: string; name: string };
-  expense_type?: { id: string; name: string };
   rubro?: { id: string; name: string } | null;
 };
 
 export default function ExpensesPage() {
   // Filter state
   const [projectId, setProjectId] = useState('all');
-  const [expenseTypeId, setExpenseTypeId] = useState('all');
   const [rubroId, setRubroId] = useState('all');
 
   // Dialog state
@@ -50,11 +48,6 @@ export default function ExpensesPage() {
     '/api/projects',
     fetcher
   );
-  const { data: expenseTypes } = useSWR<Array<{ id: string; name: string }>>(
-    '/api/expense-types',
-    fetcher
-  );
-
   // Fetch budgets for selected project (to get rubros for filter)
   const { data: budgets } = useSWR<Array<{ id: string }>>(
     projectId && projectId !== 'all' ? `/api/budgets?project_id=${projectId}` : null,
@@ -71,7 +64,6 @@ export default function ExpensesPage() {
   const buildUrl = () => {
     const params = new URLSearchParams();
     if (projectId && projectId !== 'all') params.set('projectId', projectId);
-    if (expenseTypeId && expenseTypeId !== 'all') params.set('expenseTypeId', expenseTypeId);
     if (rubroId && rubroId !== 'all') params.set('rubroId', rubroId);
     return `/api/expenses?${params.toString()}`;
   };
@@ -149,21 +141,6 @@ export default function ExpensesPage() {
           </Select>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Tipo de egreso</label>
-          <Select value={expenseTypeId} onValueChange={setExpenseTypeId}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {(expenseTypes ?? []).map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         {projectId && projectId !== 'all' && (
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Rubro</label>
@@ -218,7 +195,7 @@ export default function ExpensesPage() {
               <TableRow>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Obra</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Categoría</TableHead>
                 <TableHead>Rubro</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
                 <TableHead className="text-center">Comp.</TableHead>
@@ -233,7 +210,7 @@ export default function ExpensesPage() {
                     {new Date(expense.date).toLocaleDateString('es-AR')}
                   </TableCell>
                   <TableCell>{expense.project?.name ?? '-'}</TableCell>
-                  <TableCell>{expense.expense_type?.name ?? '-'}</TableCell>
+                  <TableCell>{expense.category}</TableCell>
                   <TableCell>{expense.rubro?.name ?? '-'}</TableCell>
                   <TableCell className="text-right font-medium whitespace-nowrap">
                     {formatCurrency(expense.amount)}
