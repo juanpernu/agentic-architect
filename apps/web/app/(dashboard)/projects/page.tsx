@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { CreateProjectCard } from '@/components/dashboard/create-project-card';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { cn } from '@/lib/utils';
 
@@ -173,6 +174,9 @@ export default function ProjectsPage() {
 
       {!isLoading && filteredProjects && filteredProjects.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
+          {isAdminOrSupervisor && canCreateProject && (
+            <CreateProjectCard />
+          )}
           {filteredProjects.map((project) => {
             const isPaused = project.status === 'paused';
             const avatarColor = project.architect

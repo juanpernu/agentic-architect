@@ -5,29 +5,22 @@ import { useCurrentUser } from '@/lib/use-current-user';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardGreeting() {
-  const { fullName, isLoaded: isUserLoaded } = useCurrentUser();
-  const { organization, isLoaded: isOrgLoaded } = useOrganization();
+  const { isLoaded: isUserLoaded } = useCurrentUser();
+  const { isLoaded: isOrgLoaded } = useOrganization();
 
   if (!isUserLoaded || !isOrgLoaded) {
     return (
-      <div className="space-y-2 mb-6">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-8 w-56" />
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-9 w-64" />
+        <Skeleton className="h-5 w-80" />
       </div>
     );
   }
 
-  const firstName = fullName.split(' ')[0] || 'Usuario';
-  const orgName = organization?.name ?? '';
-
   return (
-    <div className="mb-6">
-      {orgName && (
-        <p className="text-sm font-medium text-muted-foreground">{orgName}</p>
-      )}
-      <h1 className="text-2xl font-bold mt-0.5">
-        Hola, {firstName}!
-      </h1>
+    <div className="flex flex-col gap-1">
+      <h2 className="text-3xl font-bold tracking-tight">Dashboard Principal</h2>
+      <p className="text-muted-foreground">Resumen general de obras y estado financiero.</p>
     </div>
   );
 }
