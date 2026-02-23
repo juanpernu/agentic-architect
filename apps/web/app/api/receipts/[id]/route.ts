@@ -76,6 +76,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const updateFields: Record<string, unknown> = {};
+
+  // Simple text/number fields
+  const directFields = ['vendor', 'total_amount', 'receipt_date', 'receipt_type', 'receipt_code', 'receipt_number', 'status', 'project_id', 'uploaded_by'] as const;
+  for (const field of directFields) {
+    if (body[field] !== undefined) {
+      updateFields[field] = body[field];
+    }
+  }
+
   if (body.rubro_id !== undefined) {
     // Validate rubro_id belongs to the same org (via budget)
     if (body.rubro_id !== null) {

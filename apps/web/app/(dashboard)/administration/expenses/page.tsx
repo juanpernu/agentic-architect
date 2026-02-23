@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import { Receipt, Plus, MoreHorizontal, Pencil, Trash2, Paperclip } from 'lucide-react';
+import Link from 'next/link';
+import { Receipt, Plus, MoreHorizontal, Pencil, Trash2, Paperclip, ExternalLink } from 'lucide-react';
 import { sileo } from 'sileo';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
@@ -240,7 +241,14 @@ export default function ExpensesPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     {expense.receipt_id ? (
-                      <Paperclip className="h-4 w-4 text-muted-foreground mx-auto" />
+                      <Link
+                        href={`/receipts/${expense.receipt_id}`}
+                        className="inline-flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                        title="Ver comprobante"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Link>
                     ) : null}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate" title={expense.description ?? ''}>
@@ -254,6 +262,14 @@ export default function ExpensesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {expense.receipt_id && (
+                          <DropdownMenuItem asChild>
+                            <Link href={`/receipts/${expense.receipt_id}`}>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Ver comprobante
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => handleEdit(expense)}>
                           <Pencil className="h-4 w-4 mr-2" />
                           Editar
