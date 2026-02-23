@@ -50,28 +50,36 @@ export default function AdministrationPage() {
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="flex gap-4">
-        <Select value={projectId} onValueChange={setProjectId}>
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="Todos los proyectos" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los proyectos</SelectItem>
-            {(projects ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={year} onValueChange={setYear}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {yearOptions.map(y => (
-              <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
+        <div className="flex gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Todos los proyectos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los proyectos</SelectItem>
+                {(projects ?? []).map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Periodo</label>
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map(y => (
+                  <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Error */}

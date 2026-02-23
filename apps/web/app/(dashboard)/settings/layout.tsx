@@ -25,34 +25,35 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <div className="animate-slide-up">
       {/* Header band */}
-      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Ajustes</h1>
-        <p className="text-muted-foreground mt-1">
-          Gestiona tu perfil, la configuración de la empresa y tus preferencias.
-        </p>
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card space-y-5">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Ajustes</h1>
+          <p className="text-muted-foreground mt-1">
+            Gestiona tu perfil, la configuración de la empresa y tus preferencias.
+          </p>
+        </div>
+        <nav className="flex gap-1 overflow-x-auto">
+          {visibleTabs.map((tab) => {
+            const isActive = pathname === tab.href;
+            const Icon = tab.icon;
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap',
+                  isActive
+                    ? 'text-primary bg-primary/5'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-
-      <nav className="flex gap-1 overflow-x-auto pb-2 mb-6">
-        {visibleTabs.map((tab) => {
-          const isActive = pathname === tab.href;
-          const Icon = tab.icon;
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap',
-                isActive
-                  ? 'text-primary bg-primary/5'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {tab.label}
-            </Link>
-          );
-        })}
-      </nav>
       {children}
     </div>
   );

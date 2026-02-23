@@ -53,6 +53,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { VsBudgetTable } from '@/components/administration/vs-budget-table';
 import { cn } from '@/lib/utils';
@@ -495,59 +496,59 @@ export default function ProjectDetailPage() {
             ) : (
               <>
                 <div className="overflow-auto flex-1">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/50 sticky top-0 z-10">
-                      <tr>
-                        <th className="py-3 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">Fecha</th>
-                        <th className="py-3 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">Proveedor</th>
-                        <th className="py-3 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border hidden sm:table-cell">Rubro</th>
-                        <th className="py-3 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border hidden md:table-cell">Tipo</th>
-                        <th className="py-3 px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border text-right">Total (ARS)</th>
-                        <th className="py-3 px-4 border-b border-border w-10"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Proveedor</TableHead>
+                        <TableHead className="hidden sm:table-cell">Rubro</TableHead>
+                        <TableHead className="hidden md:table-cell">Tipo</TableHead>
+                        <TableHead className="text-right">Total (ARS)</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {paginatedReceipts.map((receipt) => {
                         const vendor = receipt.vendor || 'Sin proveedor';
                         const rubroName = receipt.rubro?.name ?? 'Sin rubro';
                         const rubroStyle = RUBRO_COLORS[rubroName] ?? 'bg-slate-100 text-slate-800';
                         return (
-                          <tr
+                          <TableRow
                             key={receipt.id}
-                            className="group hover:bg-muted/50 transition-colors cursor-pointer"
+                            className="group cursor-pointer"
                             onClick={() => router.push(`/receipts/${receipt.id}`)}
                             onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/receipts/${receipt.id}`); }}
                             tabIndex={0}
                             aria-label={`Ver comprobante de ${receipt.vendor || 'Sin proveedor'}`}
                           >
-                            <td className="py-4 px-6 text-muted-foreground font-medium whitespace-nowrap">
+                            <TableCell className="text-muted-foreground font-medium">
                               {new Date(receipt.receipt_date).toLocaleDateString('es-AR', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
                                 timeZone: 'America/Buenos_Aires',
                               })}
-                            </td>
-                            <td className="py-4 px-6 font-medium whitespace-nowrap">
+                            </TableCell>
+                            <TableCell className="font-medium">
                               <div className="flex items-center gap-3">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(vendor)}`}>
                                   {getInitials(vendor)}
                                 </div>
                                 <span>{vendor}</span>
                               </div>
-                            </td>
-                            <td className="py-4 px-6 whitespace-nowrap hidden sm:table-cell">
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rubroStyle}`}>
                                 {rubroName}
                               </span>
-                            </td>
-                            <td className="py-4 px-6 text-muted-foreground whitespace-nowrap hidden md:table-cell">
+                            </TableCell>
+                            <TableCell className="text-muted-foreground hidden md:table-cell">
                               {receipt.receipt_type ?? '—'}
-                            </td>
-                            <td className="py-4 px-6 font-bold text-right font-mono whitespace-nowrap">
+                            </TableCell>
+                            <TableCell className="font-bold text-right font-mono">
                               {formatCurrency(receipt.total_amount)}
-                            </td>
-                            <td className="py-4 px-4 text-right">
+                            </TableCell>
+                            <TableCell className="text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <button
@@ -576,12 +577,12 @@ export default function ProjectDetailPage() {
                                   )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
 
                 {/* Pagination */}

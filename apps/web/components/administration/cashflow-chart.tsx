@@ -1,8 +1,8 @@
 'use client';
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/format';
 
 interface CashflowData {
   month: number;
@@ -12,77 +12,81 @@ interface CashflowData {
   balance: number;
 }
 
-const currencyTickFormatter = (value: number) => formatCurrencyCompact(value);
 const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
 
 export function CashflowChart({ data }: { data: CashflowData[] }) {
-  const hasData = data.some(d => d.totalIncome > 0 || d.totalExpense > 0);
+  // Show last 6 months with data
+  const recentData = data.filter(d => d.totalIncome > 0 || d.totalExpense > 0).slice(-6);
 
-  if (!hasData) {
+  if (recentData.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Flujo de Caja</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
-            No hay movimientos registrados en este periodo
-          </div>
-        </CardContent>
+        <div className="px-6 pt-5 pb-2">
+          <h3 className="text-lg font-semibold">Tendencia Mensual</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">Flujo de gastos en los últimos 6 meses.</p>
+        </div>
+        <div className="flex items-center justify-center h-[250px] text-sm text-muted-foreground">
+          No hay movimientos registrados en este periodo
+        </div>
       </Card>
     );
   }
 
+  // Merge income + expense into a single "net flow" or show total movement
+  const chartData = recentData.map(d => ({
+    monthName: d.monthName,
+    total: d.totalIncome + d.totalExpense,
+    income: d.totalIncome,
+    expense: d.totalExpense,
+  }));
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Flujo de Caja</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data} margin={{ left: 12, right: 12, top: 8, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+      <div className="px-6 pt-5 pb-2">
+        <h3 className="text-lg font-semibold">Tendencia Mensual</h3>
+        <p className="text-sm text-muted-foreground mt-0.5">Flujo de gastos en los últimos 6 meses.</p>
+      </div>
+      <div className="px-2 pb-4">
+        <ResponsiveContainer width="100%" height={250}>
+          <AreaChart data={chartData} margin={{ left: 12, right: 12, top: 16, bottom: 4 }}>
+            <defs>
+              <linearGradient id="cashflowGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <XAxis
               dataKey="monthName"
+              axisLine={false}
+              tickLine={false}
               className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <YAxis
-              className="text-xs"
-              width={60}
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              tickFormatter={currencyTickFormatter}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              dy={8}
             />
             <Tooltip
               formatter={currencyTooltipFormatter}
+              labelStyle={{ fontWeight: 600, marginBottom: 4 }}
               contentStyle={{
                 backgroundColor: 'hsl(var(--background))',
                 border: '1px solid hsl(var(--border))',
-                borderRadius: '6px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                padding: '8px 12px',
               }}
             />
-            <Legend />
-            <Line
+            <Area
               type="monotone"
-              dataKey="totalIncome"
-              name="Ingresos"
-              stroke="hsl(210, 100%, 50%)"
-              strokeWidth={2}
-              dot={{ fill: 'hsl(210, 100%, 50%)', r: 4 }}
-              activeDot={{ r: 6 }}
+              dataKey="total"
+              name="Total"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2.5}
+              fill="url(#cashflowGradient)"
+              dot={{ fill: 'hsl(var(--background))', stroke: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+              activeDot={{ fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2, r: 5 }}
             />
-            <Line
-              type="monotone"
-              dataKey="totalExpense"
-              name="Egresos"
-              stroke="hsl(25, 100%, 55%)"
-              strokeWidth={2}
-              dot={{ fill: 'hsl(25, 100%, 55%)', r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
-      </CardContent>
+      </div>
     </Card>
   );
 }

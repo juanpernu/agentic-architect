@@ -21,6 +21,10 @@ export function BalanceByProjectTable({ data }: { data: ProjectBalance[] }) {
 
   return (
     <Card>
+      <div className="px-6 pt-5 pb-2">
+        <h3 className="text-lg font-semibold">Balance por proyecto</h3>
+        <p className="text-sm text-muted-foreground mt-0.5">Resumen de ingresos, egresos y balance de cada obra.</p>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

@@ -17,13 +17,7 @@ import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { CreateProjectCard } from '@/components/dashboard/create-project-card';
 import { UpgradeBanner } from '@/components/upgrade-banner';
@@ -47,12 +41,6 @@ const STATUS_LABELS: Record<ProjectStatus, string> = {
   completed: 'Completado',
 };
 
-const COUNTER_LABELS: Record<ProjectStatus, string> = {
-  active: 'Activos',
-  paused: 'Pausados',
-  completed: 'Completados',
-};
-
 export default function ProjectsPage() {
   const { isAdminOrSupervisor } = useCurrentUser();
   const { canCreateProject } = usePlan();
@@ -74,12 +62,6 @@ export default function ProjectsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  // Count by status from all projects (not filtered)
-  const statusCounts = projects?.reduce<Record<string, number>>((acc, p) => {
-    acc[p.status] = (acc[p.status] ?? 0) + 1;
-    return acc;
-  }, {}) ?? {};
-
   if (error) {
     return (
       <div className="p-6">
@@ -92,10 +74,12 @@ export default function ProjectsPage() {
   return (
     <div className="animate-slide-up">
       {/* Header band */}
-      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Proyectos</h1>
-          <p className="text-muted-foreground mt-1">Gestión de obras y proyectos</p>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Proyectos</h1>
+            <p className="text-muted-foreground mt-1">Gestioná y controlá el avance de tus obras.</p>
+          </div>
           {isAdminOrSupervisor && (
             <Button onClick={() => setShowCreateDialog(true)} disabled={!canCreateProject}>
               <Plus className="mr-2 h-4 w-4" />
@@ -103,52 +87,30 @@ export default function ProjectsPage() {
             </Button>
           )}
         </div>
+        {/* Search + Filter tabs */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+          <div className="relative sm:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscá por nombre de obra..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              aria-label="Buscar proyectos"
+            />
+          </div>
+          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+            <TabsList>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="active">Activos</TabsTrigger>
+              <TabsTrigger value="completed">Finalizados</TabsTrigger>
+              <TabsTrigger value="paused">En Pausa</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="space-y-6">
-      {/* Search + Filter */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar obra..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            aria-label="Buscar proyectos"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-auto min-w-[120px]">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="active">Activo</SelectItem>
-            <SelectItem value="paused">Pausado</SelectItem>
-            <SelectItem value="completed">Completado</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Status counters */}
-      {!isLoading && projects && projects.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {(['active', 'paused', 'completed'] as ProjectStatus[])
-            .filter((s) => (statusCounts[s] ?? 0) > 0)
-            .map((status) => (
-              <div
-                key={status}
-                className="bg-card p-3 rounded-xl border border-border/50 shadow-sm"
-              >
-                <p className="text-xs text-muted-foreground font-medium">
-                  {COUNTER_LABELS[status]}
-                </p>
-                <p className="text-xl font-bold mt-1">{statusCounts[status]}</p>
-              </div>
-            ))}
-        </div>
-      )}
 
       {!canCreateProject && isAdminOrSupervisor && (
         <UpgradeBanner message="Alcanzaste el límite de proyectos en tu plan." />

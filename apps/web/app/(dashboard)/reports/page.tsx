@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -157,19 +156,18 @@ export default function ReportsPage() {
   return (
     <div className="animate-slide-up">
       {/* Header band */}
-      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Reportes</h1>
-        <p className="text-muted-foreground mt-1">Analisis de gastos por proyecto y rubro</p>
-      </div>
-
-      {/* Filters */}
-      <FieldGroup className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-          <Field className="sm:w-auto">
-            <FieldLabel>Proyecto</FieldLabel>
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card space-y-5">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Reportes</h1>
+          <p className="text-muted-foreground mt-1">Analisis de gastos por proyecto y rubro</p>
+        </div>
+        {/* Filters */}
+        <div className="flex gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="sm:w-[200px]">
-                <SelectValue placeholder="Proyecto" />
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Todos los proyectos" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los proyectos</SelectItem>
@@ -180,29 +178,27 @@ export default function ReportsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </Field>
-          <Field className="sm:w-auto">
-            <FieldLabel htmlFor="report-date-from">Desde</FieldLabel>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Desde</label>
             <Input
-              id="report-date-from"
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="sm:w-[160px]"
+              className="w-[160px]"
             />
-          </Field>
-          <Field className="sm:w-auto">
-            <FieldLabel htmlFor="report-date-to">Hasta</FieldLabel>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Hasta</label>
             <Input
-              id="report-date-to"
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="sm:w-[160px]"
+              className="w-[160px]"
             />
-          </Field>
+          </div>
         </div>
-      </FieldGroup>
+      </div>
 
       {isLoadingReport && <LoadingTable rows={6} />}
 

@@ -5,6 +5,7 @@ import { formatRelativeWithTime } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { ReceiptStatus } from '@architech/shared';
 
 interface RecentReceipt {
@@ -91,65 +92,63 @@ export async function RecentReceipts() {
           <p className="text-sm text-muted-foreground">No hay comprobantes disponibles</p>
         </div>
       ) : (
-        <div className="relative w-full overflow-auto">
-          <table className="w-full caption-bottom text-sm text-left">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">ID</th>
-                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">Proyecto</th>
-                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">Proveedor</th>
-                <th className="h-12 px-6 text-left align-middle font-medium text-muted-foreground">Fecha</th>
-                <th className="h-12 px-6 text-right align-middle font-medium text-muted-foreground">Monto (ARS)</th>
-                <th className="h-12 px-6 text-right align-middle font-medium text-muted-foreground">Estado</th>
-                <th className="h-12 px-2 align-middle"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {receipts.map((receipt) => {
-                const vendor = receipt.vendor || 'Sin proveedor';
-                return (
-                  <Link
-                    key={receipt.id}
-                    href={`/receipts/${receipt.id}`}
-                    className="table-row border-b border-border last:border-0 transition-colors hover:bg-muted/50 cursor-pointer"
-                  >
-                    <td className="p-6 align-middle font-medium text-xs">
-                      #{receipt.id.slice(0, 8)}
-                    </td>
-                    <td className="p-6 align-middle">{receipt.project.name}</td>
-                    <td className="p-6 align-middle">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
-                          {getInitials(vendor)}
-                        </div>
-                        <span className="truncate">{vendor}</span>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Proyecto</TableHead>
+              <TableHead>Proveedor</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead className="text-right">Monto (ARS)</TableHead>
+              <TableHead className="text-right">Estado</TableHead>
+              <TableHead className="w-10"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {receipts.map((receipt) => {
+              const vendor = receipt.vendor || 'Sin proveedor';
+              return (
+                <Link
+                  key={receipt.id}
+                  href={`/receipts/${receipt.id}`}
+                  className="table-row border-b border-border last:border-0 transition-colors hover:bg-muted/50 cursor-pointer"
+                >
+                  <TableCell className="font-medium text-xs">
+                    #{receipt.id.slice(0, 8)}
+                  </TableCell>
+                  <TableCell>{receipt.project.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                        {getInitials(vendor)}
                       </div>
-                    </td>
-                    <td className="p-6 align-middle text-muted-foreground">
-                      {formatDate(receipt.receipt_date)}
-                    </td>
-                    <td className="p-6 align-middle text-right font-medium">
-                      {formatCurrency(receipt.total_amount)}
-                    </td>
-                    <td className="p-6 align-middle text-right">
-                      <span className={cn(
-                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                        STATUS_STYLES[receipt.status] ?? STATUS_STYLES.pending
-                      )}>
-                        {STATUS_LABELS[receipt.status] ?? receipt.status}
-                      </span>
-                    </td>
-                    <td className="p-2 align-middle text-right">
-                      <span className="text-muted-foreground inline-flex items-center justify-center h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </span>
-                    </td>
-                  </Link>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      <span className="truncate">{vendor}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(receipt.receipt_date)}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(receipt.total_amount)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className={cn(
+                      'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                      STATUS_STYLES[receipt.status] ?? STATUS_STYLES.pending
+                    )}>
+                      {STATUS_LABELS[receipt.status] ?? receipt.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-muted-foreground inline-flex items-center justify-center h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </span>
+                  </TableCell>
+                </Link>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
     </div>
   );
