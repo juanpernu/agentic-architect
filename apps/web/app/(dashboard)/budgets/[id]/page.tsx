@@ -4,7 +4,7 @@ import { use, useCallback, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { ArrowLeft, History } from 'lucide-react';
+import { ChevronRight, History } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { LoadingCards, LoadingBudgetTable } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
@@ -44,16 +44,15 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
   }, [mutate]);
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <LoadingCards count={3} />
-      </div>
-    );
+    return <LoadingCards count={3} />;
   }
 
   if (error || !budget) {
     return (
-      <div className="p-6">
+      <div>
+        <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Presupuesto</h1>
+        </div>
         <div className="text-red-600">Error al cargar el presupuesto</div>
       </div>
     );
@@ -71,26 +70,36 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
   const showSkeleton = isInitialSync && isValidating;
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/budgets">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <Link href={`/budgets/${id}/history`}>
-          <Button variant="outline" size="sm">
-            <History className="mr-2 h-4 w-4" />
-            Historial
-          </Button>
-        </Link>
-        {isHistoricalVersion && (
-          <Link href={`/budgets/${id}`}>
-            <Button variant="outline" size="sm">
-              Volver a version actual
-            </Button>
+    <div className="animate-slide-up">
+      {/* Header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Link href="/budgets" className="hover:text-primary transition-colors">
+            Presupuestos
           </Link>
-        )}
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-foreground font-medium">{budget?.project?.name ?? 'Presupuesto'}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            {budget?.project?.name ?? 'Presupuesto'}
+          </h1>
+          <div className="flex items-center gap-3">
+            {isHistoricalVersion && (
+              <Link href={`/budgets/${id}`}>
+                <Button variant="outline" size="sm">
+                  Volver a version actual
+                </Button>
+              </Link>
+            )}
+            <Link href={`/budgets/${id}/history`}>
+              <Button variant="outline" size="sm">
+                <History className="mr-2 h-4 w-4" />
+                Historial
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
       {showSkeleton ? (
         <LoadingBudgetTable />

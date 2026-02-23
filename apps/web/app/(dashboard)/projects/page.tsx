@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -90,18 +90,22 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-slide-up">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Proyectos</h1>
-        {isAdminOrSupervisor && (
-          <Button onClick={() => setShowCreateDialog(true)} disabled={!canCreateProject}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Proyecto
-          </Button>
-        )}
+    <div className="animate-slide-up">
+      {/* Header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Proyectos</h1>
+          <p className="text-muted-foreground mt-1">Gestión de obras y proyectos</p>
+          {isAdminOrSupervisor && (
+            <Button onClick={() => setShowCreateDialog(true)} disabled={!canCreateProject}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo Proyecto
+            </Button>
+          )}
+        </div>
       </div>
 
+      <div className="space-y-6">
       {/* Search + Filter */}
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -187,48 +191,49 @@ export default function ProjectsPage() {
               <Link key={project.id} href={`/projects/${project.id}`}>
                 <Card
                   className={cn(
-                    'shadow-soft border-border/50 p-4 hover:border-primary/50 transition-all cursor-pointer h-full',
+                    'shadow-soft border-border/50 hover:border-primary/50 transition-all cursor-pointer h-full',
                     isPaused && 'opacity-75'
                   )}
                 >
-                  {/* Status row */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div
-                      className={cn(
-                        'w-3 h-3 rounded-full ring-2',
-                        project.color
-                          ? 'ring-border/30'
-                          : STATUS_DOT_COLORS[project.status]
-                      )}
-                      style={
-                        project.color
-                          ? { backgroundColor: PROJECT_COLOR_HEX[project.color] }
-                          : undefined
-                      }
-                    />
-                    <span
-                      className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-                        STATUS_BADGE_STYLES[project.status]
-                      )}
-                    >
-                      {STATUS_LABELS[project.status] ?? project.status}
-                    </span>
-                  </div>
-
-                  {/* Name + Address */}
-                  <h3 className="text-lg font-bold leading-tight">
-                    {project.name}
-                  </h3>
-                  {project.address && (
-                    <div className="flex items-center text-muted-foreground text-sm mt-1">
-                      <MapPin className="h-3.5 w-3.5 mr-1 shrink-0" />
-                      <p className="truncate">{project.address}</p>
+                  <CardHeader className="pb-0">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          'w-3 h-3 rounded-full ring-2',
+                          project.color
+                            ? 'ring-border/30'
+                            : STATUS_DOT_COLORS[project.status]
+                        )}
+                        style={
+                          project.color
+                            ? { backgroundColor: PROJECT_COLOR_HEX[project.color] }
+                            : undefined
+                        }
+                      />
+                      <span
+                        className={cn(
+                          'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                          STATUS_BADGE_STYLES[project.status]
+                        )}
+                      >
+                        {STATUS_LABELS[project.status] ?? project.status}
+                      </span>
                     </div>
-                  )}
+                  </CardHeader>
 
-                  {/* Divider + Architect + Last update */}
-                  <div className="border-t border-border mt-4 pt-3 flex items-center justify-between">
+                  <CardContent>
+                    <h3 className="text-2xl font-bold leading-tight">
+                      {project.name}
+                    </h3>
+                    {project.address && (
+                      <div className="flex items-center text-muted-foreground text-sm mt-1">
+                        <MapPin className="h-3.5 w-3.5 mr-1 shrink-0" />
+                        <p className="truncate">{project.address}</p>
+                      </div>
+                    )}
+                  </CardContent>
+
+                  <CardFooter className="border-t border-border justify-between">
                     <div className="flex items-center gap-2">
                       {project.architect && avatarColor ? (
                         <>
@@ -254,7 +259,7 @@ export default function ProjectsPage() {
                     <div className="text-xs text-muted-foreground">
                       {formatRelativeCompact(project.updated_at)}
                     </div>
-                  </div>
+                  </CardFooter>
                 </Card>
               </Link>
             );
@@ -266,6 +271,7 @@ export default function ProjectsPage() {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
       />
+      </div>
     </div>
   );
 }

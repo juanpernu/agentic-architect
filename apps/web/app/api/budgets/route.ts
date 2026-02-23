@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
   let query = db
     .from('budgets')
-    .select('*, project:projects!project_id(id, name)')
+    .select('*, project:projects!project_id(id, name, color)')
     .eq('organization_id', ctx.orgId)
     .order('updated_at', { ascending: false });
 
@@ -39,18 +39,20 @@ export async function GET(req: NextRequest) {
   const budgetIds = (data ?? []).map((b) => b.id);
   let versionTotals: Record<string, number> = {};
 
+  let latestVersions: Record<string, { version: number; total: number; created_by_name: string | null }> = {};
+
   if (budgetIds.length > 0) {
     const { data: versions } = await db
       .from('budget_versions')
-      .select('budget_id, version_number, total_amount')
+      .select('budget_id, version_number, total_amount, creator:users!created_by(full_name)')
       .in('budget_id', budgetIds);
 
     // Group by budget_id and take the highest version_number
-    const latestVersions: Record<string, { version: number; total: number }> = {};
     for (const v of versions ?? []) {
       const existing = latestVersions[v.budget_id];
       if (!existing || v.version_number > existing.version) {
-        latestVersions[v.budget_id] = { version: v.version_number, total: Number(v.total_amount) };
+        const creator = v.creator as unknown as { full_name: string } | null;
+        latestVersions[v.budget_id] = { version: v.version_number, total: Number(v.total_amount), created_by_name: creator?.full_name ?? null };
       }
     }
     versionTotals = Object.fromEntries(
@@ -58,12 +60,17 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const budgets = (data ?? []).map(({ project, ...b }) => ({
-    ...b,
-    project_name: (project as { id: string; name: string })?.name ?? '',
-    // Use published version total when available, otherwise calculate from live snapshot
-    total_amount: versionTotals[b.id] || snapshotTotal(b.snapshot),
-  }));
+  const budgets = (data ?? []).map(({ project, ...b }) => {
+    const p = project as { id: string; name: string; color: string | null } | null;
+    return {
+      ...b,
+      project_name: p?.name ?? '',
+      project_color: p?.color ?? null,
+      // Use published version total when available, otherwise calculate from live snapshot
+      total_amount: versionTotals[b.id] || snapshotTotal(b.snapshot),
+      updated_by_name: latestVersions[b.id]?.created_by_name ?? null,
+    };
+  });
 
   return NextResponse.json(budgets);
 }

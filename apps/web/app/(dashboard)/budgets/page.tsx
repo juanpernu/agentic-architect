@@ -7,21 +7,21 @@ import { sileo } from 'sileo';
 import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
+import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import { formatRelativeShort } from '@/lib/date-utils';
-import { getInitials, getAvatarColor } from '@/lib/avatar-utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { BudgetListItem } from '@/lib/api-types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { CreateBudgetDialog } from '@/components/create-budget-dialog';
-import { cn } from '@/lib/utils';
 
 export default function BudgetsPage() {
   const router = useRouter();
@@ -69,10 +69,14 @@ export default function BudgetsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-slide-up">
-      {/* Header */}
-      <h1 className="text-2xl font-bold tracking-tight">Presupuestos</h1>
+    <div className="animate-slide-up">
+      {/* Header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Presupuestos</h1>
+        <p className="text-muted-foreground mt-1">Cotizaciones y presupuestos por proyecto</p>
+      </div>
 
+      <div className="space-y-6">
       {/* Search */}
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -141,73 +145,59 @@ export default function BudgetsPage() {
       {!isLoading && filteredBudgets && filteredBudgets.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
           {filteredBudgets.map((budget) => {
-            const avatarColor = getAvatarColor(budget.project_name);
-            const initials = getInitials(budget.project_name);
-
             return (
-              <div
+              <Card
                 key={budget.id}
                 role="button"
                 tabIndex={0}
-                className="group bg-card rounded-xl p-4 shadow-soft border border-border/50 active:scale-[0.99] transition-all cursor-pointer hover:border-primary/50"
+                className="group shadow-soft border-border/50 active:scale-[0.99] transition-all cursor-pointer hover:border-primary/50"
                 onClick={() => router.push(`/budgets/${budget.id}`)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/budgets/${budget.id}`); } }}
               >
-                {/* Top row: avatar + name + version badge */}
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={cn(
-                        'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0',
-                        avatarColor.bg,
-                        avatarColor.text
+                <CardContent>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {budget.project_color && (
+                        <span
+                          className="inline-block w-3 h-3 rounded-full shrink-0 mt-1.5"
+                          style={{ backgroundColor: PROJECT_COLOR_HEX[budget.project_color as keyof typeof PROJECT_COLOR_HEX] }}
+                        />
                       )}
-                    >
-                      {initials}
+                      <h3 className="text-2xl font-bold leading-tight truncate">
+                        {budget.project_name}
+                      </h3>
                     </div>
-                    <h4 className="font-semibold leading-tight truncate">
-                      {budget.project_name}
-                    </h4>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200 border border-purple-200 dark:border-purple-800/50 shrink-0">
+                      v{budget.current_version}
+                    </span>
                   </div>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200 border border-purple-200 dark:border-purple-800/50 shrink-0 ml-2">
-                    v{budget.current_version}
-                  </span>
-                </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {formatCurrency(budget.total_amount)}
+                  </div>
+                </CardContent>
 
-                {/* Divider + total + date */}
-                <div className="flex items-center justify-between pt-3 border-t border-border">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                      Total
-                    </span>
-                    <span className="text-base font-bold">
-                      {formatCurrency(budget.total_amount)}
-                    </span>
+                <CardFooter className="border-t border-border justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    Ult. act. {formatRelativeShort(budget.updated_at)}
+                    {budget.updated_by_name && (
+                      <span> por <span className="font-medium text-foreground">{budget.updated_by_name}</span></span>
+                    )}
                   </div>
-                  <div className="text-right flex flex-col items-end">
-                    <span className="text-[10px] text-muted-foreground">Actualizado</span>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {formatRelativeShort(budget.updated_at)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Delete action for admins */}
-                {isAdminOrSupervisor && (
-                  <div className="mt-3 pt-2 border-t border-border md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                    <button
-                      className="text-xs text-destructive hover:underline flex items-center gap-1"
+                  {isAdminOrSupervisor && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setDeletingBudget(budget);
                       }}
                     >
-                      <Trash2 className="h-3 w-3" />
-                      Eliminar
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
             );
           })}
         </div>
@@ -234,6 +224,7 @@ export default function BudgetsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }

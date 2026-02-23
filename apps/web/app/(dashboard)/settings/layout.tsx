@@ -24,9 +24,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="animate-slide-up">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Ajustes</h1>
+      {/* Header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Ajustes</h1>
         <p className="text-muted-foreground mt-1">
           Gestiona tu perfil, la configuración de la empresa y tus preferencias.
         </p>

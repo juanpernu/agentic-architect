@@ -4,7 +4,7 @@ import { use } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
@@ -25,20 +25,27 @@ export default function BudgetHistoryPage({ params }: { params: Promise<{ id: st
     fetcher
   );
 
+  const projectName = budget ? (budget.project as { name: string })?.name : null;
+
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href={`/budgets/${id}`}>
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">Historial de versiones</h1>
-          {budget && (
-            <p className="text-muted-foreground">{(budget.project as { name: string })?.name}</p>
-          )}
+    <div className="animate-slide-up">
+      {/* Header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Link href="/budgets" className="hover:text-primary transition-colors">
+            Presupuestos
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <Link href={`/budgets/${id}`} className="hover:text-primary transition-colors">
+            {projectName ?? 'Presupuesto'}
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-foreground font-medium">Historial</span>
         </div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Historial de versiones</h1>
+        {projectName && (
+          <p className="text-muted-foreground mt-1">{projectName}</p>
+        )}
       </div>
 
       {isLoading && <LoadingTable />}

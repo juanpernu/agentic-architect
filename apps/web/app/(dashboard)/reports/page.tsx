@@ -8,7 +8,6 @@ import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import type { RubroSpend, Project } from '@architech/shared';
 import type { ReceiptWithDetails } from '@/lib/api-types';
-import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { KPICard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
@@ -146,19 +145,22 @@ export default function ReportsPage() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <PageHeader title="Reportes" />
+      <div>
+        <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Reportes</h1>
+        </div>
         <div className="text-red-600">Error al cargar reportes</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 animate-slide-up">
-      <PageHeader
-        title="Reportes"
-        description="Analisis de gastos por proyecto y rubro"
-      />
+    <div className="animate-slide-up">
+      {/* Header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Reportes</h1>
+        <p className="text-muted-foreground mt-1">Analisis de gastos por proyecto y rubro</p>
+      </div>
 
       {/* Filters */}
       <FieldGroup className="mb-6">

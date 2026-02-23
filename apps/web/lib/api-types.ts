@@ -48,7 +48,9 @@ export interface ReceiptDetail extends Receipt {
 
 export interface BudgetListItem extends Budget {
   project_name: string;
+  project_color: string | null;
   total_amount: number;
+  updated_by_name: string | null;
 }
 
 export interface BudgetDetail extends Budget {
