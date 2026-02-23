@@ -1,7 +1,7 @@
 # ObraLink (Architech) — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
-> Ultima actualizacion: 2026-02-20
+> Ultima actualizacion: 2026-02-22
 
 ---
 
@@ -58,22 +58,26 @@ agentic-architect/
 │       │   │   ├── receipts/           # /receipts, /receipts/[id]
 │       │   │   ├── upload/             # /upload (3 steps)
 │       │   │   ├── budgets/            # /budgets, /budgets/[id], /budgets/[id]/history
+│       │   │   ├── administration/     # /administration (resumen, ingresos, egresos)
 │       │   │   ├── reports/            # /reports
-│       │   │   └── settings/           # /settings/{general,users,banks,billing}
+│       │   │   └── settings/           # /settings/{general,users,banks,billing,administration}
 │       │   └── api/            # API routes (ver seccion 7)
 │       ├── components/         # Componentes React
 │       │   ├── ui/             # Shadcn/ui base components (25+)
-│       │   ├── dashboard/      # KPIs, charts, recent receipts
+│       │   ├── dashboard/      # KPIs, charts, recent receipts, create-project-card
+│       │   ├── administration/ # cashflow-chart, balance-by-project-table, vs-budget-table
 │       │   ├── reports/        # Chart de reportes
 │       │   └── *.tsx           # Feature components (sidebar, budget-table, receipt-review, etc.)
 │       ├── lib/                # Utilidades y hooks
-│       │   ├── schemas/        # Zod schemas (8 archivos)
+│       │   ├── schemas/        # Zod schemas (9 archivos)
 │       │   ├── stripe/         # Stripe client + checkout
 │       │   ├── auth.ts         # getAuthContext() — core auth
 │       │   ├── supabase.ts     # DB access + storage URLs
 │       │   ├── plan-guard.ts   # checkPlanLimit()
 │       │   ├── fetcher.ts      # SWR fetcher
 │       │   ├── format.ts       # formatCurrency (es-AR)
+│       │   ├── date-utils.ts   # Argentina TZ date formatting (relative days, compact)
+│       │   ├── avatar-utils.ts # Deterministic avatar colors + initials
 │       │   ├── use-current-user.ts  # Hook: role, fullName, isAdmin
 │       │   ├── use-plan.ts     # Hook: plan limits, canCreate
 │       │   ├── use-autosave.ts # Hook: budget autosave con debounce
@@ -119,9 +123,13 @@ organizations (multi-tenant root)
 ├── projects (name, address, status, color, architect_id)
 │   ├── receipts (vendor, total, date, type, ai_confidence, status)
 │   │   └── receipt_items (description, qty, unit_price, subtotal)
-│   └── budgets (status: draft|published, snapshot JSON)
-│       ├── rubros (name, color, sort_order)
-│       └── budget_versions (version_number, snapshot, total)
+│   ├── budgets (status: draft|published, snapshot JSON)
+│   │   ├── rubros (name, color, sort_order)
+│   │   └── budget_versions (version_number, snapshot, total)
+│   ├── incomes (amount, date, income_type_id, description, created_by)
+│   └── expenses (amount, date, expense_type_id, rubro_id?, receipt_id?, description, created_by)
+├── income_types (name, is_active) — seeded on org creation
+├── expense_types (name, is_active)
 ├── suppliers (name, cuit, fiscal_condition, address)
 └── bank_accounts (name, bank_name, cbu, alias, currency)
 ```
@@ -148,20 +156,24 @@ organizations (multi-tenant root)
 | Proyectos — crear/editar | Si | Si | No |
 | Comprobantes — cargar | Si | Si | Si |
 | Presupuestos — editar | Si | Si | No (read-only) |
+| Administracion — CRUD ingresos/egresos | Si | Si | No |
+| Administracion — tipos ingreso/egreso | Si | No | No |
 | Reportes | Si | Si | No |
 | Settings — General | Si | Si | Si |
 | Settings — Usuarios | Si | No | No |
 | Settings — Bancos | Si | Si | No |
+| Settings — Administracion | Si | No | No |
 | Settings — Billing | Si | No | No |
+| Sidebar — Administracion | Visible | Visible | Oculto |
 | Sidebar — Reportes | Visible | Visible | Oculto |
 
 ### 4.4 Limites por plan
 
 ```typescript
 PLAN_LIMITS = {
-  free: { maxProjects: 1, maxReceiptsPerProject: 20, maxSeats: 1, reports: false },
-  advance: { maxProjects: 20, maxReceiptsPerProject: Infinity, maxSeats: null, reports: true },
-  enterprise: { maxProjects: Infinity, maxReceiptsPerProject: Infinity, maxSeats: Infinity, reports: true },
+  free: { maxProjects: 1, maxReceiptsPerProject: 20, maxSeats: 1, reports: false, administration: false },
+  advance: { maxProjects: 20, maxReceiptsPerProject: Infinity, maxSeats: null, reports: true, administration: true },
+  enterprise: { maxProjects: Infinity, maxReceiptsPerProject: Infinity, maxSeats: Infinity, reports: true, administration: true },
 }
 ```
 
@@ -300,6 +312,22 @@ PLAN_LIMITS = {
 | `/api/bank-accounts` | GET, POST | Any / Admin | Lista activas / Crear |
 | `/api/bank-accounts/[id]` | PATCH, DELETE | Admin | Update / Soft-delete (is_active=false) |
 
+### Administration (Advance+ plans)
+
+| Endpoint | Methods | Auth | Notes |
+|----------|---------|------|-------|
+| `/api/incomes` | GET, POST | !Architect | Lista (paginada, filtros) / Crear |
+| `/api/incomes/[id]` | GET, PATCH, DELETE | !Architect | Detalle / Editar / Eliminar |
+| `/api/expenses` | GET, POST | !Architect | Lista (paginada, filtros) / Crear |
+| `/api/expenses/[id]` | GET, PATCH, DELETE | !Architect | Detalle / Editar / Soft-delete |
+| `/api/income-types` | GET, POST | Any / Admin | Lista activos / Crear |
+| `/api/income-types/[id]` | PATCH, DELETE | Admin | Editar / Soft-delete |
+| `/api/expense-types` | GET, POST | Any / Admin | Lista activos / Crear |
+| `/api/expense-types/[id]` | PATCH, DELETE | Admin | Editar / Soft-delete |
+| `/api/administration/summary` | GET | !Architect | Totals: income, expense, balance (filtros: year, projectId) |
+| `/api/administration/cashflow` | GET | !Architect | 12 meses: income, expense, balance por mes |
+| `/api/administration/vs-budget` | GET | !Architect | Presupuestado vs real por rubro (requiere projectId) |
+
 ### Dashboard & Reports
 
 | Endpoint | Methods | Auth | Notes |
@@ -347,14 +375,23 @@ PLAN_LIMITS = {
 | InviteUserDialog | `invite-user-dialog.tsx` | Dialog invitar usuario (email + rol) |
 | BankAccountFormDialog | `bank-account-form-dialog.tsx` | Dialog CRUD cuenta bancaria |
 | OrgSettingsForm | `org-settings-form.tsx` | Form de config de organizacion |
+| ExpenseFormDialog | `expense-form-dialog.tsx` | Dialog crear/editar egreso (project, type, rubro, receipt, amount) |
+| IncomeFormDialog | `income-form-dialog.tsx` | Dialog crear/editar ingreso (project, type, amount) |
 | UpgradeBanner | `upgrade-banner.tsx` | Banner cuando se alcanza un limite de plan |
 
 ### Dashboard Components
 
 - `dashboard-kpis.tsx` — 4 KPI cards (proyectos, gasto mensual, comprobantes semanales, pendientes)
 - `recent-receipts.tsx` — Tabla de ultimos comprobantes
+- `create-project-card.tsx` — CTA card para crear primer proyecto
 - `spend-by-project-chart.tsx` — Bar chart de gasto por proyecto
 - `spend-trend-chart.tsx` — Line chart de tendencia mensual
+
+### Administration Components
+
+- `cashflow-chart.tsx` — Recharts LineChart: ingresos vs egresos mensual (azul/naranja)
+- `balance-by-project-table.tsx` — Tabla de balance por proyecto (ingreso, egreso, saldo)
+- `vs-budget-table.tsx` — Presupuestado vs ejecutado por rubro con barras de progreso y semaforo (verde <80%, ambar 80-100%, rojo >100%)
 
 ### UI Components (Shadcn customizados)
 
@@ -370,8 +407,13 @@ AlertDialog, Avatar, Badge, Button, Card (con CardAction), Collapsible, Currency
 | `usePlan()` | `use-plan.ts` | Plan, limits, canCreateProject, canInviteUser, isFreePlan, isPastDue |
 | `useAutosave()` | `use-autosave.ts` | Autosave con debounce 2s, status indicator, flush on unmount (keepalive), retry |
 | `useFormValidation()` | `use-form-validation.ts` | Hook para validacion con Zod |
+| `formatRelativeShort()` | `date-utils.ts` | "Hoy", "Ayer", "Hace 3d", "15/02" — Argentina TZ aware |
+| `formatRelativeDay()` | `date-utils.ts` | "Hoy", "Ayer", "15 feb 2026" — para receipts |
+| `getInitials()` | `avatar-utils.ts` | "Juan Perez" → "JP" — max 2 chars |
+| `getAvatarColor()` | `avatar-utils.ts` | Hash-based deterministic color from 8-color palette |
 | `getAuthContext()` | `auth.ts` | Server-side: extrae userId, orgId, role, dbUserId. Con cache is_active (60s TTL, max 500 entries) |
 | `checkPlanLimit()` | `plan-guard.ts` | Verifica limites de plan para project/receipt/user/reports |
+| `requireAdministrationAccess()` | `plan-guard.ts` | Guard: retorna 403 si org en plan free, null si permitido |
 | `validateBody()` | `validate.ts` | Parsea request body con Zod schema, retorna 400 con field errors |
 | `formatCurrency()` | `format.ts` | Intl.NumberFormat es-AR ARS. Compact: $1.2M, $50K |
 | `fetcher` | `fetcher.ts` | SWR fetcher con error handling |
@@ -395,6 +437,10 @@ Todos en `apps/web/lib/schemas/`:
 | `inviteCreateSchema` | `invite.ts` | API: invitar usuario |
 | `organizationUpdateSchema` | `organization.ts` | API: actualizar org |
 | `rubroCreateSchema` / `rubroUpdateSchema` | `rubro.ts` | API: CRUD rubros |
+| `incomeCreateSchema` / `incomeUpdateSchema` | `administration.ts` | API: CRUD ingresos |
+| `expenseCreateSchema` / `expenseUpdateSchema` | `administration.ts` | API: CRUD egresos |
+| `incomeTypeCreateSchema` / `incomeTypeUpdateSchema` | `administration.ts` | API: CRUD tipos ingreso |
+| `expenseTypeCreateSchema` / `expenseTypeUpdateSchema` | `administration.ts` | API: CRUD tipos egreso |
 
 ---
 
@@ -499,6 +545,8 @@ await mutate('/api/endpoint');
 14. Rubros + autosave: draft/publish workflow, autosave con debounce
 15. Refactor: cost_center → rubro (renaming completo)
 16. Flowchart + designer prompt (documentacion)
+17. UX redesign: mobile-first layouts, shared date-utils/avatar-utils, a11y improvements
+18. Modulo Administracion: ingresos/egresos CRUD, tipos configurables, cashflow chart, balance por proyecto, presupuestado vs real por rubro
 
 ---
 
@@ -512,6 +560,8 @@ await mutate('/api/endpoint');
 - Dashboard con KPIs y charts
 - Reports con drill-down
 - Budget editor con autosave y versionado
+- Modulo Administracion: ingresos, egresos, cashflow, balance, presupuestado vs real
+- UX mobile-first: layouts responsive, a11y (keyboard nav), shared utils
 
 ### Pendientes / mejoras posibles
 - **Stripe Elements migration**: `lib/stripe/checkout.ts` tiene un comment FUTURE sobre migrar de Checkout Sessions a SetupIntent + Subscription con Elements embebidos
@@ -564,8 +614,12 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Budget editor | `apps/web/components/budget-table.tsx` |
 | Receipt review (AI) | `apps/web/components/receipt-review.tsx` |
 | Upload flow | `apps/web/app/(dashboard)/upload/page.tsx` |
-| Settings tabs | `apps/web/app/(dashboard)/settings/layout.tsx` |
-| Zod schemas | `apps/web/lib/schemas/` (8 archivos) |
+| Settings tabs | `apps/web/app/(dashboard)/settings/layout.tsx` (general, users, banks, administration, billing) |
+| Zod schemas | `apps/web/lib/schemas/` (9 archivos) |
 | Stripe checkout | `apps/web/lib/stripe/checkout.ts` |
 | Documentacion visual | `docs/flowchart/index.html` (abrir en browser) |
+| Date utilities (ARG TZ) | `apps/web/lib/date-utils.ts` |
+| Avatar utilities | `apps/web/lib/avatar-utils.ts` |
+| Administration schemas | `apps/web/lib/schemas/administration.ts` |
+| Administration module plan | `docs/plans/2026-02-20-administration-module.md` |
 | Designer prompt | `docs/designer-prompt.md` |
