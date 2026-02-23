@@ -14,6 +14,7 @@ const tabs = [
   { href: '/administration', label: 'Resumen' },
   { href: '/administration/incomes', label: 'Ingresos' },
   { href: '/administration/expenses', label: 'Egresos' },
+  { href: '/administration/receipts', label: 'Comprobantes' },
 ];
 
 export default function AdministrationLayout({ children }: { children: React.ReactNode }) {

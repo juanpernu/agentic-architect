@@ -79,7 +79,7 @@ export async function RecentReceipts() {
           <p className="text-sm text-muted-foreground">Gestione las últimas facturas recibidas.</p>
         </div>
         <Link
-          href="/receipts"
+          href="/administration/receipts"
           className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
           Ver todos

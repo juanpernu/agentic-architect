@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Receipt, Upload, Calculator, BarChart3, Landmark, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Upload, Calculator, BarChart3, Landmark, Settings } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -18,7 +18,6 @@ const navItems: Array<{
 }> = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projects', label: 'Proyectos', icon: FolderKanban },
-  { href: '/receipts', label: 'Comprobantes', icon: Receipt },
   { href: '/upload', label: 'Cargar', icon: Upload },
   { href: '/budgets', label: 'Presupuestos', icon: Calculator },
   { href: '/administration', label: 'Administración', icon: Landmark, roles: ['admin', 'supervisor'] },

@@ -101,7 +101,7 @@ export default function ReceiptDetailPage() {
         await mutate(`/api/receipts?project_id=${receipt.project_id}`);
         await mutate(`/api/projects/${receipt.project_id}`);
       }
-      router.push('/receipts');
+      router.push('/administration/receipts');
     } catch (error) {
       sileo.error({
         title: error instanceof Error ? error.message : 'Error al eliminar comprobante',
@@ -180,7 +180,7 @@ export default function ReceiptDetailPage() {
           title="Comprobante no encontrado"
           description="El comprobante que buscas no existe"
           action={
-            <Button onClick={() => router.push('/receipts')}>
+            <Button onClick={() => router.push('/administration/receipts')}>
               Volver a Comprobantes
             </Button>
           }
