@@ -520,38 +520,21 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {/* Toolbar */}
       <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">
-              {(budget.project as { name: string })?.name}
-            </h1>
-            {isDraft ? (
-              <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
-                Borrador
-              </Badge>
-            ) : (
-              <Badge variant="secondary">v{budget.current_version}</Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            {!isDraft && (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  Presupuesto v{budget.current_version}
-                </span>
-                <span className="text-muted-foreground">·</span>
-              </>
-            )}
-            <span className="text-lg font-semibold">{formatCurrency(grandTotalSubtotal)}</span>
-            {isDraft && (
-              <>
-                <span className="text-muted-foreground">·</span>
-                {renderSaveStatus()}
-              </>
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          {isDraft && (
+            <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
+              Borrador
+            </Badge>
+          )}
+          <span className="text-lg font-semibold">{formatCurrency(grandTotalSubtotal)}</span>
+          {isDraft && (
+            <>
+              <span className="text-muted-foreground">·</span>
+              {renderSaveStatus()}
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowCost(!showCost)}>

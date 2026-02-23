@@ -32,36 +32,28 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* Vertical tabs */}
-        <nav className="w-full lg:w-56 shrink-0 flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
-          {visibleTabs.map((tab) => {
-            const isActive = pathname === tab.href;
-            const Icon = tab.icon;
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap',
-                  'lg:rounded-l-none lg:border-l-4',
-                  isActive
-                    ? 'text-primary lg:border-l-primary bg-primary/5'
-                    : 'text-muted-foreground lg:border-l-transparent hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                {tab.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Content */}
-        <div className="flex-1 w-full min-w-0">
-          {children}
-        </div>
-      </div>
+      <nav className="flex gap-1 overflow-x-auto pb-2 mb-6">
+        {visibleTabs.map((tab) => {
+          const isActive = pathname === tab.href;
+          const Icon = tab.icon;
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap',
+                isActive
+                  ? 'text-primary bg-primary/5'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              {tab.label}
+            </Link>
+          );
+        })}
+      </nav>
+      {children}
     </div>
   );
 }

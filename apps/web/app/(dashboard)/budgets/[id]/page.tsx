@@ -81,8 +81,11 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           <span className="text-foreground font-medium">{budget?.project?.name ?? 'Presupuesto'}</span>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
             {budget?.project?.name ?? 'Presupuesto'}
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200 border border-purple-200 dark:border-purple-800/50">
+              v{budget.current_version}
+            </span>
           </h1>
           <div className="flex items-center gap-3">
             {isHistoricalVersion && (
