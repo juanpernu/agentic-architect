@@ -428,28 +428,28 @@ export default function ReceiptDetailPage() {
           <span className="text-foreground font-medium">{receipt.vendor ?? 'Sin proveedor'}</span>
         </div>
 
-        {/* Title + status + actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Comprobante {receipt.vendor ?? 'sin proveedor'}
+        {/* Title + status + actions — always inline */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight truncate">
+              {receipt.vendor ?? 'Sin proveedor'}
+              {receipt.receipt_number && (
+                <span className="text-muted-foreground font-normal ml-2 text-base md:text-xl">#{receipt.receipt_number}</span>
+              )}
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-muted-foreground">Estado:</span>
+            <div className="flex items-center gap-2 mt-0.5">
               <StatusBadge status={receipt.status} />
             </div>
           </div>
           {isAdmin && (
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                className="text-destructive hover:text-destructive"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="text-destructive hover:text-destructive shrink-0"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar
+            </Button>
           )}
         </div>
       </div>
