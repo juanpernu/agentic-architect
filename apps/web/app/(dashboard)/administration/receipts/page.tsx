@@ -87,89 +87,112 @@ export default function AdministrationReceiptsPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3 mb-6">
-        <div className="relative w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar proveedor..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            aria-label="Buscar por proveedor"
-          />
+      <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Proveedor</label>
+            <div className="relative w-48">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                aria-label="Buscar por proveedor"
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los proyectos</SelectItem>
+                {projects?.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Estado</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="confirmed">Confirmado</SelectItem>
+                <SelectItem value="rejected">Rechazado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Rubro</label>
+            <Select value={rubroFilter} onValueChange={setRubroFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los rubros</SelectItem>
+                {rubros?.map((rubro) => (
+                  <SelectItem key={rubro.id} value={rubro.id}>
+                    <span className="flex items-center gap-2">
+                      {rubro.color && (
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: rubro.color }}
+                        />
+                      )}
+                      {rubro.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Cuenta</label>
+            <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las cuentas</SelectItem>
+                {bankAccounts?.map((ba) => (
+                  <SelectItem key={ba.id} value={ba.id}>
+                    {ba.name} ({ba.bank_name})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Desde</label>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-[140px]"
+              aria-label="Desde"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Hasta</label>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-[140px]"
+              aria-label="Hasta"
+            />
+          </div>
         </div>
-        <Select value={projectFilter} onValueChange={setProjectFilter}>
-          <SelectTrigger className="w-[170px]">
-            <SelectValue placeholder="Proyecto" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los proyectos</SelectItem>
-            {projects?.map((project) => (
-              <SelectItem key={project.id} value={project.id}>
-                {project.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="pending">Pendiente</SelectItem>
-            <SelectItem value="confirmed">Confirmado</SelectItem>
-            <SelectItem value="rejected">Rechazado</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={rubroFilter} onValueChange={setRubroFilter}>
-          <SelectTrigger className="w-[170px]">
-            <SelectValue placeholder="Rubro" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los rubros</SelectItem>
-            {rubros?.map((rubro) => (
-              <SelectItem key={rubro.id} value={rubro.id}>
-                <span className="flex items-center gap-2">
-                  {rubro.color && (
-                    <span
-                      className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: rubro.color }}
-                    />
-                  )}
-                  {rubro.name}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Cuenta bancaria" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas las cuentas</SelectItem>
-            {bankAccounts?.map((ba) => (
-              <SelectItem key={ba.id} value={ba.id}>
-                {ba.name} ({ba.bank_name})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="w-[140px]"
-          aria-label="Desde"
-        />
-        <Input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="w-[140px]"
-          aria-label="Hasta"
-        />
       </div>
 
       {isLoadingReceipts && <LoadingTable rows={8} />}

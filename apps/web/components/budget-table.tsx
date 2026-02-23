@@ -528,6 +528,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
               Borrador
             </Badge>
           )}
+          <span className="text-sm text-muted-foreground">Total</span>
           <span className="text-lg font-semibold">{formatCurrency(grandTotalSubtotal)}</span>
           {isDraft && (
             <>

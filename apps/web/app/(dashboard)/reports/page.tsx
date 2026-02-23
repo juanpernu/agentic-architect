@@ -162,7 +162,7 @@ export default function ReportsPage() {
           <p className="text-muted-foreground mt-1">Analisis de gastos por proyecto y rubro</p>
         </div>
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex items-end gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
             <Select value={projectFilter} onValueChange={setProjectFilter}>

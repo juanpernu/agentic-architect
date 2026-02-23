@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { useFormValidation } from '@/lib/use-form-validation';
 import { projectSchema } from '@/lib/schemas';
 import {
@@ -169,7 +169,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Project info */}
-          <FieldGroup className="space-y-1">
+          <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">
             <Field data-invalid={!!errors.name}>
               <FieldLabel htmlFor="name">
                 Nombre <span className="text-red-500">*</span>
@@ -187,46 +187,48 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
               <FieldError>{errors.name}</FieldError>
             </Field>
 
-            <Field>
-              <FieldLabel htmlFor="status">Estado</FieldLabel>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, status: value as ProjectStatus })
-                }
-              >
-                <SelectTrigger id="status" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="paused">Pausado</SelectItem>
-                  <SelectItem value="completed">Completado</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel htmlFor="status">Estado</FieldLabel>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, status: value as ProjectStatus })
+                  }
+                >
+                  <SelectTrigger id="status" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="paused">Pausado</SelectItem>
+                    <SelectItem value="completed">Completado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
 
-            <Field>
-              <FieldLabel htmlFor="architect_id">Arquitecto</FieldLabel>
-              <Select
-                value={formData.architect_id || '__none__'}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, architect_id: value === '__none__' ? '' : value })
-                }
-              >
-                <SelectTrigger id="architect_id" className="w-full">
-                  <SelectValue placeholder="Seleccionar arquitecto (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Sin asignar</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name ?? user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+              <Field>
+                <FieldLabel htmlFor="architect_id">Arquitecto</FieldLabel>
+                <Select
+                  value={formData.architect_id || '__none__'}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, architect_id: value === '__none__' ? '' : value })
+                  }
+                >
+                  <SelectTrigger id="architect_id" className="w-full">
+                    <SelectValue placeholder="Sin asignar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sin asignar</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.full_name ?? user.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
 
             <Field>
               <FieldLabel>Color (opcional)</FieldLabel>
@@ -253,7 +255,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 )}
               </div>
             </Field>
-          </FieldGroup>
+          </div>
 
           {/* Ubicación section */}
           <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">

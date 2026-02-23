@@ -91,64 +91,68 @@ export function BankAccountFormDialog({ open, onOpenChange, bankAccount }: BankA
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="ba-name">Nombre <span className="text-red-500">*</span></Label>
-            <Input
-              id="ba-name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ej: Cuenta Corriente Macro"
-              maxLength={100}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ba-bank-name">Banco <span className="text-red-500">*</span></Label>
-            <Input
-              id="ba-bank-name"
-              value={formData.bank_name}
-              onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-              placeholder="Ej: Banco Macro"
-              maxLength={100}
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="ba-cbu">CBU</Label>
-              <Input
-                id="ba-cbu"
-                value={formData.cbu}
-                onChange={(e) => setFormData({ ...formData, cbu: e.target.value })}
-                placeholder="22 dígitos"
-                maxLength={22}
-              />
+          <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="ba-name">Nombre <span className="text-red-500">*</span></Label>
+                <Input
+                  id="ba-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Ej: Cuenta Corriente Macro"
+                  maxLength={100}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ba-bank-name">Banco <span className="text-red-500">*</span></Label>
+                <Input
+                  id="ba-bank-name"
+                  value={formData.bank_name}
+                  onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                  placeholder="Ej: Banco Macro"
+                  maxLength={100}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="ba-cbu">CBU</Label>
+                <Input
+                  id="ba-cbu"
+                  value={formData.cbu}
+                  onChange={(e) => setFormData({ ...formData, cbu: e.target.value })}
+                  placeholder="22 dígitos"
+                  maxLength={22}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ba-alias">Alias</Label>
+                <Input
+                  id="ba-alias"
+                  value={formData.alias}
+                  onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
+                  placeholder="Ej: obra.macro"
+                  maxLength={50}
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ba-alias">Alias</Label>
-              <Input
-                id="ba-alias"
-                value={formData.alias}
-                onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
-                placeholder="Ej: obra.macro"
-                maxLength={50}
-              />
+              <Label htmlFor="ba-currency">Moneda</Label>
+              <Select
+                value={formData.currency}
+                onValueChange={(value) => setFormData({ ...formData, currency: value })}
+              >
+                <SelectTrigger id="ba-currency" className="w-full">
+                  <SelectValue placeholder="Seleccionar moneda" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ARS">ARS — Peso Argentino</SelectItem>
+                  <SelectItem value="USD">USD — Dólar</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ba-currency">Moneda</Label>
-            <Select
-              value={formData.currency}
-              onValueChange={(value) => setFormData({ ...formData, currency: value })}
-            >
-              <SelectTrigger id="ba-currency" className="w-full">
-                <SelectValue placeholder="Seleccionar moneda" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ARS">ARS — Peso Argentino</SelectItem>
-                <SelectItem value="USD">USD — Dólar</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

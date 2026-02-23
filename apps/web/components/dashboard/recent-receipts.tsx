@@ -108,12 +108,13 @@ export async function RecentReceipts() {
             {receipts.map((receipt) => {
               const vendor = receipt.vendor || 'Sin proveedor';
               return (
-                <Link
-                  key={receipt.id}
-                  href={`/receipts/${receipt.id}`}
-                  className="table-row border-b border-border last:border-0 transition-colors hover:bg-muted/50 cursor-pointer"
-                >
+                <TableRow key={receipt.id} className="group relative cursor-pointer">
                   <TableCell className="font-medium text-xs">
+                    <Link
+                      href={`/receipts/${receipt.id}`}
+                      className="absolute inset-0"
+                      aria-label={`Ver comprobante de ${vendor}`}
+                    />
                     #{receipt.id.slice(0, 8)}
                   </TableCell>
                   <TableCell>{receipt.project.name}</TableCell>
@@ -144,7 +145,7 @@ export async function RecentReceipts() {
                       <MoreVertical className="h-4 w-4" />
                     </span>
                   </TableCell>
-                </Link>
+                </TableRow>
               );
             })}
           </TableBody>

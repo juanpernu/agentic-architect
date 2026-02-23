@@ -148,117 +148,113 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Project */}
-          <div className="space-y-2">
-            <Label htmlFor="exp-project">Proyecto <span className="text-red-500">*</span></Label>
-            <Select value={projectId} onValueChange={setProjectId} required>
-              <SelectTrigger id="exp-project" className="w-full">
-                <SelectValue placeholder="Selecciona un proyecto" />
-              </SelectTrigger>
-              <SelectContent>
-                {(projects ?? []).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="exp-project">Proyecto <span className="text-red-500">*</span></Label>
+                <Select value={projectId} onValueChange={setProjectId} required>
+                  <SelectTrigger id="exp-project" className="w-full">
+                    <SelectValue placeholder="Selecciona un proyecto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(projects ?? []).map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="exp-type">Tipo de egreso <span className="text-red-500">*</span></Label>
+                <Select value={expenseTypeId} onValueChange={setExpenseTypeId} required>
+                  <SelectTrigger id="exp-type" className="w-full">
+                    <SelectValue placeholder="Selecciona el tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(expenseTypes ?? []).map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="exp-amount">Monto <span className="text-red-500">*</span></Label>
+                <Input
+                  id="exp-amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="exp-date">Fecha <span className="text-red-500">*</span></Label>
+                <Input
+                  id="exp-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
-          {/* Expense type */}
-          <div className="space-y-2">
-            <Label htmlFor="exp-type">Tipo de egreso <span className="text-red-500">*</span></Label>
-            <Select value={expenseTypeId} onValueChange={setExpenseTypeId} required>
-              <SelectTrigger id="exp-type" className="w-full">
-                <SelectValue placeholder="Selecciona el tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {(expenseTypes ?? []).map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Rubro + Receipt (only when project is selected) */}
+            {projectId && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="exp-rubro">Rubro</Label>
+                  <Select value={rubroId} onValueChange={setRubroId}>
+                    <SelectTrigger id="exp-rubro" className="w-full">
+                      <SelectValue placeholder="Selecciona un rubro" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(rubros ?? []).length === 0 ? (
+                        <SelectItem value="_empty" disabled>Sin rubros disponibles</SelectItem>
+                      ) : (
+                        (rubros ?? []).map((r) => (
+                          <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="exp-receipt">Comprobante</Label>
+                  <Select value={receiptId} onValueChange={setReceiptId}>
+                    <SelectTrigger id="exp-receipt" className="w-full">
+                      <SelectValue placeholder="Selecciona un comprobante" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(receipts ?? []).length === 0 ? (
+                        <SelectItem value="_empty" disabled>Sin comprobantes disponibles</SelectItem>
+                      ) : (
+                        (receipts ?? []).map((r) => (
+                          <SelectItem key={r.id} value={r.id}>
+                            {r.vendor ?? 'Sin proveedor'} — ${r.total_amount}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
-          {/* Amount and Date */}
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="exp-amount">Monto <span className="text-red-500">*</span></Label>
-              <Input
-                id="exp-amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
+              <Label htmlFor="exp-description">Descripcion</Label>
+              <Textarea
+                id="exp-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Detalle del egreso (opcional)"
+                rows={3}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="exp-date">Fecha <span className="text-red-500">*</span></Label>
-              <Input
-                id="exp-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Rubro (only when project is selected) */}
-          {projectId && (
-            <div className="space-y-2">
-              <Label htmlFor="exp-rubro">Rubro</Label>
-              <Select value={rubroId} onValueChange={setRubroId}>
-                <SelectTrigger id="exp-rubro" className="w-full">
-                  <SelectValue placeholder="Selecciona un rubro" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(rubros ?? []).length === 0 ? (
-                    <SelectItem value="_empty" disabled>Sin rubros disponibles</SelectItem>
-                  ) : (
-                    (rubros ?? []).map((r) => (
-                      <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Receipt (only when project is selected) */}
-          {projectId && (
-            <div className="space-y-2">
-              <Label htmlFor="exp-receipt">Comprobante</Label>
-              <Select value={receiptId} onValueChange={setReceiptId}>
-                <SelectTrigger id="exp-receipt" className="w-full">
-                  <SelectValue placeholder="Selecciona un comprobante" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(receipts ?? []).length === 0 ? (
-                    <SelectItem value="_empty" disabled>Sin comprobantes disponibles</SelectItem>
-                  ) : (
-                    (receipts ?? []).map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.vendor ?? 'Sin proveedor'} — ${r.total_amount}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="exp-description">Descripcion</Label>
-            <Textarea
-              id="exp-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Detalle del egreso (opcional)"
-              rows={3}
-            />
           </div>
 
           <DialogFooter>

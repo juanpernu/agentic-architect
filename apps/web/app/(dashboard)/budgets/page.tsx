@@ -71,15 +71,12 @@ export default function BudgetsPage() {
   return (
     <div className="animate-slide-up">
       {/* Header band */}
-      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Presupuestos</h1>
-        <p className="text-muted-foreground mt-1">Cotizaciones y presupuestos por proyecto</p>
-      </div>
-
-      <div className="space-y-6">
-      {/* Search */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card space-y-5">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Presupuestos</h1>
+          <p className="text-muted-foreground mt-1">Cotizaciones y presupuestos por proyecto</p>
+        </div>
+        <div className="relative sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por obra o cliente..."
@@ -90,6 +87,8 @@ export default function BudgetsPage() {
           />
         </div>
       </div>
+
+      <div className="space-y-6">
 
       {/* CTA Card — New Budget */}
       {isAdminOrSupervisor && (

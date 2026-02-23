@@ -112,73 +112,70 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Project */}
-          <div className="space-y-2">
-            <Label htmlFor="inc-project">Proyecto <span className="text-red-500">*</span></Label>
-            <Select value={projectId} onValueChange={setProjectId} required>
-              <SelectTrigger id="inc-project" className="w-full">
-                <SelectValue placeholder="Selecciona un proyecto" />
-              </SelectTrigger>
-              <SelectContent>
-                {(projects ?? []).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Income type */}
-          <div className="space-y-2">
-            <Label htmlFor="inc-type">Tipo de ingreso <span className="text-red-500">*</span></Label>
-            <Select value={incomeTypeId} onValueChange={setIncomeTypeId} required>
-              <SelectTrigger id="inc-type" className="w-full">
-                <SelectValue placeholder="Selecciona el tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {(incomeTypes ?? []).map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Amount and Date */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="inc-amount">Monto <span className="text-red-500">*</span></Label>
-              <Input
-                id="inc-amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
+          <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="inc-project">Proyecto <span className="text-red-500">*</span></Label>
+                <Select value={projectId} onValueChange={setProjectId} required>
+                  <SelectTrigger id="inc-project" className="w-full">
+                    <SelectValue placeholder="Selecciona un proyecto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(projects ?? []).map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inc-type">Tipo de ingreso <span className="text-red-500">*</span></Label>
+                <Select value={incomeTypeId} onValueChange={setIncomeTypeId} required>
+                  <SelectTrigger id="inc-type" className="w-full">
+                    <SelectValue placeholder="Selecciona el tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(incomeTypes ?? []).map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="inc-amount">Monto <span className="text-red-500">*</span></Label>
+                <Input
+                  id="inc-amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inc-date">Fecha <span className="text-red-500">*</span></Label>
+                <Input
+                  id="inc-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inc-date">Fecha <span className="text-red-500">*</span></Label>
-              <Input
-                id="inc-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
+              <Label htmlFor="inc-description">Descripcion</Label>
+              <Textarea
+                id="inc-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Detalle del ingreso (opcional)"
+                rows={3}
               />
             </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="inc-description">Descripcion</Label>
-            <Textarea
-              id="inc-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Detalle del ingreso (opcional)"
-              rows={3}
-            />
           </div>
 
           <DialogFooter>
