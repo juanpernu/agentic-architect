@@ -47,7 +47,7 @@ export default function LandingPage() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
             Gestioná tus obras{' '}
             <br />
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
@@ -55,7 +55,7 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
             Agentect utiliza IA para extraer datos de tus facturas y recibos
             automáticamente. Controlá gastos, materiales y proveedores en tiempo
             real, diseñado específicamente para estudios argentinos.
@@ -63,12 +63,12 @@ export default function LandingPage() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-6 rounded-xl shadow-lg shadow-primary/25">
+            <Button size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-4 md:py-6 rounded-xl shadow-lg shadow-primary/25">
               <Link href="/sign-up">
                 Probar Gratis <ArrowRight className="ml-1 h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-6 rounded-xl">
+            <Button variant="outline" size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-4 md:py-6 rounded-xl">
               <Link href="#features">
                 Ver Demo
               </Link>
@@ -90,9 +90,9 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════ COMPARISON ═══════════════ */}
-      <section className="py-20 bg-slate-50 border-y">
+      <section className="py-12 md:py-20 bg-slate-50 border-y">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 md:mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
               La evolución de la gestión de obra
             </h2>
@@ -103,7 +103,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             {/* Old way */}
-            <Card className="p-8 relative overflow-hidden">
+            <Card className="p-5 md:p-8 relative overflow-hidden">
               <div className="absolute top-4 right-4 opacity-10">
                 <X className="h-24 w-24 text-red-500" />
               </div>
@@ -133,7 +133,7 @@ export default function LandingPage() {
 
             {/* New way — with gradient border */}
             <div className="p-0.5 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 shadow-xl shadow-primary/10">
-              <Card className="p-8 rounded-[14px] h-full relative overflow-hidden border-0">
+              <Card className="p-5 md:p-8 rounded-[14px] h-full relative overflow-hidden border-0">
                 <div className="absolute top-4 right-4 opacity-10">
                   <CheckCircle className="h-24 w-24 text-primary" />
                 </div>
@@ -169,7 +169,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════ FEATURES ═══════════════ */}
-      <section id="features" className="py-24">
+      <section id="features" className="py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid lg:grid-cols-3 gap-8">
 
@@ -230,7 +230,7 @@ export default function LandingPage() {
               </div>
 
               {/* CSS bar chart */}
-              <div className="h-48 sm:h-56 w-full relative">
+              <div className="h-40 sm:h-56 w-full relative">
                 {/* Grid lines */}
                 <div className="absolute inset-0 flex flex-col justify-between">
                   {[0, 1, 2, 3].map((i) => (
@@ -245,7 +245,7 @@ export default function LandingPage() {
                     { label: 'Rubro 3', budget: '90%', real: '70%' },
                     { label: 'Rubro 4', budget: '30%', real: '25%' },
                   ].map((rubro) => (
-                    <div key={rubro.label} className="w-12 sm:w-16 flex flex-col items-center">
+                    <div key={rubro.label} className="w-10 sm:w-16 flex flex-col items-center">
                       <div className="w-full flex gap-1 items-end h-40">
                         <div className="w-1/2 bg-gray-300 rounded-t-sm" style={{ height: rubro.budget }} />
                         <div className="w-1/2 bg-primary rounded-t-sm" style={{ height: rubro.real }} />
@@ -258,66 +258,90 @@ export default function LandingPage() {
             </Card>
 
             {/* Feature 3: Control Multi-obra (full width) */}
-            <Card className="lg:col-span-3 p-8 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <Card className="lg:col-span-3 p-5 md:p-8 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
                 <div>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    <Building2 className="h-6 w-6 text-primary" />
+                  <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
+                    <Building2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                     Control Multi-obra
                   </CardTitle>
                   <CardDescription className="mt-2">
                     Todo tu estudio en una sola pantalla. Accedé al estado de cada proyecto.
                   </CardDescription>
                 </div>
-                <span className="text-primary font-medium flex items-center gap-1 text-sm">
-                  Ver reporte completo <ArrowRight className="h-4 w-4" />
-                </span>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Proyecto</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Avance Financiero</TableHead>
-                    <TableHead className="text-right">Última Actividad</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[
-                    { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
-                    { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
-                    { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
-                  ].map((project) => (
-                    <TableRow key={project.name}>
-                      <TableCell className="font-medium">{project.name}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
-                          {project.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="w-1/3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-muted-foreground w-8">{project.progress}%</span>
-                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                            <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">{project.time}</TableCell>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Proyecto</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Avance Financiero</TableHead>
+                      <TableHead className="text-right">Última Actividad</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {[
+                      { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
+                      { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
+                      { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
+                    ].map((project) => (
+                      <TableRow key={project.name}>
+                        <TableCell className="font-medium">{project.name}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
+                            {project.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="w-1/3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-muted-foreground w-8">{project.progress}%</span>
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                              <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">{project.time}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-3">
+                {[
+                  { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
+                  { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
+                  { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
+                ].map((project) => (
+                  <div key={project.name} className="rounded-lg border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{project.name}</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
+                        {project.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground w-8">{project.progress}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
         </div>
       </section>
 
       {/* ═══════════════ PRICING ═══════════════ */}
-      <section id="pricing" className="py-24 bg-slate-50 border-y">
+      <section id="pricing" className="py-16 md:py-24 bg-slate-50 border-y">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
               Planes diseñados para tu estudio
             </h2>
@@ -408,15 +432,15 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════ CTA + FOOTER ═══════════════ */}
-      <section className="py-20 border-t">
+      <section className="py-12 md:py-20 border-t">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h2 className="text-3xl font-bold tracking-tight mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">
             Empezá a ordenar tus obras hoy
           </h2>
           <p className="text-muted-foreground mb-8 text-lg">
             Sumate a más de 500 estudios de arquitectura en Argentina que ya confían en Agentect.
           </p>
-          <Button size="lg" asChild className="px-8 py-6 rounded-xl text-lg shadow-lg shadow-primary/20">
+          <Button size="lg" asChild className="px-8 py-4 md:py-6 rounded-xl text-lg shadow-lg shadow-primary/20">
             <Link href="/sign-up">Crear cuenta gratis</Link>
           </Button>
           <p className="mt-10 text-sm text-muted-foreground">
