@@ -9,12 +9,13 @@ import { useCurrentUser } from '@/lib/use-current-user';
 import { usePlan } from '@/lib/use-plan';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { Badge } from '@/components/ui/badge';
+import type { UserRole } from '@architech/shared';
 
-const navItems: Array<{
+export const navItems: Array<{
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
-  roles?: string[];
+  roles?: UserRole[];
 }> = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projects', label: 'Proyectos', icon: FolderKanban },
@@ -25,7 +26,13 @@ const navItems: Array<{
   { href: '/settings', label: 'Ajustes', icon: Settings },
 ];
 
-export function Sidebar() {
+export function SidebarContent({
+  onNavigate,
+  showUserFooter = true,
+}: {
+  onNavigate?: () => void;
+  showUserFooter?: boolean;
+}) {
   const pathname = usePathname();
   const { role, fullName } = useCurrentUser();
   const { isFreePlan } = usePlan();
@@ -36,19 +43,21 @@ export function Sidebar() {
     return true;
   });
 
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/' && pathname.startsWith(href));
+
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
-      <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-bold">Agentect</h1>
-      </div>
-      <nav className="flex-1 px-3 py-4 space-y-1">
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {visibleNavItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNavigate}
+            aria-current={isActive(item.href) ? 'page' : undefined}
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-              pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+              isActive(item.href)
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
@@ -58,20 +67,33 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3">
-          <UserButton />
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-sm font-medium truncate" title={fullName}>{fullName}</span>
-            <Badge
-              variant="secondary"
-              className={cn('w-fit text-xs', ROLE_COLORS[role])}
-            >
-              {ROLE_LABELS[role]}
-            </Badge>
+      {showUserFooter && (
+        <div className="border-t p-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <UserButton />
+            <div className="flex flex-col gap-1 min-w-0">
+              <span className="text-sm font-medium truncate" title={fullName}>{fullName}</span>
+              <Badge
+                variant="secondary"
+                className={cn('w-fit text-xs', ROLE_COLORS[role])}
+              >
+                {ROLE_LABELS[role]}
+              </Badge>
+            </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
+      <div className="flex h-16 items-center px-6 border-b">
+        <h1 className="text-xl font-bold">Agentect</h1>
       </div>
+      <SidebarContent />
     </aside>
   );
 }

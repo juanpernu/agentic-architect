@@ -2,7 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
-import { BottomNav } from '@/components/bottom-nav';
+import { MobileHeader } from '@/components/mobile-header';
 import { Toaster } from 'sileo';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -13,12 +13,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <ClerkProvider>
       <div className="min-h-screen">
         <Sidebar />
-        <main className="md:pl-64 pb-16 md:pb-0 min-h-screen bg-slate-50/50 dark:bg-background">
+        <MobileHeader />
+        <main className="md:pl-64 pt-[52px] md:pt-0 min-h-screen bg-slate-50/50 dark:bg-background">
           <div className="p-4 md:p-8 max-w-7xl mx-auto">
             {children}
           </div>
         </main>
-        <BottomNav />
         <Toaster position="bottom-right" options={{ fill: '#000000' }} />
       </div>
     </ClerkProvider>
