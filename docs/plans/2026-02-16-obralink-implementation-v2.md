@@ -8,8 +8,8 @@
 
 **Tech Stack:** Next.js 16, TypeScript, Tailwind CSS 4, Shadcn/ui, Recharts, Clerk, Supabase, Claude Vision API, Turborepo, SWR, Vercel
 
-**Design Document:** `docs/plans/2026-02-16-agentect-design.md`
-**Previous Plan:** `docs/plans/2026-02-16-agentect-implementation.md`
+**Design Document:** `docs/plans/2026-02-16-obralink-design.md`
+**Previous Plan:** `docs/plans/2026-02-16-obralink-implementation.md`
 **Vercel Best Practices Review:** Applied — fixes for waterfalls, bundle size, RSC usage, data fetching
 
 ---

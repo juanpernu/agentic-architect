@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/ui, Recharts, Clerk, Supabase, Claude Vision API, Turborepo, Vercel
 
-**Design Document:** `docs/plans/2026-02-16-agentect-design.md`
+**Design Document:** `docs/plans/2026-02-16-obralink-design.md`
 
 ---
 

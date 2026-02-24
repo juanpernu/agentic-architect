@@ -97,9 +97,9 @@ Note: `vendor` column kept for backward compatibility (deprecated).
 ## Scope
 
 ### In scope (this iteration)
-- New `ExtractionResult` type in `@obralink/shared`
+- New `ExtractionResult` type in `@architech/shared`
 - New extraction prompt (generic for Argentine receipts)
-- Updated `parseExtractionResponse` in `@obralink/ai`
+- Updated `parseExtractionResponse` in `@architech/ai`
 - DB migration (already applied in Supabase)
 - Updated `/api/receipts/extract` route
 - Updated `/api/receipts` POST (confirmation) to persist supplier + new fields
