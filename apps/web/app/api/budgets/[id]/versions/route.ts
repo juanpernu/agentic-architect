@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -24,7 +25,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .eq('budget_id', id)
     .order('version_number', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/budgets/[id]/versions' });
 
   const versions = (data ?? []).map(({ created_by, ...v }) => ({
     ...v,

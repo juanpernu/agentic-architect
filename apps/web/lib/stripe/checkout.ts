@@ -4,6 +4,7 @@
 // Webhooks, feature gating, and portal code do NOT change.
 
 import { getStripe } from './client';
+import { env } from '../env';
 
 interface CreateCheckoutParams {
   orgId: string;
@@ -24,13 +25,13 @@ export async function createCheckoutSession({
 }: CreateCheckoutParams) {
   const basePriceId =
     billingCycle === 'monthly'
-      ? process.env.STRIPE_ADVANCE_MONTHLY_BASE_PRICE_ID!
-      : process.env.STRIPE_ADVANCE_YEARLY_BASE_PRICE_ID!;
+      ? env.STRIPE_ADVANCE_MONTHLY_BASE_PRICE_ID
+      : env.STRIPE_ADVANCE_YEARLY_BASE_PRICE_ID;
 
   const seatPriceId =
     billingCycle === 'monthly'
-      ? process.env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID!
-      : process.env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID!;
+      ? env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID
+      : env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID;
 
   const session = await getStripe().checkout.sessions.create({
     mode: 'subscription',

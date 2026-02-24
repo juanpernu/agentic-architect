@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb, getPublicFileUrl } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { organizationUpdateSchema } from '@/lib/schemas';
+import { dbError } from '@/lib/api-error';
 
 /** If logo_url is already a full URL, return as-is; otherwise resolve via Supabase storage. */
 function resolveLogoUrl(logoUrl: string | null): string | null {
@@ -22,7 +23,7 @@ export async function GET() {
     .eq('id', ctx.orgId)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/organization' });
 
   data.logo_url = resolveLogoUrl(data.logo_url);
 
@@ -50,7 +51,7 @@ export async function PATCH(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'update', { route: '/api/organization' });
 
   data.logo_url = resolveLogoUrl(data.logo_url);
 

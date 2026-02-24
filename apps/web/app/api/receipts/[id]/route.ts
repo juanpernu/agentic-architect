@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb, getSignedImageUrl } from '@/lib/supabase';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -45,7 +46,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!receipt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const { error } = await db.from('receipts').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'delete', { route: '/api/receipts/[id]' });
   return NextResponse.json({ deleted: true });
 }
 
@@ -135,6 +136,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'update', { route: '/api/receipts/[id]' });
   return NextResponse.json(data);
 }

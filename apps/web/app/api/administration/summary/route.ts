@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { requireAdministrationAccess } from '@/lib/plan-guard';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -43,8 +44,8 @@ export async function GET(req: NextRequest) {
 
   const [incomeResult, expenseResult] = await Promise.all([incomeQuery, expenseQuery]);
 
-  if (incomeResult.error) return NextResponse.json({ error: incomeResult.error.message }, { status: 500 });
-  if (expenseResult.error) return NextResponse.json({ error: expenseResult.error.message }, { status: 500 });
+  if (incomeResult.error) return dbError(incomeResult.error, 'select', { route: '/api/administration/summary' });
+  if (expenseResult.error) return dbError(expenseResult.error, 'select', { route: '/api/administration/summary' });
 
   // Aggregate totals
   const incomes = incomeResult.data ?? [];

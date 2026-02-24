@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { requireAdministrationAccess } from '@/lib/plan-guard';
+import { dbError } from '@/lib/api-error';
 
 const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -45,8 +46,8 @@ export async function GET(req: NextRequest) {
 
   const [incomeResult, expenseResult] = await Promise.all([incomeQuery, expenseQuery]);
 
-  if (incomeResult.error) return NextResponse.json({ error: incomeResult.error.message }, { status: 500 });
-  if (expenseResult.error) return NextResponse.json({ error: expenseResult.error.message }, { status: 500 });
+  if (incomeResult.error) return dbError(incomeResult.error, 'select', { route: '/api/administration/cashflow' });
+  if (expenseResult.error) return dbError(expenseResult.error, 'select', { route: '/api/administration/cashflow' });
 
   const incomes = incomeResult.data ?? [];
   const expenses = expenseResult.data ?? [];

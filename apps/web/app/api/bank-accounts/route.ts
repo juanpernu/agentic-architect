@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { bankAccountCreateSchema } from '@/lib/schemas';
+import { dbError } from '@/lib/api-error';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -16,7 +17,7 @@ export async function GET() {
     .eq('is_active', true)
     .order('name', { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/bank-accounts' });
   return NextResponse.json(data);
 }
 
@@ -43,6 +44,6 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'insert', { route: '/api/bank-accounts' });
   return NextResponse.json(data, { status: 201 });
 }

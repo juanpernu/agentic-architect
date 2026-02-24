@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { UserRole } from '@architech/shared';
 import { getDb } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export interface AuthContext {
   userId: string;
@@ -162,7 +163,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       fullName = `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() || 'Usuario';
       email = email || (clerkUser.emailAddresses?.[0]?.emailAddress ?? '');
     } catch (e) {
-      console.error('Failed to fetch Clerk user for bootstrap:', e);
+      logger.error('Failed to fetch Clerk user for bootstrap', { userId }, e);
     }
   }
 

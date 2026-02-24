@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { dbError } from '@/lib/api-error';
 
 /** Calculate total from a live snapshot's sections.
  *  Uses section-level subtotal override when present, otherwise sums items. */
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/budgets' });
 
   // Fetch latest version total for each budget
   const budgetIds = (data ?? []).map((b) => b.id);
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (budgetError) return NextResponse.json({ error: budgetError.message }, { status: 500 });
+  if (budgetError) return dbError(budgetError, 'insert', { route: '/api/budgets' });
 
   return NextResponse.json(budget, { status: 201 });
 }

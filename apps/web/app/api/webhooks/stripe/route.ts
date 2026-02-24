@@ -2,6 +2,8 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe/client';
 import { getDb } from '@/lib/supabase';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import type Stripe from 'stripe';
 
 export async function POST(request: Request) {
@@ -19,10 +21,10 @@ export async function POST(request: Request) {
     event = getStripe().webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error('Stripe webhook signature verification failed:', err);
+    logger.error('Stripe webhook signature verification failed', { route: '/api/webhooks/stripe' }, err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -47,8 +49,8 @@ export async function POST(request: Request) {
         const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
         const seatItem = subscription.items.data.find(
           (item) =>
-            item.price.id === process.env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID ||
-            item.price.id === process.env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID
+            item.price.id === env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID ||
+            item.price.id === env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID
         );
         const seatCount = seatItem?.quantity ?? 1;
         const interval = subscription.items.data[0]?.price.recurring?.interval;
@@ -82,8 +84,8 @@ export async function POST(request: Request) {
 
         const seatItem = subscription.items.data.find(
           (item) =>
-            item.price.id === process.env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID ||
-            item.price.id === process.env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID
+            item.price.id === env.STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID ||
+            item.price.id === env.STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID
         );
 
         await db
@@ -147,7 +149,7 @@ export async function POST(request: Request) {
       }
     }
   } catch (err) {
-    console.error('Stripe webhook handler error:', err);
+    logger.error('Stripe webhook handler error', { route: '/api/webhooks/stripe' }, err);
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 

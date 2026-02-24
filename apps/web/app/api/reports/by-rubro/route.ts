@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
   if (dateTo) query = query.lte('receipt_date', dateTo);
 
   const { data: receipts, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/reports/by-rubro' });
 
   const map = new Map<string, {
     project_id: string;

@@ -3,6 +3,8 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { getDb } from '@/lib/supabase';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import type { UserRole } from '@architech/shared';
 
 // S4: Narrow event types to handled cases
@@ -53,15 +55,12 @@ async function syncMetadataToClerk(
     });
   } catch (error) {
     // Log but don't fail the webhook — DB sync is the critical path
-    console.error('Failed to sync metadata to Clerk:', error);
+    logger.error('Failed to sync metadata to Clerk', { clerkUserId }, error);
   }
 }
 
 export async function POST(req: Request) {
-  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
-  if (!WEBHOOK_SECRET) {
-    return NextResponse.json({ error: 'Missing webhook secret' }, { status: 500 });
-  }
+  const WEBHOOK_SECRET = env.CLERK_WEBHOOK_SECRET;
 
   const headerPayload = await headers();
   const svix_id = headerPayload.get('svix-id');
@@ -109,7 +108,7 @@ export async function POST(req: Request) {
 
       // Fail-safe: if lookup fails, assume org exists (skip logo to avoid overwrite)
       if (lookupError) {
-        console.error('Failed to check existing org:', lookupError);
+        logger.error('Failed to check existing org', { route: '/api/webhooks/clerk' }, lookupError);
       }
 
       const orgPayload: Record<string, string | null> = {
@@ -129,7 +128,7 @@ export async function POST(req: Request) {
       );
 
       if (orgError) {
-        console.error('Failed to upsert organization:', orgError);
+        logger.error('Failed to upsert organization', { route: '/api/webhooks/clerk' }, orgError);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
 
@@ -149,7 +148,7 @@ export async function POST(req: Request) {
         .single();
 
       if (userError || !upsertedUser) {
-        console.error('Failed to upsert user:', userError);
+        logger.error('Failed to upsert user', { route: '/api/webhooks/clerk' }, userError);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
 
@@ -212,7 +211,7 @@ export async function POST(req: Request) {
           fullName = `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() || fullName;
           email = email || (clerkUser.emailAddresses?.[0]?.emailAddress ?? '');
         } catch (e) {
-          console.error('Failed to fetch Clerk user for membership creation:', e);
+          logger.error('Failed to fetch Clerk user for membership creation', { route: '/api/webhooks/clerk' }, e);
         }
       }
 
@@ -229,7 +228,7 @@ export async function POST(req: Request) {
         .single();
 
       if (insertError || !newUser) {
-        console.error('Failed to create user from membership webhook:', insertError);
+        logger.error('Failed to create user from membership webhook', { route: '/api/webhooks/clerk' }, insertError);
         break;
       }
 
@@ -253,7 +252,7 @@ export async function POST(req: Request) {
       }, { onConflict: 'id' });
 
       if (orgError) {
-        console.error('Failed to upsert organization from org.created:', orgError);
+        logger.error('Failed to upsert organization from org.created', { route: '/api/webhooks/clerk' }, orgError);
         return NextResponse.json({ error: 'Database error' }, { status: 500 });
       }
 

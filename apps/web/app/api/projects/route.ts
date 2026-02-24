@@ -4,6 +4,7 @@ import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { projectCreateSchema } from '@/lib/schemas';
 import { checkPlanLimit } from '@/lib/plan-guard';
+import { dbError } from '@/lib/api-error';
 
 export async function GET() {
   const ctx = await getAuthContext();
@@ -23,7 +24,7 @@ export async function GET() {
   }
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/projects' });
 
   // Calculate total_spend per project
   const projects = (data ?? []).map(({ receipts, ...p }) => ({
@@ -64,6 +65,6 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'insert', { route: '/api/projects' });
   return NextResponse.json(data, { status: 201 });
 }

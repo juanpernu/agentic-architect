@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { budgetSnapshotSchema } from '@/lib/schemas';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -82,7 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .update({ status: 'draft' })
       .eq('id', id);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbError(error, 'update', { route: '/api/budgets/[id]' });
     return NextResponse.json({ status: 'draft' });
   }
 
@@ -102,7 +103,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .update({ snapshot: parsed.data })
       .eq('id', id);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbError(error, 'update', { route: '/api/budgets/[id]' });
     return NextResponse.json({ saved: true });
   }
 
@@ -150,7 +151,7 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
       created_by: ctx.dbUserId,
     });
 
-  if (versionError) return NextResponse.json({ error: versionError.message }, { status: 500 });
+  if (versionError) return dbError(versionError, 'insert', { route: '/api/budgets/[id]' });
 
   const { error: updateError } = await db
     .from('budgets')
@@ -161,7 +162,7 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
     // Compensate: remove the orphaned version row
     await db.from('budget_versions').delete()
       .eq('budget_id', id).eq('version_number', newVersion);
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+    return dbError(updateError, 'update', { route: '/api/budgets/[id]' });
   }
 
   return NextResponse.json({ version_number: newVersion, total_amount: totalAmount });
@@ -189,7 +190,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .delete()
     .eq('id', id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'delete', { route: '/api/budgets/[id]' });
 
   return NextResponse.json({ success: true });
 }
