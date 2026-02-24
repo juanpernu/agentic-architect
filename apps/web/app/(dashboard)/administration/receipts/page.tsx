@@ -97,14 +97,14 @@ export default function AdministrationReceiptsPage() {
             />
           </div>
           {/* Filter badges */}
-          <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger size="sm" className="rounded-full">
+              <SelectTrigger size="sm" className="rounded-full" aria-label="Proyecto">
                 <span className="text-muted-foreground">Proyecto:</span>{' '}
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos los proyectos</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
@@ -113,12 +113,12 @@ export default function AdministrationReceiptsPage() {
               </SelectContent>
             </Select>
             <Select value={rubroFilter} onValueChange={setRubroFilter}>
-              <SelectTrigger size="sm" className="rounded-full">
+              <SelectTrigger size="sm" className="rounded-full" aria-label="Rubro">
                 <span className="text-muted-foreground">Rubro:</span>{' '}
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos los rubros</SelectItem>
                 {rubros?.map((rubro) => (
                   <SelectItem key={rubro.id} value={rubro.id}>
                     <span className="flex items-center gap-2">
@@ -135,12 +135,12 @@ export default function AdministrationReceiptsPage() {
               </SelectContent>
             </Select>
             <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
-              <SelectTrigger size="sm" className="rounded-full">
+              <SelectTrigger size="sm" className="rounded-full" aria-label="Cuenta">
                 <span className="text-muted-foreground">Cuenta:</span>{' '}
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="all">Todas las cuentas</SelectItem>
                 {bankAccounts?.map((ba) => (
                   <SelectItem key={ba.id} value={ba.id}>
                     {ba.name} ({ba.bank_name})
@@ -148,20 +148,26 @@ export default function AdministrationReceiptsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="h-8 rounded-full text-xs w-[130px] shrink-0"
-              aria-label="Desde"
-            />
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="h-8 rounded-full text-xs w-[130px] shrink-0"
-              aria-label="Hasta"
-            />
+            <div className="flex items-center gap-1.5 border rounded-full px-3 h-8 shrink-0">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Desde:</span>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="border-0 p-0 h-auto text-xs shadow-none focus-visible:ring-0 w-[100px]"
+                aria-label="Desde"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 border rounded-full px-3 h-8 shrink-0">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Hasta:</span>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="border-0 p-0 h-auto text-xs shadow-none focus-visible:ring-0 w-[100px]"
+                aria-label="Hasta"
+              />
+            </div>
           </div>
         </div>
       </div>
