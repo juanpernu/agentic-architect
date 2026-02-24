@@ -77,10 +77,10 @@ Stripe maneja todo el billing. La DB solo guarda el estado resultante. Webhooks 
 
 | Product | Tipo | Descripción |
 |---------|------|-------------|
-| ObraLink Advance — Base mensual | recurring/month | Cargo base mensual |
-| ObraLink Advance — Base anual | recurring/year | Cargo base anual (2 meses gratis) |
-| ObraLink Advance — Seat mensual | recurring/month | Por usuario adicional, mensual |
-| ObraLink Advance — Seat anual | recurring/year | Por usuario adicional, anual |
+| Agentect Advance — Base mensual | recurring/month | Cargo base mensual |
+| Agentect Advance — Base anual | recurring/year | Cargo base anual (2 meses gratis) |
+| Agentect Advance — Seat mensual | recurring/month | Por usuario adicional, mensual |
+| Agentect Advance — Seat anual | recurring/year | Por usuario adicional, anual |
 
 2. **Configurar Customer Portal** en dashboard.stripe.com/settings/billing/portal:
    - Habilitar "Cancel subscription"

@@ -1,14 +1,14 @@
-# ObraLink MVP — Implementation Plan
+# Agentect MVP — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Build ObraLink, a SaaS construction project management platform with AI-powered receipt extraction.
+**Goal:** Build Agentect, a SaaS construction project management platform with AI-powered receipt extraction.
 
 **Architecture:** Turborepo monorepo with Next.js App Router frontend, Supabase (PostgreSQL + Storage) backend, Clerk auth, and Claude Vision AI extraction engine. Multi-tenant via RLS policies filtered by organization_id from Clerk JWT.
 
 **Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/ui, Recharts, Clerk, Supabase, Claude Vision API, Turborepo, Vercel
 
-**Design Document:** `docs/plans/2026-02-16-obralink-design.md`
+**Design Document:** `docs/plans/2026-02-16-agentect-design.md`
 
 ---
 
@@ -29,14 +29,14 @@
 **Step 1: Create Turborepo project**
 
 ```bash
-npx create-turbo@latest obralink --example basic
-cd obralink
+npx create-turbo@latest agentect --example basic
+cd agentect
 ```
 
 If that doesn't match our structure, manually init:
 
 ```bash
-mkdir -p obralink && cd obralink
+mkdir -p agentect && cd agentect
 npm init -y
 ```
 
@@ -44,7 +44,7 @@ npm init -y
 
 ```json
 {
-  "name": "obralink",
+  "name": "agentect",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
@@ -369,7 +369,7 @@ export * from './types';
 
 ```bash
 git add packages/shared/
-git commit -m "feat: add shared TypeScript types and enums for ObraLink domain model"
+git commit -m "feat: add shared TypeScript types and enums for Agentect domain model"
 ```
 
 ---
@@ -918,7 +918,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ObraLink',
+  title: 'Agentect',
   description: 'Construction project management with AI-powered receipt tracking',
 };
 
@@ -959,7 +959,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
       <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-bold">ObraLink</h1>
+        <h1 className="text-xl font-bold">Agentect</h1>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => (

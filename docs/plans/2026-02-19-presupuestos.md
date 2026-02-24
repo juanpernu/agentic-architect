@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add versioned project budgets to ObraLink — each project has one budget with immutable snapshots on every save, sections mapped to cost centers, and line items per section.
+**Goal:** Add versioned project budgets to Agentect — each project has one budget with immutable snapshots on every save, sections mapped to cost centers, and line items per section.
 
 **Architecture:** Snapshot-based versioning with JSONB. Two DB tables (`budgets` + `budget_versions`). RESTful API following existing patterns. Client pages with SWR, inline editing, and accordion sections.
 

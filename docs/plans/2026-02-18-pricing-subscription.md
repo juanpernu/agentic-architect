@@ -1399,7 +1399,7 @@ git commit -m "chore: cleanup unused imports"
 After the code is deployed:
 
 1. **Go to** [dashboard.stripe.com](https://dashboard.stripe.com) → Products
-2. **Create Product** "ObraLink Advance" with 4 prices:
+2. **Create Product** "Agentect Advance" with 4 prices:
    - Monthly base: recurring/month, your price in ARS
    - Yearly base: recurring/year, monthly×10
    - Monthly seat: recurring/month, per-user price

@@ -5,7 +5,7 @@
 
 ## Goal
 
-Add project budgets ("presupuestos") to ObraLink. Each project has one budget that evolves over time — every save creates a new immutable version (snapshot). Budget sections map to existing cost centers, with line items for materials, labor, etc.
+Add project budgets ("presupuestos") to Agentect. Each project has one budget that evolves over time — every save creates a new immutable version (snapshot). Budget sections map to existing cost centers, with line items for materials, labor, etc.
 
 ## Approach
 

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add subtle, professional visual polish (Vercel/Linear style) and fix UX issues across all pages of Architech. CSS-only approach with zero bundle size impact.
+Add subtle, professional visual polish (Vercel/Linear style) and fix UX issues across all pages of Agentect. CSS-only approach with zero bundle size impact.
 
 ## Scope
 

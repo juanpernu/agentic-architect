@@ -6,7 +6,7 @@
 
 ## Problem
 
-ObraLink needs to:
+Agentect needs to:
 1. Register organization bank accounts (name, CBU, alias, etc.)
 2. Link receipts to the bank account used for the expense
 

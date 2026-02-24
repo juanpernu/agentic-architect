@@ -14,7 +14,7 @@ When a user creates an organization in Clerk (with name and logo), seed those va
 | Source of truth | Supabase (Clerk is seed only) | User should control org data from app Settings |
 | Sync frequency | `organization.created` only | One-time seed, no ongoing sync |
 | Logo storage | CDN URL from Clerk (no re-upload) | Temporary — user can upload own logo from Settings |
-| Sidebar branding | Keep "Architech" hardcoded | No change to sidebar |
+| Sidebar branding | Keep "Agentect" hardcoded | No change to sidebar |
 
 ## Approach: Webhook `organization.created`
 
