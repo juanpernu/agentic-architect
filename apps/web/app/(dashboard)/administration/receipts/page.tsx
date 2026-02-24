@@ -10,7 +10,6 @@ import type { ReceiptWithDetails } from '@/lib/api-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
 import {
@@ -39,7 +38,6 @@ export default function AdministrationReceiptsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [rubroFilter, setRubroFilter] = useState<string>('all');
   const [bankAccountFilter, setBankAccountFilter] = useState<string>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -62,15 +60,13 @@ export default function AdministrationReceiptsPage() {
         .includes(searchQuery.toLowerCase());
       const matchesProject =
         projectFilter === 'all' || receipt.project_id === projectFilter;
-      const matchesStatus =
-        statusFilter === 'all' || receipt.status === statusFilter;
       const matchesRubro =
         rubroFilter === 'all' || receipt.rubro_id === rubroFilter;
       const matchesBankAccount =
         bankAccountFilter === 'all' || receipt.bank_account_id === bankAccountFilter;
       const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
       const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
-      return matchesSearch && matchesProject && matchesStatus && matchesRubro && matchesBankAccount && matchesDateFrom && matchesDateTo;
+      return matchesSearch && matchesProject && matchesRubro && matchesBankAccount && matchesDateFrom && matchesDateTo;
     })
     .sort((a, b) => {
       const cmp = a.receipt_date.localeCompare(b.receipt_date);
@@ -115,20 +111,6 @@ export default function AdministrationReceiptsPage() {
                     {project.name}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Estado</label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="pending">Pendiente</SelectItem>
-                <SelectItem value="confirmed">Confirmado</SelectItem>
-                <SelectItem value="rejected">Rechazado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -202,7 +184,7 @@ export default function AdministrationReceiptsPage() {
           icon={Receipt}
           title="No hay comprobantes"
           description={
-            searchQuery || projectFilter !== 'all' || statusFilter !== 'all' || rubroFilter !== 'all' || bankAccountFilter !== 'all' || dateFrom || dateTo
+            searchQuery || projectFilter !== 'all' || rubroFilter !== 'all' || bankAccountFilter !== 'all' || dateFrom || dateTo
               ? 'No se encontraron comprobantes con los filtros seleccionados'
               : 'Los comprobantes cargados aparecerán aquí'
           }
@@ -231,7 +213,6 @@ export default function AdministrationReceiptsPage() {
                     </Button>
                   </TableHead>
                   <TableHead className="text-right">Monto</TableHead>
-                  <TableHead>Estado</TableHead>
                   <TableHead>Cargado por</TableHead>
                 </TableRow>
               </TableHeader>
@@ -308,9 +289,6 @@ export default function AdministrationReceiptsPage() {
                     <TableCell className="text-right font-semibold">
                       {formatCurrency(receipt.total_amount)}
                     </TableCell>
-                    <TableCell>
-                      <StatusBadge status={receipt.status} />
-                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {receipt.uploader.full_name}
                     </TableCell>
@@ -327,7 +305,7 @@ export default function AdministrationReceiptsPage() {
                   <TableCell className="text-right font-semibold">
                     {formatCurrency(totalAmount)}
                   </TableCell>
-                  <TableCell colSpan={2} />
+                  <TableCell />
                 </TableRow>
               </TableFooter>
             </Table>

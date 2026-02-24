@@ -10,10 +10,9 @@ export async function GET() {
 
   let query = db
     .from('projects')
-    .select('id, name, receipts!inner(total_amount, status)')
+    .select('id, name, receipts!inner(total_amount)')
     .eq('organization_id', ctx.orgId)
-    .eq('status', 'active')
-    .eq('receipts.status', 'confirmed');
+    .eq('status', 'active');
 
   // Architects only see their own projects
   if (ctx.role === 'architect') {
@@ -27,7 +26,7 @@ export async function GET() {
   const result = (data ?? []).map((p) => ({
     project_id: p.id,
     project_name: p.name,
-    total_spend: (p.receipts as Array<{ total_amount: number; status: string }>)
+    total_spend: (p.receipts as Array<{ total_amount: number }>)
       ?.reduce((sum: number, r) => sum + Number(r.total_amount), 0) ?? 0,
   }));
 

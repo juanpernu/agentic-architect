@@ -1,4 +1,4 @@
-import type { UserRole, ProjectStatus, ReceiptStatus, ProjectColor } from './enums';
+import type { UserRole, ProjectStatus, ProjectColor } from './enums';
 
 export interface Organization {
   id: string;
@@ -69,7 +69,6 @@ export interface Receipt {
   ai_confidence: number;
   rubro_id: string | null;
   bank_account_id: string | null;
-  status: ReceiptStatus;
   created_at: string;
   updated_at: string;
 }
@@ -216,7 +215,6 @@ export interface DashboardStats {
   active_projects: number;
   monthly_spend: number;
   weekly_receipts: number;
-  pending_review: number;
   new_projects_this_week: number;
   previous_month_spend: number;
 }

@@ -23,7 +23,6 @@ export async function GET() {
 
   let monthlySpendQuery = db.from('receipts').select('total_amount, projects!inner(organization_id, architect_id)')
     .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'confirmed')
     .gte('receipt_date', startOfMonth);
   if (architectFilter) monthlySpendQuery = monthlySpendQuery.eq('projects.architect_id', architectFilter);
 
@@ -32,16 +31,10 @@ export async function GET() {
     .gte('created_at', startOfWeek);
   if (architectFilter) weeklyReceiptsQuery = weeklyReceiptsQuery.eq('projects.architect_id', architectFilter);
 
-  let pendingReviewQuery = db.from('receipts').select('id, projects!inner(organization_id, architect_id)', { count: 'exact', head: true })
-    .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'pending');
-  if (architectFilter) pendingReviewQuery = pendingReviewQuery.eq('projects.architect_id', architectFilter);
-
-  const [projects, monthlySpend, weeklyReceipts, pendingReview] = await Promise.all([
+  const [projects, monthlySpend, weeklyReceipts] = await Promise.all([
     projectsQuery,
     monthlySpendQuery,
     weeklyReceiptsQuery,
-    pendingReviewQuery,
   ]);
 
   const totalMonthlySpend = (monthlySpend.data ?? [])
@@ -51,6 +44,5 @@ export async function GET() {
     active_projects: projects.count ?? 0,
     monthly_spend: totalMonthlySpend,
     weekly_receipts: weeklyReceipts.count ?? 0,
-    pending_review: pendingReview.count ?? 0,
   });
 }

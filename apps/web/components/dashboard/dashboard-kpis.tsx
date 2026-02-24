@@ -1,4 +1,4 @@
-import { Building2, DollarSign, Receipt, Clock } from 'lucide-react';
+import { Building2, DollarSign, Receipt } from 'lucide-react';
 import { StatCard } from '@/components/ui/stat-card';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
 import { getAuthContext } from '@/lib/auth';
@@ -31,13 +31,11 @@ async function fetchStats(): Promise<DashboardStats | null> {
 
   let monthlySpendQuery = db.from('receipts').select('total_amount, projects!inner(organization_id, architect_id)')
     .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'confirmed')
     .gte('receipt_date', startOfMonth);
   if (architectFilter) monthlySpendQuery = monthlySpendQuery.eq('projects.architect_id', architectFilter);
 
   let prevMonthSpendQuery = db.from('receipts').select('total_amount, projects!inner(organization_id, architect_id)')
     .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'confirmed')
     .gte('receipt_date', startOfPrevMonth)
     .lte('receipt_date', endOfPrevMonth);
   if (architectFilter) prevMonthSpendQuery = prevMonthSpendQuery.eq('projects.architect_id', architectFilter);
@@ -47,13 +45,8 @@ async function fetchStats(): Promise<DashboardStats | null> {
     .gte('created_at', startOfWeek);
   if (architectFilter) weeklyReceiptsQuery = weeklyReceiptsQuery.eq('projects.architect_id', architectFilter);
 
-  let pendingReviewQuery = db.from('receipts').select('id, projects!inner(organization_id, architect_id)', { count: 'exact', head: true })
-    .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'pending');
-  if (architectFilter) pendingReviewQuery = pendingReviewQuery.eq('projects.architect_id', architectFilter);
-
-  const [projects, newProjects, monthlySpend, prevMonthSpend, weeklyReceipts, pendingReview] = await Promise.all([
-    projectsQuery, newProjectsQuery, monthlySpendQuery, prevMonthSpendQuery, weeklyReceiptsQuery, pendingReviewQuery,
+  const [projects, newProjects, monthlySpend, prevMonthSpend, weeklyReceipts] = await Promise.all([
+    projectsQuery, newProjectsQuery, monthlySpendQuery, prevMonthSpendQuery, weeklyReceiptsQuery,
   ]);
 
   const totalMonthlySpend = (monthlySpend.data ?? [])
@@ -66,7 +59,6 @@ async function fetchStats(): Promise<DashboardStats | null> {
     active_projects: projects.count ?? 0,
     monthly_spend: totalMonthlySpend,
     weekly_receipts: weeklyReceipts.count ?? 0,
-    pending_review: pendingReview.count ?? 0,
     new_projects_this_week: newProjects.count ?? 0,
     previous_month_spend: totalPrevMonthSpend,
   };
@@ -100,7 +92,7 @@ export async function DashboardKPIs() {
     : undefined;
 
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       <StatCard
         title="Proyectos Activos"
         value={data.active_projects}
@@ -126,16 +118,6 @@ export async function DashboardKPIs() {
         iconBg="bg-purple-50 dark:bg-purple-900/20"
         iconColor="text-purple-600 dark:text-purple-400"
         subtitle="Esta semana"
-      />
-      <StatCard
-        title="Pendientes Review"
-        value={data.pending_review}
-        icon={Clock}
-        iconBg="bg-amber-50 dark:bg-amber-900/20"
-        iconColor="text-amber-600 dark:text-amber-400"
-        subtitle={data.pending_review > 0 ? 'Requiere atención' : 'Al día'}
-        subtitleVariant={data.pending_review > 0 ? 'warning' : 'muted'}
-        pulse={data.pending_review > 0}
       />
     </div>
   );

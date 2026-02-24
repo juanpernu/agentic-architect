@@ -11,7 +11,6 @@ import type { ReceiptWithDetails } from '@/lib/api-types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { KPICard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
 import {
@@ -101,7 +100,6 @@ export default function ReportsPage() {
     if (!expandedRubro) return '';
     const params = new URLSearchParams();
     params.set('rubro_id', expandedRubro);
-    params.set('status', 'confirmed');
     if (projectFilter !== 'all') params.set('project_id', projectFilter);
     return `?${params.toString()}`;
   }, [expandedRubro, projectFilter]);
@@ -338,7 +336,6 @@ export default function ReportsPage() {
                                                     <TableHead>Proveedor</TableHead>
                                                     <TableHead>Fecha</TableHead>
                                                     <TableHead className="text-right">Monto</TableHead>
-                                                    <TableHead>Estado</TableHead>
                                                   </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -357,9 +354,6 @@ export default function ReportsPage() {
                                                       </TableCell>
                                                       <TableCell className="text-right font-semibold">
                                                         {formatCurrency(receipt.total_amount)}
-                                                      </TableCell>
-                                                      <TableCell>
-                                                        <StatusBadge status={receipt.status} />
                                                       </TableCell>
                                                     </TableRow>
                                                   ))}

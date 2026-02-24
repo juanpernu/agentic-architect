@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const updateFields: Record<string, unknown> = {};
 
   // Simple text/number fields
-  const directFields = ['vendor', 'total_amount', 'receipt_date', 'receipt_type', 'receipt_code', 'receipt_number', 'status', 'project_id', 'uploaded_by'] as const;
+  const directFields = ['vendor', 'total_amount', 'receipt_date', 'receipt_type', 'receipt_code', 'receipt_number', 'project_id', 'uploaded_by'] as const;
   for (const field of directFields) {
     if (body[field] !== undefined) {
       updateFields[field] = body[field];

@@ -22,7 +22,6 @@ import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
 import type { Rubro, BankAccount } from '@architech/shared';
 import { EmptyState } from '@/components/ui/empty-state';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -437,9 +436,6 @@ export default function ReceiptDetailPage() {
                 <span className="text-muted-foreground font-normal ml-2 text-base md:text-xl">#{receipt.receipt_number}</span>
               )}
             </h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <StatusBadge status={receipt.status} />
-            </div>
           </div>
           {isAdmin && (
             <Button
