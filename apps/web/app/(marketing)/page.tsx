@@ -169,7 +169,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════ FEATURES ═══════════════ */}
-      <section id="features" className="py-24">
+      <section id="features" className="py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid lg:grid-cols-3 gap-8">
 
@@ -230,7 +230,7 @@ export default function LandingPage() {
               </div>
 
               {/* CSS bar chart */}
-              <div className="h-48 sm:h-56 w-full relative">
+              <div className="h-40 sm:h-56 w-full relative">
                 {/* Grid lines */}
                 <div className="absolute inset-0 flex flex-col justify-between">
                   {[0, 1, 2, 3].map((i) => (
@@ -245,7 +245,7 @@ export default function LandingPage() {
                     { label: 'Rubro 3', budget: '90%', real: '70%' },
                     { label: 'Rubro 4', budget: '30%', real: '25%' },
                   ].map((rubro) => (
-                    <div key={rubro.label} className="w-12 sm:w-16 flex flex-col items-center">
+                    <div key={rubro.label} className="w-10 sm:w-16 flex flex-col items-center">
                       <div className="w-full flex gap-1 items-end h-40">
                         <div className="w-1/2 bg-gray-300 rounded-t-sm" style={{ height: rubro.budget }} />
                         <div className="w-1/2 bg-primary rounded-t-sm" style={{ height: rubro.real }} />
