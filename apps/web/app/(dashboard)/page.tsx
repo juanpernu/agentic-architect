@@ -24,10 +24,9 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
 
   let query = db
     .from('projects')
-    .select('id, name, receipts!inner(total_amount, status)')
+    .select('id, name, receipts!inner(total_amount)')
     .eq('organization_id', ctx.orgId)
-    .eq('status', 'active')
-    .eq('receipts.status', 'confirmed');
+    .eq('status', 'active');
 
   if (ctx.role === 'architect') {
     query = query.eq('architect_id', ctx.dbUserId);
@@ -39,7 +38,7 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
     .map((p) => ({
       project_id: p.id,
       project_name: p.name,
-      total_spend: (p.receipts as Array<{ total_amount: number; status: string }>)
+      total_spend: (p.receipts as Array<{ total_amount: number }>)
         ?.reduce((sum: number, r) => sum + Number(r.total_amount), 0) ?? 0,
     }))
     .sort((a, b) => b.total_spend - a.total_spend);
@@ -57,7 +56,6 @@ async function fetchSpendTrend(): Promise<SpendTrend[]> {
     .from('receipts')
     .select('total_amount, receipt_date, projects!inner(organization_id, architect_id)')
     .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'confirmed')
     .gte('receipt_date', sixMonthsAgo.toISOString().split('T')[0]);
 
   if (ctx.role === 'architect') {
@@ -118,8 +116,8 @@ async function SpendTrendSection() {
 
 function KPISkeleton() {
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="rounded-xl border border-border bg-card p-6 flex flex-col gap-2">
           <div className="flex justify-between items-center pb-2">
             <Skeleton className="h-4 w-24" />

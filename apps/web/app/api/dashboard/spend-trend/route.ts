@@ -16,7 +16,6 @@ export async function GET() {
     .from('receipts')
     .select('total_amount, receipt_date, projects!inner(organization_id, architect_id)')
     .eq('projects.organization_id', ctx.orgId)
-    .eq('status', 'confirmed')
     .gte('receipt_date', sixMonthsAgo.toISOString().split('T')[0]);
 
   // Architects only see their own projects' trends

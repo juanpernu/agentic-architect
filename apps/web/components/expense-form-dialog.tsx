@@ -65,7 +65,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
 
   // Fetch receipts for selected project
   const { data: receipts } = useSWR<Array<{ id: string; vendor: string | null; total_amount: number }>>(
-    projectId ? `/api/receipts?project_id=${projectId}&status=confirmed&limit=100` : null,
+    projectId ? `/api/receipts?project_id=${projectId}&limit=100` : null,
     fetcher
   );
 

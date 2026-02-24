@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get('project_id');
-  const status = searchParams.get('status');
   const rubroId = searchParams.get('rubro_id');
   const limit = searchParams.get('limit');
 
@@ -24,7 +23,6 @@ export async function GET(req: NextRequest) {
   query = query.eq('project.organization_id', ctx.orgId);
 
   if (projectId) query = query.eq('project_id', projectId);
-  if (status) query = query.eq('status', status);
   if (rubroId) query = query.eq('rubro_id', rubroId);
 
   // Architects only see own receipts
@@ -200,7 +198,6 @@ export async function POST(req: NextRequest) {
       image_url: body.image_url,
       ai_raw_response: body.ai_raw_response ?? {},
       ai_confidence: body.ai_confidence ?? 0,
-      status: 'confirmed',
     })
     .select()
     .single();
