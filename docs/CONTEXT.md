@@ -1,7 +1,7 @@
 # Agentect — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
-> Ultima actualizacion: 2026-02-22
+> Ultima actualizacion: 2026-02-24
 
 ---
 
@@ -88,7 +88,7 @@ agentic-architect/
 │   ├── shared/                 # @architech/shared
 │   │   └── src/
 │   │       ├── types.ts        # Todas las interfaces TypeScript
-│   │       ├── enums.ts        # UserRole, ProjectStatus, ReceiptStatus, etc.
+│   │       ├── enums.ts        # UserRole, ProjectStatus, etc.
 │   │       ├── plans.ts        # PLAN_LIMITS (free/advance/enterprise)
 │   │       └── index.ts        # Re-exports
 │   ├── ai/                     # @architech/ai
@@ -121,7 +121,7 @@ agentic-architect/
 organizations (multi-tenant root)
 ├── users (clerk_user_id, role, is_active)
 ├── projects (name, address, status, color, architect_id)
-│   ├── receipts (vendor, total, date, type, ai_confidence, status)
+│   ├── receipts (vendor, total, date, type, ai_confidence)
 │   │   └── receipt_items (description, qty, unit_price, subtotal)
 │   ├── budgets (status: draft|published, snapshot JSON)
 │   │   ├── rubros (name, color, sort_order)
@@ -358,9 +358,9 @@ PLAN_LIMITS = {
 
 ### Layout
 
-- **`sidebar.tsx`** — Nav desktop (w-64 fixed), items con role gates, UserButton de Clerk + badge de rol
-- **`bottom-nav.tsx`** — Nav mobile, mismos items sin labels
-- **Dashboard layout** — `md:pl-64` para compensar sidebar
+- **`sidebar.tsx`** — Exporta `navItems` (con tipado `UserRole[]`), `SidebarContent` (nav links + user footer reutilizable) y `Sidebar` (desktop aside `hidden md:flex md:w-64 md:fixed`). Props: `onNavigate?: () => void`, `showUserFooter?: boolean`. Role gates, UserButton de Clerk + badge de rol, `aria-current="page"` en links activos.
+- **`mobile-header.tsx`** — Header mobile sticky (`md:hidden`): hamburger button + titulo dinamico (mapeado de `navItems` + `EXTRA_TITLES`) + UserButton. Abre Shadcn Sheet (`side="left"`) con `SidebarContent`. Auto-cierra al navegar. Accesibilidad: `aria-expanded`, `aria-haspopup="dialog"`, `VisuallyHidden` SheetTitle.
+- **Dashboard layout** — `md:pl-64 pt-[52px] md:pt-0` para compensar sidebar (desktop) y mobile header
 
 ### Feature Components
 
@@ -381,7 +381,7 @@ PLAN_LIMITS = {
 
 ### Dashboard Components
 
-- `dashboard-kpis.tsx` — 4 KPI cards (proyectos, gasto mensual, comprobantes semanales, pendientes)
+- `dashboard-kpis.tsx` — 3 KPI cards (proyectos activos, gasto mensual, comprobantes semanales)
 - `recent-receipts.tsx` — Tabla de ultimos comprobantes
 - `create-project-card.tsx` — CTA card para crear primer proyecto
 - `spend-by-project-chart.tsx` — Bar chart de gasto por proyecto
@@ -395,7 +395,7 @@ PLAN_LIMITS = {
 
 ### UI Components (Shadcn customizados)
 
-AlertDialog, Avatar, Badge, Button, Card (con CardAction), Collapsible, CurrencyInput, Dialog, DropdownMenu, EmptyState, Field/FieldGroup/FieldLabel, Input, KpiCard, Label, LoadingSkeleton, PageHeader, RouteError, Select, Separator, Sheet, Skeleton, StatusBadge, Switch, Table, Tabs, Textarea
+AlertDialog, Avatar, Badge, Button, Card (con CardAction), Collapsible, CurrencyInput, Dialog, DropdownMenu, EmptyState, Field/FieldGroup/FieldLabel, Input, KpiCard, Label, LoadingSkeleton, PageHeader, RouteError, Select, Separator, Sheet, Skeleton, Switch, Table, Tabs, Textarea
 
 ---
 
@@ -547,6 +547,10 @@ await mutate('/api/endpoint');
 16. Flowchart + designer prompt (documentacion)
 17. UX redesign: mobile-first layouts, shared date-utils/avatar-utils, a11y improvements
 18. Modulo Administracion: ingresos/egresos CRUD, tipos configurables, cashflow chart, balance por proyecto, presupuestado vs real por rubro
+19. Remove receipt status: eliminado campo `status` (siempre era `confirmed`), enum `ReceiptStatus`, KPI "Pendientes Review", filtros/columnas de estado, y componente `StatusBadge` (sin consumidores)
+20. Rename a Agentect: rename global de ObraLink/Architech → Agentect en UI, metadata, docs e internal cache keys. Se preservo el scope npm `@architech/*`. PR #39.
+21. Mobile nav redesign: reemplazo de `bottom-nav.tsx` (tabs inferiores) por `mobile-header.tsx` (hamburger menu + slide-in sidebar Sheet). Extraccion de `SidebarContent` para reuso desktop/mobile. Titulo dinamico por ruta. PR #41.
+22. Database reset para produccion: truncado de las 14 tablas y vaciado de buckets storage (receipts + org-assets). DB lista para lanzamiento.
 
 ---
 
@@ -561,12 +565,12 @@ await mutate('/api/endpoint');
 - Reports con drill-down
 - Budget editor con autosave y versionado
 - Modulo Administracion: ingresos, egresos, cashflow, balance, presupuestado vs real
-- UX mobile-first: layouts responsive, a11y (keyboard nav), shared utils
+- UX mobile: hamburger menu + slide-in sidebar Sheet (reemplaza bottom tabs), layouts responsive, a11y (keyboard nav, aria-current, aria-expanded), shared utils
+- Base de datos de produccion limpia (reset 2026-02-24), storage vaciado
 
 ### Pendientes / mejoras posibles
 - **Stripe Elements migration**: `lib/stripe/checkout.ts` tiene un comment FUTURE sobre migrar de Checkout Sessions a SetupIntent + Subscription con Elements embebidos
 - **Tests**: solo hay tests en `packages/ai/src/__tests__/` — el resto del codigo no tiene tests
-- **Mobile nav**: existe `bottom-nav.tsx` pero el comportamiento no esta documentado extensamente
 - **Notifications**: no hay sistema de notificaciones (email, push)
 - **Export**: no hay export de datos a CSV/Excel
 - **Soft deletes**: solo bank_accounts usa soft delete (is_active). Receipts y projects son hard delete.
@@ -604,13 +608,14 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Necesidad | Archivo |
 |-----------|---------|
 | Tipos compartidos | `packages/shared/src/types.ts` |
-| Enums (roles, status, colors) | `packages/shared/src/enums.ts` |
+| Enums (roles, project status, colors) | `packages/shared/src/enums.ts` |
 | Limites de plan | `packages/shared/src/plans.ts` |
 | Auth server-side | `apps/web/lib/auth.ts` |
 | Plan guard | `apps/web/lib/plan-guard.ts` |
 | AI extraction | `packages/ai/src/extract.ts` + `prompt.ts` |
 | Supabase client | `packages/db/src/client.ts` |
 | Nav + role gates | `apps/web/components/sidebar.tsx` |
+| Mobile hamburger nav | `apps/web/components/mobile-header.tsx` |
 | Budget editor | `apps/web/components/budget-table.tsx` |
 | Receipt review (AI) | `apps/web/components/receipt-review.tsx` |
 | Upload flow | `apps/web/app/(dashboard)/upload/page.tsx` |
@@ -622,4 +627,6 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Avatar utilities | `apps/web/lib/avatar-utils.ts` |
 | Administration schemas | `apps/web/lib/schemas/administration.ts` |
 | Administration module plan | `docs/plans/2026-02-20-administration-module.md` |
+| Rename design + plan | `docs/plans/2026-02-23-rename-to-agentect-design.md`, `...-rename-to-agentect.md` |
+| Mobile nav design + plan | `docs/plans/2026-02-24-mobile-nav-design.md`, `...-mobile-nav.md` |
 | Designer prompt | `docs/designer-prompt.md` |
