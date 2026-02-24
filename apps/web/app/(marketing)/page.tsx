@@ -2,7 +2,8 @@ import Link from 'next/link';
 import {
   Bot, BarChart3, Building2, Check, X,
   Receipt, Table2, Clock, Camera, CloudUpload,
-  LineChart, ArrowRight, CheckCircle,
+  LineChart, ArrowRight, CheckCircle, CheckCircle2,
+  Zap, Star, Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -324,89 +325,83 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            {/* Freelance */}
-            <Card className="p-8 hover:shadow-xl transition-shadow">
-              <h3 className="text-xl font-bold mb-2">Freelance</h3>
-              <p className="text-sm text-muted-foreground mb-6">Para arquitectos independientes.</p>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">$15.000</span>
-                <span className="text-muted-foreground">/mes</span>
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Free */}
+            <div className="rounded-xl border bg-card p-5 shadow-sm flex flex-col">
+              <div className="mb-3">
+                <h3 className="text-2xl font-bold">Free</h3>
+                <span className="text-xl font-bold text-muted-foreground">
+                  $0<span className="text-xs font-normal">/mes</span>
+                </span>
               </div>
-              <Button variant="outline" className="w-full mb-8 rounded-xl" asChild>
+              <p className="text-sm text-muted-foreground mb-4">Para empezar</p>
+              <ul className="space-y-2 mb-4">
+                {['1 proyecto', '20 comprobantes por proyecto', '1 usuario', 'Sin reportes'].map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Button variant="outline" className="w-full mt-auto" asChild>
                 <Link href="/sign-up">Comenzar Gratis</Link>
               </Button>
-              <ul className="space-y-4 text-sm text-muted-foreground">
-                {['Hasta 2 obras activas', '1 usuario', 'Escaneo básico de facturas', 'Reportes mensuales'].map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-
-            {/* Estudio (highlighted) */}
-            <div className="p-0.5 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 shadow-xl shadow-primary/20 relative md:-translate-y-4">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-emerald-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg">
-                Más Popular
-              </div>
-              <Card className="p-8 rounded-[14px] h-full border-0">
-                <h3 className="text-xl font-bold mb-2">Estudio</h3>
-                <p className="text-sm text-muted-foreground mb-6">Para estudios en crecimiento.</p>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-bold">$35.000</span>
-                  <span className="text-muted-foreground">/mes</span>
-                </div>
-                <Button className="w-full mb-8 rounded-xl shadow-lg shadow-primary/25" asChild>
-                  <Link href="/sign-up">Probar 14 días gratis</Link>
-                </Button>
-                <ul className="space-y-4 text-sm text-muted-foreground">
-                  {[
-                    'Hasta 10 obras activas',
-                    '5 usuarios',
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-3">
-                      <Check className="h-4 w-4 text-primary shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                  <li className="flex items-center gap-3">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
-                    <span><strong className="text-foreground">IA Avanzada</strong> (Lectura de items)</span>
-                  </li>
-                  {[
-                    'Comparativa de precios',
-                    'Portal de clientes',
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-3">
-                      <Check className="h-4 w-4 text-primary shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
             </div>
 
-            {/* Empresa */}
-            <Card className="p-8 hover:shadow-xl transition-shadow">
-              <h3 className="text-xl font-bold mb-2">Empresa</h3>
-              <p className="text-sm text-muted-foreground mb-6">Para constructoras grandes.</p>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">Consultar</span>
+            {/* Advance */}
+            <div className="rounded-xl border-2 border-primary/20 bg-card p-5 shadow-sm relative overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                MÁS POPULAR
               </div>
-              <Button variant="outline" className="w-full mb-8 rounded-xl" asChild>
-                <Link href="/sign-up">Contactar Ventas</Link>
-              </Button>
-              <ul className="space-y-4 text-sm text-muted-foreground">
-                {['Obras ilimitadas', 'Usuarios ilimitados', 'API para integración ERP', 'Soporte prioritario 24/7', 'Capacitación al equipo'].map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
-                    <span>{item}</span>
+              <div className="mb-3">
+                <h3 className="text-2xl font-bold flex items-center gap-2">
+                  Advance
+                  <Zap className="h-5 w-5 text-amber-500" />
+                </h3>
+                <span className="text-xl font-bold">
+                  US$30<span className="text-xs font-normal text-muted-foreground">/mes</span>
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">Para equipos en crecimiento</p>
+              <p className="text-xs text-muted-foreground mb-4">+ US$5/usuario/mes</p>
+              <ul className="space-y-2 mb-4">
+                {['20 proyectos', 'Comprobantes ilimitados', 'Reportes de gastos', 'Seats flexibles'].map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                    {f}
                   </li>
                 ))}
               </ul>
-            </Card>
+              <Button className="w-full mt-auto" asChild>
+                <Link href="/sign-up">Probar 14 días gratis</Link>
+              </Button>
+            </div>
+
+            {/* Enterprise — dark gradient */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl p-6 text-white shadow-xl flex flex-col">
+              <div className="mb-1">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-400" />
+                  Enterprise
+                </h3>
+                <span className="text-xl font-bold text-white">Personalizado</span>
+              </div>
+              <p className="text-sm text-gray-300 mb-5">Para grandes organizaciones</p>
+              <div className="space-y-3 mb-6">
+                {['Proyectos ilimitados', 'Comprobantes ilimitados', 'Reportes de gastos', 'Usuarios ilimitados', 'Soporte prioritario'].map((f) => (
+                  <div key={f} className="flex items-center gap-3 text-sm text-gray-200">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Button className="w-full mt-auto bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30" asChild>
+                <Link href="/sign-up">Contactanos</Link>
+              </Button>
+              <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1">
+                <Lock className="h-3 w-3" /> Procesado seguro con Stripe
+              </p>
+            </div>
           </div>
         </div>
       </section>
