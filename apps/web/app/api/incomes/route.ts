@@ -4,6 +4,7 @@ import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { incomeCreateSchema } from '@/lib/schemas';
 import { requireAdministrationAccess } from '@/lib/plan-guard';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
   if (dateTo) query = query.lte('date', dateTo);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/incomes' });
   return NextResponse.json({ data, total: count, page, pageSize });
 }
 
@@ -89,6 +90,6 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'insert', { route: '/api/incomes' });
   return NextResponse.json(data, { status: 201 });
 }

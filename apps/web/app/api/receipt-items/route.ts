@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { dbError } from '@/lib/api-error';
 
 export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -46,6 +47,6 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'insert', { route: '/api/receipt-items' });
   return NextResponse.json(data, { status: 201 });
 }

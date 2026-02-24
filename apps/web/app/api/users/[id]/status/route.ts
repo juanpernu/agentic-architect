@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden, invalidateIsActiveCache } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
+import { dbError } from '@/lib/api-error';
 
 export async function PATCH(
   req: NextRequest,
@@ -50,7 +51,7 @@ export async function PATCH(
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'update', { route: '/api/users/[id]/status' });
   if (!data) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
 
   // Bust the is_active cache so the change takes effect immediately

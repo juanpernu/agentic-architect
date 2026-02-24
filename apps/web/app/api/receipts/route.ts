@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb, getSignedImageUrl } from '@/lib/supabase';
 import { checkPlanLimit } from '@/lib/plan-guard';
+import { dbError } from '@/lib/api-error';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
@@ -36,7 +38,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/receipts' });
 
   // Generate signed URLs for receipt images
   const receipts = data ?? [];
@@ -126,7 +128,7 @@ export async function POST(req: NextRequest) {
       }
       // If CUIT is still invalid after normalization, discard it rather than blocking
       if (!CUIT_REGEX.test(supplierData.cuit as string)) {
-        console.warn('[POST /api/receipts] Discarding invalid CUIT:', supplierData.cuit);
+        logger.warn('Discarding invalid CUIT', { route: '/api/receipts', cuit: supplierData.cuit });
         supplierData.cuit = null;
       }
     }
@@ -154,7 +156,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (supplierError) {
-        console.error('[POST /api/receipts] Supplier upsert failed:', supplierError.message);
+        logger.error('Supplier upsert failed', { route: '/api/receipts' }, supplierError);
       }
       if (supplier) supplierId = supplier.id;
     } else {
@@ -170,7 +172,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (supplierError) {
-        console.error('[POST /api/receipts] Supplier insert failed:', supplierError.message);
+        logger.error('Supplier insert failed', { route: '/api/receipts' }, supplierError);
       }
       if (supplier) supplierId = supplier.id;
     }
@@ -207,7 +209,7 @@ export async function POST(req: NextRequest) {
     if (supplierId && !supplierData?.cuit) {
       await db.from('suppliers').delete().eq('id', supplierId);
     }
-    return NextResponse.json({ error: receiptError.message }, { status: 500 });
+    return dbError(receiptError, 'insert', { route: '/api/receipts' });
   }
 
   // Insert receipt items if provided
@@ -222,7 +224,7 @@ export async function POST(req: NextRequest) {
     const { error: itemsError } = await db.from('receipt_items').insert(items);
     if (itemsError) {
       await db.from('receipts').delete().eq('id', receipt.id);
-      return NextResponse.json({ error: itemsError.message }, { status: 500 });
+      return dbError(itemsError, 'insert', { route: '/api/receipts' });
     }
   }
 

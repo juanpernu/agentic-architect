@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { randomUUID } from 'crypto';
+import { dbError } from '@/lib/api-error';
+import { rateLimit } from '@/lib/rate-limit';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -9,6 +11,9 @@ const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 export async function POST(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
+
+  const rl = rateLimit('upload', ctx.orgId);
+  if (rl) return rl;
 
   const formData = await req.formData();
   const file = formData.get('file') as File | null;
@@ -35,14 +40,14 @@ export async function POST(req: NextRequest) {
       upsert: false,
     });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'upload', { route: '/api/receipts/upload' });
 
   // Generate a signed URL for immediate preview (1 hour)
   const { data: signedData, error: signedError } = await db.storage
     .from('receipts')
     .createSignedUrl(path, 3600);
 
-  if (signedError) return NextResponse.json({ error: signedError.message }, { status: 500 });
+  if (signedError) return dbError(signedError, 'select', { route: '/api/receipts/upload' });
 
   return NextResponse.json({
     image_url: signedData.signedUrl,

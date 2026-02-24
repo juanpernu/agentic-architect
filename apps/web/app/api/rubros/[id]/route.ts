@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { rubroUpdateSchema } from '@/lib/schemas';
+import { dbError } from '@/lib/api-error';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext();
@@ -41,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'update', { route: '/api/rubros/[id]' });
 
   return NextResponse.json(updated);
 }
@@ -82,7 +83,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .delete()
     .eq('id', id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'delete', { route: '/api/rubros/[id]' });
 
   return NextResponse.json({ success: true });
 }

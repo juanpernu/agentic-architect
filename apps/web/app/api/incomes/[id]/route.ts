@@ -4,6 +4,7 @@ import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { incomeUpdateSchema } from '@/lib/schemas';
 import { requireAdministrationAccess } from '@/lib/plan-guard';
+import { dbError } from '@/lib/api-error';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,7 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .eq('org_id', ctx.orgId)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'select', { route: '/api/incomes/[id]' });
   if (!data) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   return NextResponse.json(data);
 }
@@ -95,7 +96,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'update', { route: '/api/incomes/[id]' });
   return NextResponse.json(data);
 }
 
@@ -117,7 +118,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .select()
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError(error, 'delete', { route: '/api/incomes/[id]' });
   if (!data) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   return NextResponse.json({ success: true });
 }

@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { createCheckoutSession } from '@/lib/stripe/checkout';
+import { apiError } from '@/lib/api-error';
+import { rateLimit } from '@/lib/rate-limit';
 import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  const rl = rateLimit('billing', ctx.orgId);
+  if (rl) return rl;
 
   const body = await request.json();
   const { billingCycle, seatCount } = body;
@@ -71,8 +76,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('Checkout session error:', err);
-    const message = err instanceof Error ? err.message : 'Error al crear sesión de pago';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(err, 'Error al crear sesión de pago', 500, { route: '/api/billing/checkout-session' });
   }
 }

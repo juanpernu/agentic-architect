@@ -4,6 +4,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { UserRole } from '@architech/shared';
 import { validateBody } from '@/lib/validate';
+import { dbError } from '@/lib/api-error';
 
 const roleUpdateSchema = z.object({
   role: z.enum(['admin', 'supervisor', 'architect']),
@@ -54,7 +55,7 @@ export async function PATCH(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return dbError(error, 'update', { route: '/api/users/[id]/role' });
   }
 
   if (!data) {
