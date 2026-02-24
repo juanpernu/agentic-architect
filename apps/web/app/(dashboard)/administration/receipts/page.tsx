@@ -84,28 +84,27 @@ export default function AdministrationReceiptsPage() {
   return (
     <>
       <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Proveedor</label>
-            <div className="relative w-48">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                aria-label="Buscar por proveedor"
-              />
-            </div>
+        <div className="flex flex-col gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar proveedor..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              aria-label="Buscar por proveedor"
+            />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
+          {/* Filter badges */}
+          <div className="flex items-center gap-2 overflow-x-auto">
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-[170px]">
+              <SelectTrigger size="sm" className="rounded-full">
+                <span className="text-muted-foreground">Proyecto:</span>{' '}
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los proyectos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
@@ -113,15 +112,13 @@ export default function AdministrationReceiptsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Rubro</label>
             <Select value={rubroFilter} onValueChange={setRubroFilter}>
-              <SelectTrigger className="w-[170px]">
+              <SelectTrigger size="sm" className="rounded-full">
+                <span className="text-muted-foreground">Rubro:</span>{' '}
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los rubros</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {rubros?.map((rubro) => (
                   <SelectItem key={rubro.id} value={rubro.id}>
                     <span className="flex items-center gap-2">
@@ -137,15 +134,13 @@ export default function AdministrationReceiptsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Cuenta</label>
             <Select value={bankAccountFilter} onValueChange={setBankAccountFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger size="sm" className="rounded-full">
+                <span className="text-muted-foreground">Cuenta:</span>{' '}
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las cuentas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {bankAccounts?.map((ba) => (
                   <SelectItem key={ba.id} value={ba.id}>
                     {ba.name} ({ba.bank_name})
@@ -153,24 +148,18 @@ export default function AdministrationReceiptsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Desde</label>
             <Input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-[140px]"
+              className="h-8 rounded-full text-xs w-[130px] shrink-0"
               aria-label="Desde"
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Hasta</label>
             <Input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-[140px]"
+              className="h-8 rounded-full text-xs w-[130px] shrink-0"
               aria-label="Hasta"
             />
           </div>
