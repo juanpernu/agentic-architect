@@ -90,9 +90,9 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════ COMPARISON ═══════════════ */}
-      <section className="py-20 bg-slate-50 border-y">
+      <section className="py-12 md:py-20 bg-slate-50 border-y">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 md:mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
               La evolución de la gestión de obra
             </h2>
@@ -103,7 +103,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             {/* Old way */}
-            <Card className="p-8 relative overflow-hidden">
+            <Card className="p-5 md:p-8 relative overflow-hidden">
               <div className="absolute top-4 right-4 opacity-10">
                 <X className="h-24 w-24 text-red-500" />
               </div>
@@ -133,7 +133,7 @@ export default function LandingPage() {
 
             {/* New way — with gradient border */}
             <div className="p-0.5 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 shadow-xl shadow-primary/10">
-              <Card className="p-8 rounded-[14px] h-full relative overflow-hidden border-0">
+              <Card className="p-5 md:p-8 rounded-[14px] h-full relative overflow-hidden border-0">
                 <div className="absolute top-4 right-4 opacity-10">
                   <CheckCircle className="h-24 w-24 text-primary" />
                 </div>
