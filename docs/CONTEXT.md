@@ -1,13 +1,13 @@
-# ObraLink (Architech) — Full Repository Context
+# Agentect — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
 > Ultima actualizacion: 2026-02-22
 
 ---
 
-## 1. Que es ObraLink
+## 1. Que es Agentect
 
-**ObraLink** es un SaaS de gestion de obras de construccion orientado a estudios de arquitectura argentinos. El producto se llama **Architech** en la UI. Permite:
+**Agentect** es un SaaS de gestion de obras de construccion orientado a estudios de arquitectura argentinos. Permite:
 
 - Gestionar **proyectos de obra** (casas, edificios, refacciones)
 - Cargar **comprobantes** (facturas, tiques) y extraer datos automaticamente con **Claude Vision AI**
