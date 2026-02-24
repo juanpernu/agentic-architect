@@ -258,57 +258,81 @@ export default function LandingPage() {
             </Card>
 
             {/* Feature 3: Control Multi-obra (full width) */}
-            <Card className="lg:col-span-3 p-8 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <Card className="lg:col-span-3 p-5 md:p-8 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
                 <div>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    <Building2 className="h-6 w-6 text-primary" />
+                  <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
+                    <Building2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                     Control Multi-obra
                   </CardTitle>
                   <CardDescription className="mt-2">
                     Todo tu estudio en una sola pantalla. Accedé al estado de cada proyecto.
                   </CardDescription>
                 </div>
-                <span className="text-primary font-medium flex items-center gap-1 text-sm">
-                  Ver reporte completo <ArrowRight className="h-4 w-4" />
-                </span>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Proyecto</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Avance Financiero</TableHead>
-                    <TableHead className="text-right">Última Actividad</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[
-                    { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
-                    { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
-                    { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
-                  ].map((project) => (
-                    <TableRow key={project.name}>
-                      <TableCell className="font-medium">{project.name}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
-                          {project.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="w-1/3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-muted-foreground w-8">{project.progress}%</span>
-                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                            <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">{project.time}</TableCell>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Proyecto</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Avance Financiero</TableHead>
+                      <TableHead className="text-right">Última Actividad</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {[
+                      { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
+                      { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
+                      { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
+                    ].map((project) => (
+                      <TableRow key={project.name}>
+                        <TableCell className="font-medium">{project.name}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
+                            {project.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="w-1/3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-muted-foreground w-8">{project.progress}%</span>
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                              <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">{project.time}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-3">
+                {[
+                  { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
+                  { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
+                  { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
+                ].map((project) => (
+                  <div key={project.name} className="rounded-lg border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{project.name}</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
+                        {project.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground w-8">{project.progress}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
         </div>
