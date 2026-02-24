@@ -4,6 +4,7 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { validateBody } from '@/lib/validate';
 import { inviteCreateSchema } from '@/lib/schemas';
 import { checkPlanLimit } from '@/lib/plan-guard';
+import { apiError } from '@/lib/api-error';
 
 const ROLE_MAP: Record<string, string> = {
   admin: 'org:admin',
@@ -32,8 +33,7 @@ export async function GET() {
 
     return NextResponse.json(sanitized);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error al obtener invitaciones';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(error, 'Error al obtener invitaciones', 500, { route: '/api/invitations' });
   }
 }
 
@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error al enviar invitación';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(error, 'Error al enviar invitación', 500, { route: '/api/invitations' });
   }
 }

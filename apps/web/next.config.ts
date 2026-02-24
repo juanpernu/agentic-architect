@@ -1,8 +1,10 @@
 import type { NextConfig } from 'next';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' https://js.clerk.com https://challenges.cloudflare.com https://js.stripe.com",
+  `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"} https://js.clerk.com https://challenges.cloudflare.com https://js.stripe.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co https://img.clerk.com",
   "font-src 'self'",

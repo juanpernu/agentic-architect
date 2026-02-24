@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logger } from './logger';
-
-interface LogContext {
-  [key: string]: unknown;
-}
+import type { LogContext } from './logger';
 
 const SAFE_MESSAGES: Record<string, string> = {
   select: 'Error al obtener datos',

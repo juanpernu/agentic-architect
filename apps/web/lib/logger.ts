@@ -1,6 +1,6 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogContext {
+export interface LogContext {
   [key: string]: unknown;
 }
 
@@ -11,6 +11,7 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
   error: 3,
 };
 
+// Uses process.env directly — cannot import env.ts (circular: api-error → logger → env → api-error)
 const isProd = process.env.NODE_ENV === 'production';
 const MIN_LEVEL: LogLevel = isProd ? 'info' : 'debug';
 
