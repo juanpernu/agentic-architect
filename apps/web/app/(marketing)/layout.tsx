@@ -16,11 +16,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <span className="font-bold text-xl tracking-tight">Agentect</span>
             </div>
 
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <div className="flex items-center gap-4 md:gap-8">
+              <a href="#features" className="text-xs md:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 Funcionalidades
               </a>
-              <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              <a href="#pricing" className="text-xs md:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 Precios
               </a>
             </div>

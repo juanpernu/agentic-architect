@@ -44,7 +44,7 @@ export function SidebarContent({
   });
 
   const isActive = (href: string) =>
-    pathname === href || (href !== '/' && pathname.startsWith(href));
+    pathname === href || pathname.startsWith(href);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">

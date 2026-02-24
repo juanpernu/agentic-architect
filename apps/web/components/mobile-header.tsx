@@ -15,7 +15,7 @@ const EXTRA_TITLES: Record<string, string> = {
 function usePageTitle() {
   const pathname = usePathname();
   const match = navItems.find(
-    (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+    (item) => pathname === item.href || pathname.startsWith(item.href)
   );
   if (match) return match.label;
 

@@ -1,4 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Agentect — Gestión de obras con IA para estudios argentinos',
+  description:
+    'Escaneá facturas AFIP con IA, controlá gastos y materiales en tiempo real. Diseñado para arquitectos y constructoras en Argentina.',
+  openGraph: {
+    title: 'Agentect — Gestioná tus obras sin planillas de Excel',
+    description:
+      'IA para extraer datos de facturas AFIP. Control de gastos, materiales y proveedores en tiempo real.',
+    type: 'website',
+  },
+};
 import {
   Bot, BarChart3, Building2, Check, X,
   Receipt, Table2, Clock, Camera, CloudUpload,
@@ -12,20 +25,9 @@ import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from '@/components/ui/table';
 
-/* ── Scan animation (used in "Carga con IA" card) ── */
-const scanKeyframes = `
-@keyframes scan {
-  0% { top: 0%; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-`;
-
 export default function LandingPage() {
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: scanKeyframes }} />
 
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="relative pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden">
@@ -36,7 +38,7 @@ export default function LandingPage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
             <span className="text-xs font-semibold text-primary uppercase tracking-wider">
@@ -197,8 +199,7 @@ export default function LandingPage() {
                       <div className="h-2 w-12 bg-primary/40 rounded" />
                     </div>
                     <div
-                      className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(22,196,85,0.8)]"
-                      style={{ animation: 'scan 2s infinite linear' }}
+                      className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(22,196,85,0.8)] animate-scan"
                     />
                   </div>
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 flex items-center gap-2 mt-2">
