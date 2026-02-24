@@ -17,7 +17,7 @@ export const navItems: Array<{
   icon: typeof LayoutDashboard;
   roles?: UserRole[];
 }> = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projects', label: 'Proyectos', icon: FolderKanban },
   { href: '/upload', label: 'Escanear comprobante', icon: Sparkles },
   { href: '/budgets', label: 'Presupuestos', icon: Calculator },
@@ -44,7 +44,7 @@ export function SidebarContent({
   });
 
   const isActive = (href: string) =>
-    pathname === href || (href !== '/' && pathname.startsWith(href));
+    pathname === href || pathname.startsWith(href);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
