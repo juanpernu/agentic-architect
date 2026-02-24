@@ -47,7 +47,7 @@ export default function LandingPage() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
             Gestioná tus obras{' '}
             <br />
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
@@ -55,7 +55,7 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
             Agentect utiliza IA para extraer datos de tus facturas y recibos
             automáticamente. Controlá gastos, materiales y proveedores en tiempo
             real, diseñado específicamente para estudios argentinos.
@@ -63,12 +63,12 @@ export default function LandingPage() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-6 rounded-xl shadow-lg shadow-primary/25">
+            <Button size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-4 md:py-6 rounded-xl shadow-lg shadow-primary/25">
               <Link href="/sign-up">
                 Probar Gratis <ArrowRight className="ml-1 h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-6 rounded-xl">
+            <Button variant="outline" size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-4 md:py-6 rounded-xl">
               <Link href="#features">
                 Ver Demo
               </Link>
