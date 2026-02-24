@@ -5,7 +5,7 @@
 
 ## Goal
 
-Add a Reports section to ObraLink that shows spend aggregated by cost center, with drill-down to individual receipts. Admin and Supervisor roles only.
+Add a Reports section to Agentect that shows spend aggregated by cost center, with drill-down to individual receipts. Admin and Supervisor roles only.
 
 ## Approach
 

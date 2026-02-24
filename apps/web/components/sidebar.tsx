@@ -39,7 +39,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
       <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-bold">Architech</h1>
+        <h1 className="text-xl font-bold">Agentect</h1>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
         {visibleNavItems.map((item) => (

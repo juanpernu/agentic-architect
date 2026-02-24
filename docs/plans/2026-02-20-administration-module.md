@@ -1,4 +1,4 @@
-# ObraLink / Architech — Módulo de Administración
+# Agentect — Módulo de Administración
 ## Plan de Implementación: Ingresos y Egresos por Obra
 
 > **Versión:** 1.1 · **Fecha:** Febrero 2026
@@ -17,7 +17,7 @@
 
 ## 1. Contexto del Proyecto
 
-ObraLink (Architech en la UI) es un SaaS para gestión de obras de construcción orientado a estudios de arquitectura argentinos. El sistema ya cuenta con gestión de proyectos, carga de comprobantes con AI, presupuestos, reportes y usuarios.
+Agentect es un SaaS para gestión de obras de construcción orientado a estudios de arquitectura argentinos. El sistema ya cuenta con gestión de proyectos, carga de comprobantes con AI, presupuestos, reportes y usuarios.
 
 Este plan agrega el **módulo de Administración**, que permite llevar el flujo de caja real de cada obra —ingresos y egresos— y compararlo contra el presupuesto aprobado.
 
@@ -599,7 +599,7 @@ Recorrer todos los flujos del módulo de forma sistemática con distintos roles 
 
 ## 6. Diseño de Pantallas y Componentes Reutilizables
 
-**Principio de diseño:** El módulo sigue el mismo design system que el resto de Architech (Shadcn/ui new-york, Tailwind CSS 4, variables CSS del proyecto). No se crean componentes de UI nuevos salvo los específicos del módulo.
+**Principio de diseño:** El módulo sigue el mismo design system que el resto de Agentect (Shadcn/ui new-york, Tailwind CSS 4, variables CSS del proyecto). No se crean componentes de UI nuevos salvo los específicos del módulo.
 
 ### 6.1 Pantallas del Módulo
 
@@ -722,4 +722,4 @@ Solo **5 componentes** realmente nuevos. El resto es composición de lo existent
 
 ---
 
-*ObraLink / Architech — Plan de Implementación v1.1 — Febrero 2026*
+*Agentect — Plan de Implementación v1.1 — Febrero 2026*

@@ -1,4 +1,4 @@
-# ObraLink — MVP Design Document
+# Agentect — MVP Design Document
 
 **Date:** 2026-02-16
 **Author:** Juan + Claude (Brainstorming Session)
@@ -9,7 +9,7 @@
 ## 1. Project Overview
 
 ### What
-ObraLink is a SaaS construction project management platform designed for architecture firms, construction companies, and real estate developers. It enables users to track multiple parallel construction projects ("obras") and manage all associated financial documentation.
+Agentect is a SaaS construction project management platform designed for architecture firms, construction companies, and real estate developers. It enables users to track multiple parallel construction projects ("obras") and manage all associated financial documentation.
 
 ### Why
 Existing ERP tools (like Tango) are generic. Architecture and construction firms need a vertical solution where the **project (obra)** is the central entity, not the client or product. Every receipt, invoice, expense, and progress update revolves around a specific construction project.
@@ -63,7 +63,7 @@ Take a photo of a receipt on-site → AI extracts the data → link it to a proj
 ## 4. Monorepo Structure
 
 ```
-obralink/
+agentect/
 ├── apps/
 │   └── web/                    # Next.js App Router
 │       ├── app/                # Pages, layouts, API routes

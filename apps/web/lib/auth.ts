@@ -16,12 +16,12 @@ const MAX_CACHE_SIZE = 500;
 
 // Persist cache across HMR in dev mode
 const globalForCache = globalThis as unknown as {
-  __obralink_isActiveCache?: Map<string, { value: boolean; expiry: number }>;
+  __agentect_isActiveCache?: Map<string, { value: boolean; expiry: number }>;
 };
-if (!globalForCache.__obralink_isActiveCache) {
-  globalForCache.__obralink_isActiveCache = new Map();
+if (!globalForCache.__agentect_isActiveCache) {
+  globalForCache.__agentect_isActiveCache = new Map();
 }
-const isActiveCache = globalForCache.__obralink_isActiveCache;
+const isActiveCache = globalForCache.__agentect_isActiveCache;
 
 function pruneExpiredEntries() {
   const now = Date.now();

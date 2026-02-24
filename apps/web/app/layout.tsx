@@ -10,7 +10,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Architech',
+  title: 'Agentect',
   description: 'Gestión de obras con IA',
 };
 

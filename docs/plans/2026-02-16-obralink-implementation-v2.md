@@ -1,8 +1,8 @@
-# ObraLink MVP — Implementation Plan v2
+# Agentect MVP — Implementation Plan v2
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Build ObraLink, a SaaS construction project management platform with AI-powered receipt extraction.
+**Goal:** Build Agentect, a SaaS construction project management platform with AI-powered receipt extraction.
 
 **Architecture:** Turborepo monorepo with Next.js App Router (RSC-first), Supabase (PostgreSQL + Storage) backend, Clerk auth, and Claude Vision AI extraction engine. Multi-tenant via RLS policies filtered by organization_id from Clerk JWT.
 
@@ -143,7 +143,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ObraLink',
+  title: 'Agentect',
   description: 'Gestión de obras con IA',
 };
 
@@ -1091,7 +1091,7 @@ Same as v1, plus:
 ### Task 21: Role-Based Navigation + Final Polish
 
 Same as v1, plus:
-- Update `apps/web/app/layout.tsx` metadata to "ObraLink"
+- Update `apps/web/app/layout.tsx` metadata to "Agentect"
 - Remove default create-next-app page content
 - Ensure `next/image` used for all receipt images
 - Verify SWR/mutation invalidation works for all CRUD flows

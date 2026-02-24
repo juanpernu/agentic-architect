@@ -1,18 +1,18 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Persist singleton across HMR in dev mode to prevent connection leaks
-const globalForSupabase = globalThis as unknown as { __obralink_supabaseAdmin?: SupabaseClient };
+const globalForSupabase = globalThis as unknown as { __agentect_supabaseAdmin?: SupabaseClient };
 
 export function getSupabaseAdmin(): SupabaseClient {
-  if (!globalForSupabase.__obralink_supabaseAdmin) {
+  if (!globalForSupabase.__agentect_supabaseAdmin) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !key) {
       throw new Error('Missing Supabase environment variables');
     }
-    globalForSupabase.__obralink_supabaseAdmin = createClient(url, key);
+    globalForSupabase.__agentect_supabaseAdmin = createClient(url, key);
   }
-  return globalForSupabase.__obralink_supabaseAdmin;
+  return globalForSupabase.__agentect_supabaseAdmin;
 }
 
 export function getSupabaseClient(supabaseAccessToken?: string): SupabaseClient {
