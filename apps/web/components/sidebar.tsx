@@ -10,7 +10,7 @@ import { usePlan } from '@/lib/use-plan';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/role-constants';
 import { Badge } from '@/components/ui/badge';
 
-const navItems: Array<{
+export const navItems: Array<{
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
@@ -25,7 +25,7 @@ const navItems: Array<{
   { href: '/settings', label: 'Ajustes', icon: Settings },
 ];
 
-export function Sidebar() {
+export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { role, fullName } = useCurrentUser();
   const { isFreePlan } = usePlan();
@@ -37,15 +37,13 @@ export function Sidebar() {
   });
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
-      <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-bold">Agentect</h1>
-      </div>
+    <>
       <nav className="flex-1 px-3 py-4 space-y-1">
         {visibleNavItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNavigate}
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
               pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
@@ -72,6 +70,17 @@ export function Sidebar() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
+      <div className="flex h-16 items-center px-6 border-b">
+        <h1 className="text-xl font-bold">Agentect</h1>
+      </div>
+      <SidebarContent />
     </aside>
   );
 }
