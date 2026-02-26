@@ -15,12 +15,12 @@ const MAX_ENTRIES = 10_000;
 
 // Persist across HMR in dev
 const globalForRL = globalThis as unknown as {
-  __obralink_rateLimitStore?: Map<string, number[]>;
+  __agentect_rateLimitStore?: Map<string, number[]>;
 };
-if (!globalForRL.__obralink_rateLimitStore) {
-  globalForRL.__obralink_rateLimitStore = new Map();
+if (!globalForRL.__agentect_rateLimitStore) {
+  globalForRL.__agentect_rateLimitStore = new Map();
 }
-const store = globalForRL.__obralink_rateLimitStore;
+const store = globalForRL.__agentect_rateLimitStore;
 
 function cleanup() {
   if (store.size <= MAX_ENTRIES) return;

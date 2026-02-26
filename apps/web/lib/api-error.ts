@@ -28,5 +28,9 @@ export function apiError(
   context?: LogContext
 ): NextResponse {
   logger.error(safeMessage, context, error);
-  return NextResponse.json({ error: safeMessage }, { status });
+  const isDev = process.env.NODE_ENV === 'development';
+  return NextResponse.json({
+    error: safeMessage,
+    ...(isDev && { detail: error instanceof Error ? error.message : JSON.stringify(error) }),
+  }, { status });
 }
