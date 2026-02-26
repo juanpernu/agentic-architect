@@ -389,11 +389,11 @@ export default function LandingPage() {
                   <Zap className="h-5 w-5 text-amber-500" />
                 </h3>
                 <span className="text-xl font-bold">
-                  US$30<span className="text-xs font-normal text-muted-foreground">/mes</span>
+                  $30.000<span className="text-xs font-normal text-muted-foreground">/mes</span>
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mb-1">Para equipos en crecimiento</p>
-              <p className="text-xs text-muted-foreground mb-4">+ US$5/usuario/mes</p>
+              <p className="text-xs text-muted-foreground mb-4">+ $5.000/usuario/mes</p>
               <ul className="space-y-2 mb-4">
                 {['20 proyectos', 'Comprobantes ilimitados', 'Reportes de gastos', 'Seats flexibles'].map((f) => (
                   <li key={f} className="flex items-center gap-3 text-sm">
@@ -429,7 +429,7 @@ export default function LandingPage() {
                 <Link href="/sign-up">Contactanos</Link>
               </Button>
               <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1">
-                <Lock className="h-3 w-3" /> Procesado seguro con Stripe
+                <Lock className="h-3 w-3" /> Procesado seguro con Mercado Pago
               </p>
             </div>
           </div>
