@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Agentect — Sabé cuánto ganás en cada obra',
+  title: 'Agentect — Sabe cuánto ganás en cada obra',
   description:
     'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para estudios de arquitectura argentinos.',
   openGraph: {
@@ -28,6 +28,26 @@ import {
 } from '@/components/ui/table';
 import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect';
 
+const PROJECTS = [
+  { name: 'Casa Martínez', income: 4_200_000, expense: 3_150_000, status: 'En Curso' as const, statusColor: 'bg-green-100 text-green-800' },
+  { name: 'Edificio Alvear', income: 12_800_000, expense: 13_100_000, status: 'Revisión' as const, statusColor: 'bg-yellow-100 text-yellow-800' },
+  { name: 'Oficinas Centro', income: 1_500_000, expense: 450_000, status: 'Inicio' as const, statusColor: 'bg-blue-100 text-blue-800' },
+];
+
+function formatARS(n: number) {
+  return n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+}
+
+function formatCompact(n: number) {
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(n) >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+  return n.toString();
+}
+
+function signedBalance(formatted: string, n: number) {
+  return n >= 0 ? `+${formatted}` : formatted;
+}
+
 export default function LandingPage() {
   return (
     <>
@@ -52,7 +72,7 @@ export default function LandingPage() {
 
           {/* Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Sabé exactamente cuánto{' '}
+            Sabe exactamente cuánto{' '}
             <br />
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
               ganás en cada obra
@@ -230,14 +250,14 @@ export default function LandingPage() {
                   <CardDescription className="mt-1">Semáforo verde/amarillo/rojo para detectar desvíos al instante.</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Presupuestado</Badge>
-                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Costo</Badge>
-                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Gasto Real</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-gray-300" />Presupuestado</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-400" />Costo</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" />Gasto Real</Badge>
                 </div>
               </div>
 
               {/* CSS bar chart — 3 bars per rubro */}
-              <div className="h-40 sm:h-56 w-full relative">
+              <div className="h-40 sm:h-56 w-full relative" aria-hidden="true">
                 <div className="absolute inset-0 flex flex-col justify-between">
                   {[0, 1, 2, 3].map((i) => (
                     <div key={i} className="w-full border-b border-border/50 h-0" />
@@ -275,7 +295,7 @@ export default function LandingPage() {
                     Cada peso asociado a su obra
                   </CardTitle>
                   <CardDescription className="mt-1 sm:mt-2">
-                    Ingresos, egresos y comprobantes centralizados por proyecto. Sabé al instante cuánto va cada obra.
+                    Ingresos, egresos y comprobantes centralizados por proyecto. Sabe al instante cuánto va cada obra.
                   </CardDescription>
                 </div>
               </div>
@@ -293,48 +313,50 @@ export default function LandingPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {[
-                      { name: 'Casa Martínez', income: '$4.200.000', expense: '$3.150.000', balance: '$1.050.000', balanceColor: 'text-primary', status: 'En Curso', statusColor: 'bg-green-100 text-green-800' },
-                      { name: 'Edificio Alvear', income: '$12.800.000', expense: '$13.100.000', balance: '-$300.000', balanceColor: 'text-red-500', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800' },
-                      { name: 'Oficinas Centro', income: '$1.500.000', expense: '$450.000', balance: '$1.050.000', balanceColor: 'text-primary', status: 'Inicio', statusColor: 'bg-blue-100 text-blue-800' },
-                    ].map((project) => (
-                      <TableRow key={project.name}>
-                        <TableCell className="font-medium">{project.name}</TableCell>
-                        <TableCell className="text-right">{project.income}</TableCell>
-                        <TableCell className="text-right">{project.expense}</TableCell>
-                        <TableCell className={`text-right font-semibold ${project.balanceColor}`}>{project.balance}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
-                            {project.status}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {PROJECTS.map((p) => {
+                      const balance = p.income - p.expense;
+                      return (
+                        <TableRow key={p.name}>
+                          <TableCell className="font-medium">{p.name}</TableCell>
+                          <TableCell className="text-right">{formatARS(p.income)}</TableCell>
+                          <TableCell className="text-right">{formatARS(p.expense)}</TableCell>
+                          <TableCell className={`text-right font-semibold ${balance >= 0 ? 'text-primary' : 'text-red-500'}`}>
+                            {signedBalance(formatARS(Math.abs(balance)), balance)}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${p.statusColor}`}>
+                              {p.status}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
               {/* Mobile cards */}
               <div className="sm:hidden space-y-3">
-                {[
-                  { name: 'Casa Martínez', income: '$4.2M', expense: '$3.1M', balance: '+$1.05M', balanceColor: 'text-primary', status: 'En Curso', statusColor: 'bg-green-100 text-green-800' },
-                  { name: 'Edificio Alvear', income: '$12.8M', expense: '$13.1M', balance: '-$300K', balanceColor: 'text-red-500', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800' },
-                  { name: 'Oficinas Centro', income: '$1.5M', expense: '$450K', balance: '+$1.05M', balanceColor: 'text-primary', status: 'Inicio', statusColor: 'bg-blue-100 text-blue-800' },
-                ].map((project) => (
-                  <div key={project.name} className="rounded-lg border p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">{project.name}</span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${project.statusColor}`}>
-                        {project.status}
-                      </span>
+                {PROJECTS.map((p) => {
+                  const balance = p.income - p.expense;
+                  return (
+                    <div key={p.name} className="rounded-lg border p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{p.name}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${p.statusColor}`}>
+                          {p.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Ingresos: ${formatCompact(p.income)}</span>
+                        <span className="text-muted-foreground">Egresos: ${formatCompact(p.expense)}</span>
+                        <span className={`font-semibold ${balance >= 0 ? 'text-primary' : 'text-red-500'}`}>
+                          {signedBalance(`$${formatCompact(Math.abs(balance))}`, balance)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Ingresos: {project.income}</span>
-                      <span className="text-muted-foreground">Egresos: {project.expense}</span>
-                      <span className={`font-semibold ${project.balanceColor}`}>{project.balance}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           </div>
@@ -357,7 +379,7 @@ export default function LandingPage() {
             </div>
 
             {/* Scan illustration — compact reuse */}
-            <div className="flex-1 max-w-sm w-full">
+            <div className="flex-1 max-w-sm w-full" aria-hidden="true">
               <div className="bg-white rounded-xl p-4 border shadow-sm">
                 <div className="flex flex-col gap-3">
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
