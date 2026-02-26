@@ -1,41 +1,10 @@
-import { PreApprovalPlan, PreApproval, Payment } from 'mercadopago';
+import { PreApproval, Payment } from 'mercadopago';
 import { getMPClient } from './client';
 import { computeSubscriptionAmount, type BillingCycle } from './pricing';
 
-// --- Plan Management (reusable templates) ---
-
-interface CreatePlanParams {
-  billingCycle: BillingCycle;
-  totalAmount: number;
-  backUrl: string;
-}
-
-/**
- * Create a PreApprovalPlan (reusable template).
- * This is the plan definition, not the individual subscription.
- */
-export async function createPlan({ billingCycle, totalAmount, backUrl }: CreatePlanParams) {
-  const client = getMPClient();
-  const planApi = new PreApprovalPlan(client);
-
-  return planApi.create({
-    body: {
-      reason: `Agentect Advance — ${billingCycle === 'monthly' ? 'Mensual' : 'Anual'}`,
-      auto_recurring: {
-        frequency: billingCycle === 'monthly' ? 1 : 12,
-        frequency_type: 'months',
-        transaction_amount: totalAmount,
-        currency_id: 'ARS',
-      },
-      back_url: backUrl,
-    },
-  });
-}
-
-// --- Subscription Management (individual per org) ---
+// --- Subscription Management ---
 
 interface CreateSubscriptionParams {
-  planId: string;
   orgId: string;
   payerEmail: string;
   billingCycle: BillingCycle;
@@ -44,12 +13,12 @@ interface CreateSubscriptionParams {
 }
 
 /**
- * Create an individual PreApproval (subscription) linked to a plan.
+ * Create a standalone PreApproval (subscription) without a linked plan.
+ * This generates an init_point URL where the user enters payment details on MP.
+ * Linking to a PreApprovalPlan requires card_token_id upfront (no redirect flow).
  * Sets external_reference = orgId so the webhook can find the organization.
- * Returns the PreApproval with init_point for user redirect.
  */
 export async function createSubscription({
-  planId,
   orgId,
   payerEmail,
   billingCycle,
@@ -62,7 +31,6 @@ export async function createSubscription({
 
   return preApproval.create({
     body: {
-      preapproval_plan_id: planId,
       reason: `Agentect Advance — ${seatCount} usuario${seatCount > 1 ? 's' : ''}`,
       external_reference: orgId,
       payer_email: payerEmail,

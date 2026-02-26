@@ -348,7 +348,7 @@ export default function BillingPage() {
                 max={20}
                 value={newSeatCount}
                 onChange={(e) => setNewSeatCount(Number(e.target.value))}
-                className="flex-1"
+                className="flex-1 accent-primary"
               />
               <span className="text-sm font-medium w-8 text-center">{newSeatCount}</span>
               <button
@@ -562,7 +562,7 @@ export default function BillingPage() {
                       max={20}
                       value={seatCount}
                       onChange={(e) => setSeatCount(Number(e.target.value))}
-                      className="mt-1 w-full"
+                      className="mt-1 w-full accent-primary"
                     />
                     <div className="mt-2 rounded-lg bg-muted/50 p-3 text-sm">
                       <div className="flex justify-between">

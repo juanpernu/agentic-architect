@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
-import { createPlan, createSubscription } from '@/lib/mercadopago/subscription';
+import { createSubscription } from '@/lib/mercadopago/subscription';
 import { computeSubscriptionAmount } from '@/lib/mercadopago/pricing';
 import { apiError } from '@/lib/api-error';
 import { rateLimit } from '@/lib/rate-limit';
@@ -46,10 +46,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // Use Vercel's trusted URL in production; fall back to Host header for local dev
+  // MP requires a valid public URL for back_url (rejects localhost).
+  // Priority: NEXT_PUBLIC_APP_URL > VERCEL_PROJECT_PRODUCTION_URL > Host header
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   let baseUrl: string;
-  if (vercelUrl) {
+  if (appUrl) {
+    baseUrl = appUrl;
+  } else if (vercelUrl) {
     baseUrl = `https://${vercelUrl}`;
   } else {
     const headersList = await headers();
@@ -72,17 +76,9 @@ export async function POST(request: Request) {
       })
       .eq('id', ctx.orgId);
 
-    // Step 1: Create a PreApprovalPlan (reusable template)
-    const plan = await createPlan({ billingCycle, totalAmount, backUrl });
-
-    if (!plan.id) {
-      return NextResponse.json({ error: 'Error al crear el plan de pago' }, { status: 500 });
-    }
-
-    // Step 2: Create individual PreApproval with external_reference = orgId
-    // This is the actual subscription — its init_point carries the org context
+    // Create standalone PreApproval (without plan) so MP generates init_point
+    // for user redirect. Linking to a PreApprovalPlan requires card_token_id upfront.
     const subscription = await createSubscription({
-      planId: plan.id,
       orgId: ctx.orgId,
       payerEmail,
       billingCycle,
@@ -90,11 +86,13 @@ export async function POST(request: Request) {
       backUrl,
     });
 
-    if (!subscription.init_point) {
+    const redirectUrl = subscription.init_point;
+
+    if (!redirectUrl) {
       return NextResponse.json({ error: 'Error al crear la suscripción' }, { status: 500 });
     }
 
-    return NextResponse.json({ url: subscription.init_point });
+    return NextResponse.json({ url: redirectUrl });
   } catch (err) {
     // Rollback pending subscription data on MP API failure
     await db
