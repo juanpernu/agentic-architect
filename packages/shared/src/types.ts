@@ -16,8 +16,6 @@ export interface Organization {
   social_linkedin: string | null;
   plan: 'free' | 'advance' | 'enterprise';
   subscription_status: 'active' | 'past_due' | 'canceled' | 'trialing' | 'paused';
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
   payment_customer_id: string | null;
   payment_subscription_id: string | null;
   subscription_seats: number | null;

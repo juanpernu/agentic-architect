@@ -1,7 +1,7 @@
 # Agentect — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
-> Ultima actualizacion: 2026-02-24
+> Ultima actualizacion: 2026-02-26
 
 ---
 
@@ -34,7 +34,7 @@ El mercado target es Argentina. La interfaz esta en **espanol argentino**, la mo
 | **Auth** | Clerk | @clerk/nextjs 6.37.4 | Middleware + webhooks |
 | **Database** | Supabase (PostgreSQL) | @supabase/supabase-js 2.x | Service role key (admin) |
 | **AI** | Anthropic SDK | 0.39.0 | Claude Sonnet 4.5 para vision |
-| **Payments** | Stripe | 20.3.1 | Checkout sessions + webhooks |
+| **Payments** | Mercado Pago | mercadopago ^2.12.0 | PreApproval subscriptions + webhooks |
 | **Charts** | Recharts | 3.7.0 | |
 | **Data Fetching** | SWR | 2.3.4 | Client-side |
 | **Validation** | Zod | 4.3.6 | Client + API schemas |
@@ -70,7 +70,7 @@ agentic-architect/
 │       │   └── *.tsx           # Feature components (sidebar, budget-table, receipt-review, etc.)
 │       ├── lib/                # Utilidades y hooks
 │       │   ├── schemas/        # Zod schemas (9 archivos)
-│       │   ├── stripe/         # Stripe client + checkout
+│       │   ├── mercadopago/     # MP client, pricing, subscription, webhook verification
 │       │   ├── auth.ts         # getAuthContext() — core auth
 │       │   ├── supabase.ts     # DB access + storage URLs
 │       │   ├── plan-guard.ts   # checkPlanLimit()
@@ -139,10 +139,13 @@ organizations (multi-tenant root)
 ```typescript
 {
   plan: 'free' | 'advance' | 'enterprise',
-  subscription_status: 'active' | 'past_due' | 'canceled' | 'trialing',
-  stripe_customer_id: string | null,
-  stripe_subscription_id: string | null,
-  max_seats: number,  // dinamico para Advance (viene de Stripe)
+  subscription_status: 'active' | 'past_due' | 'canceled' | 'trialing' | 'paused',
+  payment_customer_id: string | null,
+  payment_subscription_id: string | null,
+  subscription_seats: number | null,  // tracks seat count for amount decomposition
+  max_seats: number,  // dinamico para Advance (viene de Mercado Pago)
+  billing_cycle: string | null,  // 'monthly' | 'yearly'
+  current_period_end: string | null,
   logo_url: string | null,
   // address fields, phone, email, social links...
 }
@@ -342,15 +345,18 @@ PLAN_LIMITS = {
 | Endpoint | Methods | Auth | Notes |
 |----------|---------|------|-------|
 | `/api/billing/plan` | GET | Any | Plan actual + usage + limits |
-| `/api/billing/checkout-session` | POST | Admin | Crear Stripe checkout |
-| `/api/billing/portal-session` | POST | Admin | Stripe billing portal |
+| `/api/billing/checkout-session` | POST | Admin | Crear MP PreApproval subscription (two-step: plan + subscription) |
+| `/api/billing/cancel` | POST | Admin | Cancelar suscripcion MP + downgrade a free |
+| `/api/billing/pause` | POST | Admin | Pausar/reanudar suscripcion MP (body: `{ action: 'pause' \| 'resume' }`) |
+| `/api/billing/update-seats` | POST | Admin | Actualizar seats y monto en MP (body: `{ seatCount }`) |
+| `/api/billing/payments` | GET | Admin | Historial de pagos + info de suscripcion |
 
 ### Webhooks
 
 | Endpoint | Methods | Notes |
 |----------|---------|-------|
 | `/api/webhooks/clerk` | POST | user.created/updated, orgMembership, org.created |
-| `/api/webhooks/stripe` | POST | checkout.completed, subscription.updated/deleted, invoice.paid/failed |
+| `/api/webhooks/mercadopago` | POST | subscription_preapproval (authorized/paused/cancelled), subscription_authorized_payment |
 
 ---
 
@@ -460,13 +466,9 @@ CLERK_WEBHOOK_SECRET=
 # Anthropic (AI)
 ANTHROPIC_API_KEY=
 
-# Stripe
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_ADVANCE_MONTHLY_BASE_PRICE_ID=
-STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID=
-STRIPE_ADVANCE_YEARLY_BASE_PRICE_ID=
-STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID=
+# Mercado Pago
+MP_ACCESS_TOKEN=
+MP_WEBHOOK_SECRET=
 ```
 
 ---
@@ -539,7 +541,7 @@ await mutate('/api/endpoint');
 8. Reports: gasto por rubro con drill-down
 9. Settings: org profile, users, banks tabs con role gates
 10. Unified Zod validation: schemas compartidos client/API
-11. Pricing & subscription: Free/Advance/Enterprise + Stripe
+11. Pricing & subscription: Free/Advance/Enterprise (originally Stripe, migrated to MP in #23)
 12. Presupuestos v1: budget editor con rubros
 13. Budget editor redesign: spreadsheet-style con Shadcn Table
 14. Rubros + autosave: draft/publish workflow, autosave con debounce
@@ -551,6 +553,7 @@ await mutate('/api/endpoint');
 20. Rename a Agentect: rename global de ObraLink/Architech → Agentect en UI, metadata, docs e internal cache keys. Se preservo el scope npm `@architech/*`. PR #39.
 21. Mobile nav redesign: reemplazo de `bottom-nav.tsx` (tabs inferiores) por `mobile-header.tsx` (hamburger menu + slide-in sidebar Sheet). Extraccion de `SidebarContent` para reuso desktop/mobile. Titulo dinamico por ruta. PR #41.
 22. Database reset para produccion: truncado de las 14 tablas y vaciado de buckets storage (receipts + org-assets). DB lista para lanzamiento.
+23. Migracion Stripe → Mercado Pago: reemplazo completo de pasarela de pagos. PreApproval subscriptions (plan + subscription two-step), webhook handler (HMAC-SHA256), billing UI custom (cancel, pause/resume, update seats, payment history), pricing en ARS ($30.000 base + $5.000/seat mensual). Eliminacion total de codigo Stripe.
 
 ---
 
@@ -560,7 +563,7 @@ await mutate('/api/endpoint');
 - Auth + multi-tenancy con Clerk + Supabase RLS
 - CRUD completo de projects, receipts, budgets, rubros, bank accounts, users
 - AI extraction con Claude Vision funcionando
-- Subscription system con Stripe
+- Subscription system con Mercado Pago (PreApproval subscriptions, custom billing UI)
 - Dashboard con KPIs y charts
 - Reports con drill-down
 - Budget editor con autosave y versionado
@@ -569,7 +572,6 @@ await mutate('/api/endpoint');
 - Base de datos de produccion limpia (reset 2026-02-24), storage vaciado
 
 ### Pendientes / mejoras posibles
-- **Stripe Elements migration**: `lib/stripe/checkout.ts` tiene un comment FUTURE sobre migrar de Checkout Sessions a SetupIntent + Subscription con Elements embebidos
 - **Tests**: solo hay tests en `packages/ai/src/__tests__/` — el resto del codigo no tiene tests
 - **Notifications**: no hay sistema de notificaciones (email, push)
 - **Export**: no hay export de datos a CSV/Excel
@@ -588,7 +590,7 @@ npm install
 
 # Configurar environment
 cp .env.example .env.local
-# Llenar las variables (Supabase, Clerk, Anthropic, Stripe)
+# Llenar las variables (Supabase, Clerk, Anthropic, Mercado Pago)
 
 # Dev server
 npm run dev
@@ -621,7 +623,7 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Upload flow | `apps/web/app/(dashboard)/upload/page.tsx` |
 | Settings tabs | `apps/web/app/(dashboard)/settings/layout.tsx` (general, users, banks, administration, billing) |
 | Zod schemas | `apps/web/lib/schemas/` (9 archivos) |
-| Stripe checkout | `apps/web/lib/stripe/checkout.ts` |
+| MP client + subscriptions | `apps/web/lib/mercadopago/` (client, pricing, subscription, webhook) |
 | Documentacion visual | `docs/flowchart/index.html` (abrir en browser) |
 | Date utilities (ARG TZ) | `apps/web/lib/date-utils.ts` |
 | Avatar utilities | `apps/web/lib/avatar-utils.ts` |
