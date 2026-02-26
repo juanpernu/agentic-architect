@@ -66,6 +66,7 @@ export async function POST(request: Request) {
             orgId,
             error: selectErr.message,
           });
+          return NextResponse.json({ error: 'DB read failed' }, { status: 500 });
         }
 
         const { error: updateErr } = await db

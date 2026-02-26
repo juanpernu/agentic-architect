@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { createSubscription } from '@/lib/mercadopago/subscription';
-import { computeSubscriptionAmount } from '@/lib/mercadopago/pricing';
+import type { BillingCycle } from '@/lib/mercadopago/pricing';
 import { apiError } from '@/lib/api-error';
 import { rateLimit } from '@/lib/rate-limit';
 import { headers } from 'next/headers';
@@ -15,8 +15,14 @@ export async function POST(request: Request) {
   const rl = rateLimit('billing', ctx.orgId);
   if (rl) return rl;
 
-  const body = await request.json();
-  const { billingCycle, seatCount } = body;
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+  const billingCycle = body.billingCycle as BillingCycle;
+  const seatCount = body.seatCount as number;
 
   if (!billingCycle || !['monthly', 'yearly'].includes(billingCycle)) {
     return NextResponse.json({ error: 'billingCycle inválido' }, { status: 400 });
@@ -62,8 +68,6 @@ export async function POST(request: Request) {
     baseUrl = `${protocol}://${host}`;
   }
   const backUrl = `${baseUrl}/settings/billing?checkout=pending`;
-
-  const totalAmount = computeSubscriptionAmount(billingCycle, seatCount);
 
   try {
     // Store pending subscription data FIRST (before MP call)
