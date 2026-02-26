@@ -7,7 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./extract": "./src/extract.ts",
-    "./prompt": "./src/prompt.ts"
+    "./prompt": "./src/prompt.ts",
+    "./budget-extract": "./src/budget-extract.ts",
+    "./budget-prompt": "./src/budget-prompt.ts"
   },
   "scripts": {
     "lint": "eslint src/",
