@@ -13,10 +13,12 @@ export const metadata: Metadata = {
   },
 };
 import {
-  Bot, BarChart3, Building2, Check, X,
-  Receipt, Table2, Clock, Camera, CloudUpload,
-  LineChart, ArrowRight, CheckCircle, CheckCircle2,
+  BarChart3, Bot, Building2, Check, X,
+  FileSpreadsheet, TrendingDown, MessageSquare,
+  ArrowRight, CheckCircle, CheckCircle2,
   Zap, Star, Lock,
+  TableProperties, DollarSign, Camera,
+  Clock, Quote,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -96,10 +98,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="text-center mb-10 md:mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
-              La evolución de la gestión de obra
+              El problema que todo estudio conoce
             </h2>
             <p className="text-muted-foreground">
-              Dejá de perder comprobantes y empezá a tomar decisiones con datos.
+              Presupuestás en Excel, cargás gastos a mano, y al final de la obra no sabés si ganaste o perdiste.
             </p>
           </div>
 
@@ -111,24 +113,24 @@ export default function LandingPage() {
               </div>
               <div className="relative z-10">
                 <h3 className="text-red-500 font-bold mb-4 flex items-center gap-2">
-                  <X className="h-5 w-5" /> La vieja forma
+                  <X className="h-5 w-5" /> Hoy
                 </h3>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-start gap-3 text-muted-foreground">
-                    <Receipt className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
-                    <span>Caja de zapatos llena de tickets que se borran.</span>
+                    <FileSpreadsheet className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
+                    <span>Presupuesto en Excel que nadie actualiza después del día 1.</span>
                   </li>
                   <li className="flex items-start gap-3 text-muted-foreground">
-                    <Table2 className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
-                    <span>Excel interminable con fórmulas rotas #REF!.</span>
+                    <MessageSquare className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
+                    <span>Gastos sueltos entre tickets, transferencias y WhatsApps.</span>
                   </li>
                   <li className="flex items-start gap-3 text-muted-foreground">
-                    <Clock className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
-                    <span>Días perdidos cargando facturas manualmente.</span>
+                    <TrendingDown className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
+                    <span>Recién al cerrar la obra descubrís que perdiste plata.</span>
                   </li>
                 </ul>
                 <div className="h-32 bg-muted rounded-lg border-2 border-dashed flex items-center justify-center">
-                  <span className="text-muted-foreground font-mono text-sm">spreadsheet_error.xlsx</span>
+                  <span className="text-muted-foreground font-mono text-sm">planilla_obra_v23_FINAL.xlsx</span>
                 </div>
               </div>
             </Card>
@@ -145,22 +147,22 @@ export default function LandingPage() {
                   </h3>
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start gap-3">
-                      <Camera className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                      <span>Foto al ticket y la IA extrae el CUIT, fecha y monto.</span>
+                      <TableProperties className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <span>Presupuesto integrado que se compara con gastos reales automáticamente.</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CloudUpload className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                      <span>Sincronización automática con tu presupuesto.</span>
+                      <DollarSign className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <span>Cada egreso e ingreso asociado a su obra y rubro.</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <LineChart className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                      <span>Reportes en tiempo real para el cliente.</span>
+                      <BarChart3 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <span>Rentabilidad visible en tiempo real, obra por obra.</span>
                     </li>
                   </ul>
                   <div className="h-32 bg-primary/5 rounded-lg border border-primary/20 flex items-center justify-center">
                     <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-primary/10">
                       <CheckCircle className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium">Procesado</span>
+                      <span className="text-sm font-medium">Rentabilidad: +12,4%</span>
                     </div>
                   </div>
                 </div>
