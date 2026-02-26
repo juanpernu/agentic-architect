@@ -24,6 +24,7 @@ import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from '@/components/ui/table';
+import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect';
 
 export default function LandingPage() {
   return (
@@ -31,10 +32,11 @@ export default function LandingPage() {
 
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="relative pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden">
-        {/* Glow background */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+        {/* Grid background */}
+        <BackgroundRippleEffect />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white pointer-events-none z-[4]" />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 text-center">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 text-center" style={{ zIndex: 5 }}>
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8">
             <span className="relative flex h-2 w-2">
@@ -42,7 +44,7 @@ export default function LandingPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
             <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-              Nuevo: Escaneo de Facturas AFIP
+              Escanea tus comprobantes con IA
             </span>
           </div>
 
@@ -169,28 +171,28 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════ FEATURES ═══════════════ */}
-      <section id="features" className="py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <section id="features" className="py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8">
           <div className="grid lg:grid-cols-3 gap-8">
 
             {/* Feature 1: Carga con IA (1 col) */}
-            <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="h-12 w-12 bg-primary/20 rounded-lg flex items-center justify-center mb-6 text-primary">
-                <Bot className="h-6 w-6" />
+            <Card className="gap-0 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 sm:mb-6 text-primary">
+                <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <CardTitle className="text-xl mb-2">Carga con IA</CardTitle>
-              <CardDescription className="mb-6">
+              <CardTitle className="text-lg sm:text-xl mb-2">Carga con IA</CardTitle>
+              <CardDescription className="mb-4 sm:mb-6">
                 Nuestro motor reconoce facturas A, B y C de AFIP al instante. Olvidate de tipear CUITs.
               </CardDescription>
 
               {/* Scan illustration */}
-              <div className="bg-slate-50 rounded-xl p-4 border relative overflow-hidden">
-                <div className="flex flex-col gap-3">
+              <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border relative overflow-hidden">
+                <div className="flex flex-col gap-2 sm:gap-3">
                   <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                     <span>Escaneando...</span>
                     <span className="text-primary font-mono">98%</span>
                   </div>
-                  <div className="bg-white p-3 rounded shadow-sm border w-3/4 mx-auto relative overflow-hidden">
+                  <div className="bg-white p-2 sm:p-3 rounded shadow-sm border w-full sm:w-3/4 mx-auto relative overflow-hidden">
                     <div className="h-2 w-1/2 bg-muted rounded mb-2" />
                     <div className="h-2 w-3/4 bg-muted rounded mb-4" />
                     <div className="border-t border-dashed my-2" />
@@ -202,8 +204,8 @@ export default function LandingPage() {
                       className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(22,196,85,0.8)] animate-scan"
                     />
                   </div>
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 flex items-center gap-2 mt-2">
-                    <CheckCircle className="h-4 w-4 text-primary" />
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 flex items-center gap-2 mt-1 sm:mt-2">
+                    <CheckCircle className="h-4 w-4 text-primary shrink-0" />
                     <div className="text-xs">
                       <div className="text-muted-foreground">Total</div>
                       <div className="font-bold">$15.231,89</div>
@@ -214,18 +216,18 @@ export default function LandingPage() {
             </Card>
 
             {/* Feature 2: Presupuesto vs Real (2 col) */}
-            <Card className="lg:col-span-2 p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+            <Card className="lg:col-span-2 gap-0 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
                 <div>
-                  <div className="h-12 w-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-500">
-                    <BarChart3 className="h-6 w-6" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4 text-blue-500">
+                    <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  <CardTitle className="text-xl">Presupuesto vs. Real</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Presupuesto vs. Real</CardTitle>
                   <CardDescription className="mt-1">Detectá desvíos antes de que sea tarde.</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="secondary" className="rounded-full">Materiales</Badge>
-                  <Badge variant="secondary" className="rounded-full">Mano de Obra</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Materiales</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Mano de Obra</Badge>
                 </div>
               </div>
 
@@ -238,19 +240,22 @@ export default function LandingPage() {
                   ))}
                 </div>
                 {/* Bars */}
-                <div className="absolute inset-0 flex items-end justify-around px-4">
+                <div className="absolute inset-0 flex items-end justify-around px-1 sm:px-4">
                   {[
-                    { label: 'Rubro 1', budget: '80%', real: '65%' },
-                    { label: 'Rubro 2', budget: '40%', real: '45%' },
-                    { label: 'Rubro 3', budget: '90%', real: '70%' },
-                    { label: 'Rubro 4', budget: '30%', real: '25%' },
+                    { label: 'Albañilería', shortLabel: 'Alb', budget: '80%', real: '65%' },
+                    { label: 'Electricidad', shortLabel: 'Elec', budget: '40%', real: '45%' },
+                    { label: 'Sanitaria', shortLabel: 'San', budget: '90%', real: '70%' },
+                    { label: 'Pintura', shortLabel: 'Pint', budget: '30%', real: '25%' },
                   ].map((rubro) => (
                     <div key={rubro.label} className="w-10 sm:w-16 flex flex-col items-center">
-                      <div className="w-full flex gap-1 items-end h-40">
+                      <div className="w-full flex gap-0.5 sm:gap-1 items-end h-32 sm:h-40">
                         <div className="w-1/2 bg-gray-300 rounded-t-sm" style={{ height: rubro.budget }} />
                         <div className="w-1/2 bg-primary rounded-t-sm" style={{ height: rubro.real }} />
                       </div>
-                      <span className="text-xs text-muted-foreground mt-2">{rubro.label}</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">
+                        <span className="sm:hidden">{rubro.shortLabel}</span>
+                        <span className="hidden sm:inline">{rubro.label}</span>
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -258,21 +263,21 @@ export default function LandingPage() {
             </Card>
 
             {/* Feature 3: Control Multi-obra (full width) */}
-            <Card className="lg:col-span-3 p-5 md:p-8 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
+            <Card className="lg:col-span-3 gap-0 p-4 sm:p-8 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-3 sm:gap-4">
                 <div>
-                  <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
-                    <Building2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                  <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
+                    <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     Control Multi-obra
                   </CardTitle>
-                  <CardDescription className="mt-2">
+                  <CardDescription className="mt-1 sm:mt-2">
                     Todo tu estudio en una sola pantalla. Accedé al estado de cada proyecto.
                   </CardDescription>
                 </div>
               </div>
 
               {/* Desktop table */}
-              <div className="hidden md:block">
+              <div className="hidden sm:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -311,7 +316,7 @@ export default function LandingPage() {
               </div>
 
               {/* Mobile cards */}
-              <div className="md:hidden space-y-3">
+              <div className="sm:hidden space-y-3">
                 {[
                   { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
                   { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
@@ -320,7 +325,7 @@ export default function LandingPage() {
                   <div key={project.name} className="rounded-lg border p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm">{project.name}</span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${project.statusColor}`}>
                         {project.status}
                       </span>
                     </div>

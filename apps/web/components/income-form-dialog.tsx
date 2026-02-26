@@ -30,7 +30,7 @@ interface IncomeFormDialogProps {
 export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: IncomeFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectId, setProjectId] = useState('');
-  const [incomeTypeId, setIncomeTypeId] = useState('');
+  const [incomeTypeName, setIncomeTypeName] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
@@ -51,13 +51,13 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
   useEffect(() => {
     if (income && open) {
       setProjectId(income.project_id);
-      setIncomeTypeId(income.income_type_id);
+      setIncomeTypeName(income.income_type?.name ?? '');
       setAmount(String(income.amount));
       setDate(income.date);
       setDescription(income.description ?? '');
     } else if (!income && open) {
       setProjectId('');
-      setIncomeTypeId('');
+      setIncomeTypeName('');
       setAmount('');
       setDate(new Date().toISOString().split('T')[0]);
       setDescription('');
@@ -68,9 +68,28 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // Resolve income type: find existing or create new
+      const trimmedType = incomeTypeName.trim();
+      if (!trimmedType) throw new Error('Ingresá un tipo de ingreso');
+      const existing = incomeTypes?.find((t) => t.name.toLowerCase() === trimmedType.toLowerCase());
+      let resolvedTypeId = existing?.id;
+      if (!resolvedTypeId) {
+        const createRes = await fetch('/api/income-types', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: trimmedType }),
+        });
+        if (!createRes.ok) {
+          const err = await createRes.json();
+          throw new Error(err.error ?? 'Error al crear tipo de ingreso');
+        }
+        const created = await createRes.json();
+        resolvedTypeId = created.id;
+      }
+
       const payload = {
         project_id: projectId,
-        income_type_id: incomeTypeId,
+        income_type_id: resolvedTypeId,
         amount: parseFloat(amount),
         date: date,
         description: description || null,
@@ -129,16 +148,19 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
               </div>
               <div className="space-y-2">
                 <Label htmlFor="inc-type">Tipo de ingreso <span className="text-red-500">*</span></Label>
-                <Select value={incomeTypeId} onValueChange={setIncomeTypeId} required>
-                  <SelectTrigger id="inc-type" className="w-full">
-                    <SelectValue placeholder="Selecciona el tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(incomeTypes ?? []).map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="inc-type"
+                  value={incomeTypeName}
+                  onChange={(e) => setIncomeTypeName(e.target.value)}
+                  placeholder="Ej: Certificado, Anticipo..."
+                  list="inc-type-suggestions"
+                  required
+                />
+                <datalist id="inc-type-suggestions">
+                  {(incomeTypes ?? []).map((t) => (
+                    <option key={t.id} value={t.name} />
+                  ))}
+                </datalist>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -182,7 +204,7 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !projectId || !incomeTypeId || !amount || !date}>
+            <Button type="submit" disabled={isSubmitting || !projectId || !incomeTypeName.trim() || !amount || !date}>
               {isSubmitting ? 'Guardando...' : income ? 'Actualizar' : 'Registrar'}
             </Button>
           </DialogFooter>

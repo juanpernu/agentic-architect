@@ -424,8 +424,11 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
+      {/* Financial section — visible to admin and supervisor */}
+      {isAdminOrSupervisor && <div className="my-8"><FinancialSection projectId={projectId} /></div>}
+
       {/* Receipts table — full width */}
-      <div className="flex flex-col min-h-[500px]">
+      <div className="flex flex-col">
         <div className="rounded-xl border border-border bg-card shadow-sm flex flex-col h-full overflow-hidden">
             {/* Table header */}
             <div className="p-6 border-b border-border/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -614,9 +617,6 @@ export default function ProjectDetailPage() {
           </div>
       </div>
 
-      {/* Financial section — visible to admin and supervisor */}
-      {isAdminOrSupervisor && <FinancialSection projectId={projectId} />}
-
       {/* Dialogs */}
       <ProjectFormDialog
         open={showEditDialog}
@@ -713,6 +713,7 @@ function FinancialSection({ projectId }: { projectId: string }) {
         <VsBudgetTable
           rubros={vsBudget.rubros}
           totalBudgeted={vsBudget.totalBudgeted}
+          totalCost={vsBudget.totalCost}
           totalActual={vsBudget.totalActual}
           totalDifference={vsBudget.totalDifference}
           globalPercentage={vsBudget.globalPercentage}

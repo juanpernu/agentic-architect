@@ -9,6 +9,7 @@ interface RubroComparison {
   rubroId: string;
   rubroName: string;
   budgeted: number;
+  cost: number;
   actual: number;
   difference: number;
   percentage: number;
@@ -17,12 +18,13 @@ interface RubroComparison {
 interface VsBudgetTableProps {
   rubros: RubroComparison[];
   totalBudgeted: number;
+  totalCost: number;
   totalActual: number;
   totalDifference: number;
   globalPercentage: number;
 }
 
-export function VsBudgetTable({ rubros, totalBudgeted, totalActual, totalDifference, globalPercentage }: VsBudgetTableProps) {
+export function VsBudgetTable({ rubros, totalBudgeted, totalCost, totalActual, totalDifference, globalPercentage }: VsBudgetTableProps) {
   return (
     <div className="space-y-4">
       {/* Global progress bar */}
@@ -54,7 +56,7 @@ export function VsBudgetTable({ rubros, totalBudgeted, totalActual, totalDiffere
           <div className="text-xl font-bold mt-1">{formatCurrency(totalBudgeted)}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-xs text-muted-foreground">Ejecutado</div>
+          <div className="text-xs text-muted-foreground">Gasto real</div>
           <div className="text-xl font-bold mt-1">{formatCurrency(totalActual)}</div>
         </Card>
         <Card className="p-4">
@@ -75,7 +77,8 @@ export function VsBudgetTable({ rubros, totalBudgeted, totalActual, totalDiffere
             <TableRow>
               <TableHead>Rubro</TableHead>
               <TableHead className="text-right">Presupuestado</TableHead>
-              <TableHead className="text-right">Ejecutado</TableHead>
+              <TableHead className="text-right">Costo</TableHead>
+              <TableHead className="text-right">Gasto real</TableHead>
               <TableHead className="text-right">Diferencia</TableHead>
               <TableHead className="w-[150px]">Avance</TableHead>
             </TableRow>
@@ -85,6 +88,7 @@ export function VsBudgetTable({ rubros, totalBudgeted, totalActual, totalDiffere
               <TableRow key={rubro.rubroId}>
                 <TableCell className="font-medium">{rubro.rubroName}</TableCell>
                 <TableCell className="text-right">{formatCurrency(rubro.budgeted)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(rubro.cost)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(rubro.actual)}</TableCell>
                 <TableCell className="text-right">
                   <span className={cn(

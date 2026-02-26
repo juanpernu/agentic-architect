@@ -130,6 +130,7 @@ export default function AdministrationPage() {
         <VsBudgetTable
           rubros={vsBudget.rubros}
           totalBudgeted={vsBudget.totalBudgeted}
+          totalCost={vsBudget.totalCost}
           totalActual={vsBudget.totalActual}
           totalDifference={vsBudget.totalDifference}
           globalPercentage={vsBudget.globalPercentage}

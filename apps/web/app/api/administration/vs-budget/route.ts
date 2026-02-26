@@ -37,50 +37,63 @@ export async function GET(req: NextRequest) {
   }
 
   // Parse snapshot to get budgeted amounts per rubro
-  const snapshot = budget.snapshot as { sections: Array<{ rubro_id: string; rubro_name: string; items: Array<{ subtotal: number }> }> };
+  const snapshot = budget.snapshot as { sections: Array<{ rubro_id: string; rubro_name: string; subtotal?: number; cost?: number; items: Array<{ cost: number; subtotal: number }> }> };
 
-  const rubroMap = new Map<string, { rubroId: string; rubroName: string; budgeted: number }>();
+  const rubroMap = new Map<string, { rubroId: string; rubroName: string; budgeted: number; cost: number }>();
   for (const section of snapshot.sections) {
-    const budgeted = section.items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+    const budgeted = section.subtotal != null ? section.subtotal : section.items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+    const cost = section.cost != null ? section.cost : section.items.reduce((sum, item) => sum + (item.cost || 0), 0);
     rubroMap.set(section.rubro_id, {
       rubroId: section.rubro_id,
       rubroName: section.rubro_name,
       budgeted,
+      cost,
     });
   }
 
-  // Get actual expenses per rubro for this project
-  const { data: expenses } = await db
-    .from('expenses')
-    .select('rubro_id, amount')
-    .eq('org_id', ctx.orgId)
-    .eq('project_id', projectId)
-    .not('rubro_id', 'is', null);
+  // Get actual spending per rubro: from expenses + receipts
+  const [{ data: expenses }, { data: receipts }] = await Promise.all([
+    db.from('expenses')
+      .select('rubro_id, amount')
+      .eq('org_id', ctx.orgId)
+      .eq('project_id', projectId)
+      .not('rubro_id', 'is', null),
+    db.from('receipts')
+      .select('rubro_id, total_amount, project:projects!project_id(organization_id)')
+      .eq('project_id', projectId)
+      .not('rubro_id', 'is', null),
+  ]);
 
-  // Sum expenses by rubro
+  // Sum by rubro
   const actualByRubro = new Map<string, number>();
   for (const exp of expenses ?? []) {
     if (!exp.rubro_id) continue;
     actualByRubro.set(exp.rubro_id, (actualByRubro.get(exp.rubro_id) || 0) + Number(exp.amount));
   }
+  for (const r of receipts ?? []) {
+    if (!r.rubro_id) continue;
+    actualByRubro.set(r.rubro_id, (actualByRubro.get(r.rubro_id) || 0) + Number(r.total_amount));
+  }
 
   // Build result
   const rubros = Array.from(rubroMap.values()).map(r => {
     const actual = actualByRubro.get(r.rubroId) || 0;
-    const difference = r.budgeted - actual;
-    const percentage = r.budgeted > 0 ? Math.round((actual / r.budgeted) * 100) : 0;
+    const difference = r.cost - actual;
+    const percentage = r.cost > 0 ? Math.round((actual / r.cost) * 100) : 0;
     return { ...r, actual, difference, percentage };
   });
 
   const totalBudgeted = rubros.reduce((s, r) => s + r.budgeted, 0);
+  const totalCost = rubros.reduce((s, r) => s + r.cost, 0);
   const totalActual = rubros.reduce((s, r) => s + r.actual, 0);
 
   return NextResponse.json({
     rubros,
     hasPublishedBudget: true,
     totalBudgeted,
+    totalCost,
     totalActual,
-    totalDifference: totalBudgeted - totalActual,
-    globalPercentage: totalBudgeted > 0 ? Math.round((totalActual / totalBudgeted) * 100) : 0,
+    totalDifference: totalCost - totalActual,
+    globalPercentage: totalCost > 0 ? Math.round((totalActual / totalCost) * 100) : 0,
   });
 }

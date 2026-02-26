@@ -15,6 +15,10 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 import type { Expense } from '@architech/shared';
 
 interface ExpenseFormDialogProps {
@@ -31,7 +35,7 @@ interface ExpenseFormDialogProps {
 export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: ExpenseFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectId, setProjectId] = useState('');
-  const [expenseTypeId, setExpenseTypeId] = useState('');
+  const [expenseTypeName, setExpenseTypeName] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [rubroId, setRubroId] = useState('');
@@ -81,7 +85,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
   useEffect(() => {
     if (expense && open) {
       setProjectId(expense.project_id);
-      setExpenseTypeId(expense.expense_type_id);
+      setExpenseTypeName(expense.expense_type?.name ?? '');
       setAmount(String(expense.amount));
       setDate(expense.date);
       setRubroId(expense.rubro_id ?? '');
@@ -89,7 +93,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
       setDescription(expense.description ?? '');
     } else if (!expense && open) {
       setProjectId('');
-      setExpenseTypeId('');
+      setExpenseTypeName('');
       setAmount('');
       setDate(new Date().toISOString().split('T')[0]);
       setRubroId('');
@@ -102,9 +106,28 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // Resolve expense type: find existing or create new
+      const trimmedType = expenseTypeName.trim();
+      if (!trimmedType) throw new Error('Ingresá un tipo de egreso');
+      const existing = expenseTypes?.find((t) => t.name.toLowerCase() === trimmedType.toLowerCase());
+      let resolvedTypeId = existing?.id;
+      if (!resolvedTypeId) {
+        const createRes = await fetch('/api/expense-types', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: trimmedType }),
+        });
+        if (!createRes.ok) {
+          const err = await createRes.json();
+          throw new Error(err.error ?? 'Error al crear tipo de egreso');
+        }
+        const created = await createRes.json();
+        resolvedTypeId = created.id;
+      }
+
       const payload = {
         project_id: projectId,
-        expense_type_id: expenseTypeId,
+        expense_type_id: resolvedTypeId,
         amount: parseFloat(amount),
         date: date,
         rubro_id: rubroId || null,
@@ -165,16 +188,19 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
               </div>
               <div className="space-y-2">
                 <Label htmlFor="exp-type">Tipo de egreso <span className="text-red-500">*</span></Label>
-                <Select value={expenseTypeId} onValueChange={setExpenseTypeId} required>
-                  <SelectTrigger id="exp-type" className="w-full">
-                    <SelectValue placeholder="Selecciona el tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(expenseTypes ?? []).map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="exp-type"
+                  value={expenseTypeName}
+                  onChange={(e) => setExpenseTypeName(e.target.value)}
+                  placeholder="Ej: Materiales, Mano de obra..."
+                  list="exp-type-suggestions"
+                  required
+                />
+                <datalist id="exp-type-suggestions">
+                  {(expenseTypes ?? []).map((t) => (
+                    <option key={t.id} value={t.name} />
+                  ))}
+                </datalist>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -224,7 +250,19 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="exp-receipt">Comprobante</Label>
+                  <Label htmlFor="exp-receipt" className="flex items-center gap-1.5">
+                    Comprobante
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger type="button" tabIndex={-1}>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs max-w-52">Primero cargá comprobantes en la sección de comprobantes del proyecto para poder asociarlos.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </Label>
                   <Select value={receiptId} onValueChange={setReceiptId}>
                     <SelectTrigger id="exp-receipt" className="w-full">
                       <SelectValue placeholder="Selecciona un comprobante" />
@@ -261,7 +299,7 @@ export function ExpenseFormDialog({ open, onOpenChange, expense, onSaved }: Expe
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !projectId || !expenseTypeId || !amount || !date}>
+            <Button type="submit" disabled={isSubmitting || !projectId || !expenseTypeName.trim() || !amount || !date}>
               {isSubmitting ? 'Guardando...' : expense ? 'Actualizar' : 'Registrar'}
             </Button>
           </DialogFooter>

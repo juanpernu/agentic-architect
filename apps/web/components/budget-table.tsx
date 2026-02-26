@@ -404,7 +404,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
                 <Input
                   value={item.description}
                   onChange={(e) => updateItem(sectionIdx, itemIdx, 'description', e.target.value)}
-                  placeholder="Descripcion"
+                  placeholder={`Tarea ${itemIdx + 1}`}
                   disabled={readOnly}
                   className="h-7 text-sm border-0 shadow-none focus-visible:ring-1 bg-transparent"
                 />

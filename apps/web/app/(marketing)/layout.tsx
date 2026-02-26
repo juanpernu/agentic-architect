@@ -8,29 +8,18 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <div className="min-h-screen flex flex-col bg-white text-foreground">
         {/* Navbar */}
         <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg">
-          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary/20 p-1.5 rounded-lg">
-                <span className="text-primary font-bold text-sm">A</span>
-              </div>
-              <span className="font-bold text-xl tracking-tight">Agentect</span>
-            </div>
+          <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-4 md:px-8">
+            <span className="font-bold text-lg sm:text-xl tracking-tight">Agentect</span>
 
-            <div className="flex items-center gap-4 md:gap-8">
-              <a href="#features" className="text-xs md:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-8">
+              <a href="#features" className="text-[11px] sm:text-xs md:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 Funcionalidades
               </a>
-              <a href="#pricing" className="text-xs md:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              <a href="#pricing" className="text-[11px] sm:text-xs md:text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 Precios
               </a>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                <Link href="/sign-in">Ingresar</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link href="/sign-up">Empezar Gratis</Link>
+              <Button size="sm" asChild className="h-8 px-3 text-xs sm:text-sm sm:h-9 sm:px-4">
+                <Link href="/sign-up">Empezar</Link>
               </Button>
             </div>
           </div>

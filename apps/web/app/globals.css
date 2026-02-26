@@ -165,6 +165,16 @@
 .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
 .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
 
+@keyframes cell-ripple {
+  0% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.4; transform: scale(1); }
+}
+
+.animate-cell-ripple {
+  animation: cell-ripple var(--duration, 600ms) ease-out var(--delay, 0ms) 1;
+}
+
 @keyframes scan {
   0% { top: 0%; opacity: 0; }
   10% { opacity: 1; }
@@ -180,6 +190,7 @@
   .animate-fade-in,
   .animate-slide-up,
   .animate-scan,
+  .animate-cell-ripple,
   .stagger-children > * {
     animation: none;
   }

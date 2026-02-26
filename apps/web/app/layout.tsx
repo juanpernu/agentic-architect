@@ -27,6 +27,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
         {process.env.NODE_ENV === "development" && (
           <Script
+            src="//unpkg.com/@react-grab/claude-code/dist/client.global.js"
+            strategy="lazyOnload"
+          />
+        )}
+        {process.env.NODE_ENV === "development" && (
+          <Script
             src="//unpkg.com/@react-grab/mcp/dist/client.global.js"
             strategy="lazyOnload"
           />

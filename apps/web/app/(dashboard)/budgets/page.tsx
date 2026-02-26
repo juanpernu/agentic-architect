@@ -171,7 +171,7 @@ export default function BudgetsPage() {
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {formatCurrency(budget.total_amount)}
+                    Total: {formatCurrency(budget.total_amount)}
                   </div>
                 </CardContent>
 
