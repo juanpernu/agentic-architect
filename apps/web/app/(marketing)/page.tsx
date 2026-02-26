@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Agentect — Sabe cuánto ganás en cada obra',
+  title: 'Agentect — Sabé cuánto ganás en cada obra',
   description:
     'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para estudios de arquitectura argentinos.',
   openGraph: {
@@ -39,13 +39,17 @@ function formatARS(n: number) {
 }
 
 function formatCompact(n: number) {
-  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (Math.abs(n) >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toString();
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `$ ${(abs / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `$ ${(abs / 1_000).toFixed(0)}K`;
+  return `$ ${abs}`;
 }
 
-function signedBalance(formatted: string, n: number) {
-  return n >= 0 ? `+${formatted}` : formatted;
+function signedBalance(n: number, formatter: (v: number) => string) {
+  const formatted = formatter(Math.abs(n));
+  if (n > 0) return `+${formatted}`;
+  if (n < 0) return `-${formatted}`;
+  return formatted;
 }
 
 export default function LandingPage() {
@@ -58,7 +62,7 @@ export default function LandingPage() {
         <BackgroundRippleEffect />
         <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white pointer-events-none z-[4]" />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 text-center" style={{ zIndex: 5 }}>
+        <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-8">
             <span className="relative flex h-2 w-2">
@@ -72,7 +76,7 @@ export default function LandingPage() {
 
           {/* Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Sabe exactamente cuánto{' '}
+            Sabé exactamente cuánto{' '}
             <br />
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
               ganás en cada obra
@@ -295,7 +299,7 @@ export default function LandingPage() {
                     Cada peso asociado a su obra
                   </CardTitle>
                   <CardDescription className="mt-1 sm:mt-2">
-                    Ingresos, egresos y comprobantes centralizados por proyecto. Sabe al instante cuánto va cada obra.
+                    Ingresos, egresos y comprobantes centralizados por proyecto. Sabé al instante cuánto va cada obra.
                   </CardDescription>
                 </div>
               </div>
@@ -321,7 +325,7 @@ export default function LandingPage() {
                           <TableCell className="text-right">{formatARS(p.income)}</TableCell>
                           <TableCell className="text-right">{formatARS(p.expense)}</TableCell>
                           <TableCell className={`text-right font-semibold ${balance >= 0 ? 'text-primary' : 'text-red-500'}`}>
-                            {signedBalance(formatARS(Math.abs(balance)), balance)}
+                            {signedBalance(balance, formatARS)}
                           </TableCell>
                           <TableCell>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${p.statusColor}`}>
@@ -348,10 +352,10 @@ export default function LandingPage() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Ingresos: ${formatCompact(p.income)}</span>
-                        <span className="text-muted-foreground">Egresos: ${formatCompact(p.expense)}</span>
+                        <span className="text-muted-foreground">Ingresos: {formatCompact(p.income)}</span>
+                        <span className="text-muted-foreground">Egresos: {formatCompact(p.expense)}</span>
                         <span className={`font-semibold ${balance >= 0 ? 'text-primary' : 'text-red-500'}`}>
-                          {signedBalance(`$${formatCompact(Math.abs(balance))}`, balance)}
+                          {signedBalance(balance, formatCompact)}
                         </span>
                       </div>
                     </div>
