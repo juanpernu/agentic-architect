@@ -149,7 +149,8 @@ export async function updateSubscriptionAmount(
 
 /**
  * Search payments for a subscription.
- * Uses the Payment API to find payments associated with the preapproval.
+ * MP SDK Payment.search doesn't support filtering by preapproval_id in options,
+ * so we fetch a bounded set and filter client-side.
  */
 export async function getSubscriptionPayments(preApprovalId: string) {
   const client = getMPClient();
@@ -159,12 +160,12 @@ export async function getSubscriptionPayments(preApprovalId: string) {
     options: {
       criteria: 'desc',
       sort: 'date_created',
+      limit: 100,
     },
   });
 
-  // Filter by preapproval_id from results
   const payments = result.results ?? [];
   return payments.filter(
-    (p: Record<string, unknown>) => p.preapproval_id === preApprovalId
+    (p) => (p as Record<string, unknown>).preapproval_id === preApprovalId
   );
 }

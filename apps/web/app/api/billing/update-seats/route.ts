@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { seatCount } = body;
 
-  if (!seatCount || typeof seatCount !== 'number' || seatCount < 1 || seatCount > 20) {
+  if (!seatCount || typeof seatCount !== 'number' || !Number.isInteger(seatCount) || seatCount < 1 || seatCount > 20) {
     return NextResponse.json({ error: 'seatCount inválido' }, { status: 400 });
   }
 

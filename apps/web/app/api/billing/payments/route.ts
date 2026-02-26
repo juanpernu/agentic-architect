@@ -3,11 +3,15 @@ import { getAuthContext, unauthorized, forbidden } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { getSubscription, getSubscriptionPayments } from '@/lib/mercadopago/subscription';
 import { apiError } from '@/lib/api-error';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function GET() {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   if (ctx.role !== 'admin') return forbidden();
+
+  const rl = rateLimit('billing', ctx.orgId);
+  if (rl) return rl;
 
   const db = getDb();
   const { data: org } = await db

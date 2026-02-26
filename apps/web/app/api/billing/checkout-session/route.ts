@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (!billingCycle || !['monthly', 'yearly'].includes(billingCycle)) {
     return NextResponse.json({ error: 'billingCycle inválido' }, { status: 400 });
   }
-  if (!seatCount || typeof seatCount !== 'number' || seatCount < 1 || seatCount > 20) {
+  if (!seatCount || typeof seatCount !== 'number' || !Number.isInteger(seatCount) || seatCount < 1 || seatCount > 20) {
     return NextResponse.json({ error: 'seatCount inválido' }, { status: 400 });
   }
 
@@ -46,10 +46,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const headersList = await headers();
-  const host = headersList.get('host') ?? 'localhost:3000';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  const backUrl = `${protocol}://${host}/settings/billing?checkout=pending`;
+  // Use Vercel's trusted URL in production; fall back to Host header for local dev
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  let baseUrl: string;
+  if (vercelUrl) {
+    baseUrl = `https://${vercelUrl}`;
+  } else {
+    const headersList = await headers();
+    const host = headersList.get('host') ?? 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    baseUrl = `${protocol}://${host}`;
+  }
+  const backUrl = `${baseUrl}/settings/billing?checkout=pending`;
 
   const totalAmount = computeSubscriptionAmount(billingCycle, seatCount);
 
@@ -88,6 +96,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: subscription.init_point });
   } catch (err) {
+    // Rollback pending subscription data on MP API failure
+    await db
+      .from('organizations')
+      .update({ subscription_seats: null, billing_cycle: null })
+      .eq('id', ctx.orgId);
+
     return apiError(err, 'Error al crear sesión de pago', 500, {
       route: '/api/billing/checkout-session',
     });

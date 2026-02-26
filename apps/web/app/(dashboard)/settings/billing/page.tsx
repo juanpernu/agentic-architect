@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import {
   CreditCard,
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { usePlan } from '@/lib/use-plan';
 import { fetcher } from '@/lib/fetcher';
+import { MP_PRICING } from '@/lib/mercadopago/pricing';
 import { Button } from '@/components/ui/button';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import {
@@ -33,10 +34,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const ADVANCE_PRICING = {
-  monthly: { base: 30_000, seat: 5_000 },
-  yearly: { base: 300_000, seat: 50_000 },
-} as const;
+const ADVANCE_PRICING = MP_PRICING;
 
 function formatARS(amount: number): string {
   return new Intl.NumberFormat('es-AR', {
@@ -77,6 +75,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function BillingPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const checkoutPending = searchParams.get('checkout') === 'pending';
 
@@ -99,14 +98,19 @@ export default function BillingPage() {
   useSWR(
     checkoutPending && plan === 'free' ? '/api/billing/plan' : null,
     fetcher,
-    {
-      refreshInterval: 3000,
-      onSuccess: () => mutate(),
-    }
+    { refreshInterval: 3000, onSuccess: () => mutate() }
   );
+
+  // Clear ?checkout=pending once plan upgrades
+  useEffect(() => {
+    if (checkoutPending && plan !== 'free') {
+      router.replace('/settings/billing', { scroll: false });
+    }
+  }, [checkoutPending, plan, router]);
 
   const [billingOption, setBillingOption] = useState<'monthly' | 'yearly'>('monthly');
   const [seatCount, setSeatCount] = useState(3);
+  const [newSeatCount, setNewSeatCount] = useState(maxSeats ?? 1);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -177,6 +181,28 @@ export default function BillingPage() {
     }
   };
 
+  const handleUpdateSeats = async () => {
+    setActionLoading('seats');
+    setActionError(null);
+    try {
+      const res = await fetch('/api/billing/update-seats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seatCount: newSeatCount }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setActionError(data.error ?? 'Error al actualizar seats');
+        return;
+      }
+      await mutate();
+    } catch {
+      setActionError('Error de conexión');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (isLoading) {
     return <LoadingCards count={3} />;
   }
@@ -196,12 +222,14 @@ export default function BillingPage() {
         ? 'bg-amber-400'
         : 'bg-red-400';
 
-  const statusLabel =
-    subscriptionStatus === 'active'
-      ? 'ACTIVO'
-      : subscriptionStatus === 'paused'
-        ? 'PAUSADO'
-        : (subscriptionStatus ?? '').toUpperCase();
+  const STATUS_LABELS: Record<string, string> = {
+    active: 'ACTIVO',
+    paused: 'PAUSADO',
+    past_due: 'PAGO PENDIENTE',
+    canceled: 'CANCELADO',
+    trialing: 'PRUEBA',
+  };
+  const statusLabel = STATUS_LABELS[subscriptionStatus ?? ''] ?? (subscriptionStatus ?? '').toUpperCase();
 
   return (
     <div className="space-y-6">
@@ -308,6 +336,29 @@ export default function BillingPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+          {/* Seat management */}
+          <div className="mt-4 pt-4 border-t border-gray-700 relative z-10">
+            <p className="text-sm text-gray-300 mb-2">Ajustar usuarios</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min={1}
+                max={20}
+                value={newSeatCount}
+                onChange={(e) => setNewSeatCount(Number(e.target.value))}
+                className="flex-1"
+              />
+              <span className="text-sm font-medium w-8 text-center">{newSeatCount}</span>
+              <button
+                type="button"
+                className="bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50 text-white"
+                onClick={handleUpdateSeats}
+                disabled={actionLoading !== null || newSeatCount === maxSeats}
+              >
+                {actionLoading === 'seats' ? 'Actualizando...' : 'Actualizar'}
+              </button>
             </div>
           </div>
           {actionError && (

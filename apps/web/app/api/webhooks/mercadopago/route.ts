@@ -15,12 +15,18 @@ import { logger } from '@/lib/logger';
  * - subscription_authorized_payment: recurring payment processed
  */
 export async function POST(request: Request) {
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
   const headersList = await headers();
 
   const xSignature = headersList.get('x-signature');
   const xRequestId = headersList.get('x-request-id');
-  const dataId = String(body.data?.id ?? '');
+  const dataId = String((body.data as Record<string, unknown>)?.id ?? '');
 
   if (!verifyWebhookSignature(xSignature, xRequestId, dataId)) {
     logger.error('MP webhook signature verification failed', {
@@ -48,13 +54,21 @@ export async function POST(request: Request) {
 
       if (mpStatus === 'authorized') {
         // Subscription activated or reactivated
-        const { data: org } = await db
+        const { data: org, error: selectErr } = await db
           .from('organizations')
           .select('subscription_seats')
           .eq('id', orgId)
           .single();
 
-        await db
+        if (selectErr) {
+          logger.error('MP webhook: failed to read org', {
+            route: '/api/webhooks/mercadopago',
+            orgId,
+            error: selectErr.message,
+          });
+        }
+
+        const { error: updateErr } = await db
           .from('organizations')
           .update({
             plan: 'advance',
@@ -68,23 +82,43 @@ export async function POST(request: Request) {
           })
           .eq('id', orgId);
 
+        if (updateErr) {
+          logger.error('MP webhook: failed to update org for authorized', {
+            route: '/api/webhooks/mercadopago',
+            orgId,
+            error: updateErr.message,
+          });
+          return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+        }
+
         logger.info('MP subscription authorized', {
           route: '/api/webhooks/mercadopago',
           orgId,
           subscriptionId: dataId,
         });
       } else if (mpStatus === 'paused') {
-        await db
+        const { error: updateErr } = await db
           .from('organizations')
           .update({ subscription_status: 'paused' })
           .eq('payment_subscription_id', dataId);
+
+        if (updateErr) {
+          logger.error('MP webhook: failed to update org for paused', {
+            route: '/api/webhooks/mercadopago',
+            error: updateErr.message,
+          });
+          return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+        }
 
         logger.info('MP subscription paused', {
           route: '/api/webhooks/mercadopago',
           subscriptionId: dataId,
         });
       } else if (mpStatus === 'cancelled') {
-        await db
+        // Note: The cancel API endpoint also resets to free and clears payment_subscription_id.
+        // This is intentionally idempotent — if the API already cleared payment_subscription_id,
+        // this webhook update matches 0 rows (harmless). Both paths converge to the same state.
+        const { error: updateErr } = await db
           .from('organizations')
           .update({
             plan: 'free',
@@ -96,6 +130,14 @@ export async function POST(request: Request) {
             subscription_seats: null,
           })
           .eq('payment_subscription_id', dataId);
+
+        if (updateErr) {
+          logger.error('MP webhook: failed to update org for cancelled', {
+            route: '/api/webhooks/mercadopago',
+            error: updateErr.message,
+          });
+          return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+        }
 
         logger.info('MP subscription cancelled', {
           route: '/api/webhooks/mercadopago',
