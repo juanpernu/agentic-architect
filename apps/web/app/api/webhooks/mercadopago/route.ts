@@ -6,6 +6,13 @@ import { getSubscription } from '@/lib/mercadopago/subscription';
 import { logger } from '@/lib/logger';
 
 /**
+ * MP sends a GET request to verify the webhook URL is reachable.
+ */
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
+/**
  * Mercado Pago webhook handler.
  *
  * MP webhooks only send the resource ID — we must fetch the full object via API.

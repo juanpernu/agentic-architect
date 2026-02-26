@@ -29,11 +29,6 @@ export async function createSubscription({
   const preApproval = new PreApproval(client);
   const totalAmount = computeSubscriptionAmount(billingCycle, seatCount);
 
-  const now = new Date();
-  const startDate = now.toISOString();
-  // End date: 1 year from now (MP requires it for standalone PreApprovals)
-  const endDate = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()).toISOString();
-
   return preApproval.create({
     body: {
       reason: `Agentect Advance — ${seatCount} usuario${seatCount > 1 ? 's' : ''}`,
@@ -42,8 +37,6 @@ export async function createSubscription({
       auto_recurring: {
         frequency: billingCycle === 'monthly' ? 1 : 12,
         frequency_type: 'months',
-        start_date: startDate,
-        end_date: endDate,
         transaction_amount: totalAmount,
         currency_id: 'ARS',
       },
