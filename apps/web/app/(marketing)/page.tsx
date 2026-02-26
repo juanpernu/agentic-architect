@@ -426,7 +426,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════ SOCIAL PROOF ═══════════════ */}
+      {/* ═══════════════ SOCIAL PROOF (hidden until real quotes) ═══════════════ */}
+      {/* TODO: Uncomment when real beta tester testimonials are available
       <section className="py-12 md:py-20">
         <div className="mx-auto max-w-4xl px-4 md:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-10">
@@ -435,16 +436,10 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {[
               {
-                quote: 'Antes cerraba cada obra sin saber si había ganado o perdido. Ahora lo veo en tiempo real.',
-                name: 'Nombre Apellido',
-                role: 'Arquitecto',
-                studio: 'Estudio Beta Tester 1',
-              },
-              {
-                quote: 'Armar presupuestos me llevaba días en Excel. Con Agentect lo hago en una tarde y después puedo comparar contra los gastos reales.',
-                name: 'Nombre Apellido',
-                role: 'Directora de Obra',
-                studio: 'Estudio Beta Tester 2',
+                quote: 'Quote real del beta tester',
+                name: 'Nombre real',
+                role: 'Rol',
+                studio: 'Estudio',
               },
             ].map((testimonial) => (
               <Card key={testimonial.studio} className="p-6 text-left">
@@ -459,11 +454,9 @@ export default function LandingPage() {
               </Card>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-6">
-            * Nombres y estudios de beta testers. Se actualizarán con testimonios finales.
-          </p>
         </div>
       </section>
+      */}
 
       {/* ═══════════════ PRICING ═══════════════ */}
       <section id="pricing" className="py-16 md:py-24 bg-slate-50 border-y">
