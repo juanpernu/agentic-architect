@@ -383,18 +383,14 @@ export default function BillingPage() {
                 </>
               )}
             </button>
-          </div>
-
-          {/* Danger zone — Cancel */}
-          <div className="mt-4 pt-4 border-t border-gray-700/50 relative z-10">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button
                   type="button"
-                  className="text-xs text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50 flex items-center gap-1"
+                  className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 transition-colors py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
                   disabled={actionLoading !== null}
                 >
-                  <XCircle className="h-3 w-3" />
+                  <XCircle className="h-4 w-4" />
                   Cancelar suscripción
                 </button>
               </AlertDialogTrigger>
