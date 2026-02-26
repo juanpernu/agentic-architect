@@ -444,10 +444,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Planes diseñados para tu estudio
+              Elegí el plan que acompañe tu crecimiento
             </h2>
             <p className="text-lg text-muted-foreground">
-              Elegí el plan que mejor se adapte a tu volumen de obras. Sin contratos a largo plazo.
+              Empezá gratis con un proyecto. Escalá cuando tu estudio lo necesite.
             </p>
           </div>
 
@@ -536,10 +536,10 @@ export default function LandingPage() {
       <section className="py-12 md:py-20 border-t">
         <div className="mx-auto max-w-4xl px-4 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">
-            Empezá a ordenar tus obras hoy
+            Tu próxima obra merece mejor control
           </h2>
           <p className="text-muted-foreground mb-8 text-lg">
-            Sumate a más de 500 estudios de arquitectura en Argentina que ya confían en Agentect.
+            Creá tu cuenta gratis y armá tu primer presupuesto en minutos. Sin Excel, sin sorpresas al cierre.
           </p>
           <Button size="lg" asChild className="px-8 py-4 md:py-6 rounded-xl text-lg shadow-lg shadow-primary/20">
             <Link href="/sign-up">Crear cuenta gratis</Link>
