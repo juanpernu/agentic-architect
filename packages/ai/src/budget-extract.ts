@@ -76,9 +76,9 @@ export function parseBudgetImportResponse(raw: string): BudgetImportResult {
         (item: Record<string, unknown>) => ({
           description: String(item.description ?? ''),
           unit: String(item.unit ?? 'gl'),
-          quantity: Number(item.quantity ?? 1),
-          cost: Number(item.cost ?? 0),
-          subtotal: Number(item.subtotal ?? 0),
+          quantity: Number(item.quantity ?? 1) || 1,
+          cost: Number(item.cost ?? 0) || 0,
+          subtotal: Number(item.subtotal ?? 0) || 0,
         })
       ),
     })

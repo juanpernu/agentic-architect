@@ -177,7 +177,8 @@ export async function POST(
   const { error: updateError } = await db
     .from('budgets')
     .update({ snapshot: parsed.data })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', ctx.orgId);
 
   if (updateError) {
     return apiError(updateError, 'Error al guardar el presupuesto', 500, {
