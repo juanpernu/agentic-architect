@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
 };
 import {
-  BarChart3, Bot, Building2, Check, X,
+  BarChart3, Building2, Check, X,
   FileSpreadsheet, TrendingDown, MessageSquare,
   ArrowRight, CheckCircle, CheckCircle2,
   Zap, Star, Lock,
@@ -175,84 +175,86 @@ export default function LandingPage() {
       {/* ═══════════════ FEATURES ═══════════════ */}
       <section id="features" className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-8">
+          <div className="text-center mb-10 md:mb-16">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">
+              Todo lo que necesitás para controlar tus obras
+            </h2>
+          </div>
           <div className="grid lg:grid-cols-3 gap-8">
 
-            {/* Feature 1: Carga con IA (1 col) */}
+            {/* Feature 1: Presupuestos (1 col) */}
             <Card className="gap-0 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 sm:mb-6 text-primary">
-                <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
+                <TableProperties className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <CardTitle className="text-lg sm:text-xl mb-2">Carga con IA</CardTitle>
+              <CardTitle className="text-lg sm:text-xl mb-2">Armá presupuestos profesionales</CardTitle>
               <CardDescription className="mb-4 sm:mb-6">
-                Nuestro motor reconoce facturas A, B y C de AFIP al instante. Olvidate de tipear CUITs.
+                Editor integrado con rubros, ítems, unidades y costos. Publicá versiones y compartí con tu cliente.
               </CardDescription>
 
-              {/* Scan illustration */}
-              <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border relative overflow-hidden">
-                <div className="flex flex-col gap-2 sm:gap-3">
-                  <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
-                    <span>Escaneando...</span>
-                    <span className="text-primary font-mono">98%</span>
-                  </div>
-                  <div className="bg-white p-2 sm:p-3 rounded shadow-sm border w-full sm:w-3/4 mx-auto relative overflow-hidden">
-                    <div className="h-2 w-1/2 bg-muted rounded mb-2" />
-                    <div className="h-2 w-3/4 bg-muted rounded mb-4" />
-                    <div className="border-t border-dashed my-2" />
-                    <div className="flex justify-between">
-                      <div className="h-2 w-8 bg-muted rounded" />
-                      <div className="h-2 w-12 bg-primary/40 rounded" />
+              {/* Budget editor mockup */}
+              <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border">
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs text-muted-foreground mb-1 font-medium">Presupuesto — Casa Martínez</div>
+                  {[
+                    { rubro: 'Albañilería', items: 3, total: '$2.450.000' },
+                    { rubro: 'Electricidad', items: 5, total: '$890.000' },
+                    { rubro: 'Sanitaria', items: 2, total: '$1.120.000' },
+                  ].map((section) => (
+                    <div key={section.rubro} className="bg-white p-2 rounded shadow-sm border">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium">{section.rubro}</span>
+                        <span className="text-xs text-muted-foreground">{section.items} ítems</span>
+                      </div>
+                      <div className="flex justify-end mt-1">
+                        <span className="text-xs font-bold">{section.total}</span>
+                      </div>
                     </div>
-                    <div
-                      className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(22,196,85,0.8)] animate-scan"
-                    />
-                  </div>
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 flex items-center gap-2 mt-1 sm:mt-2">
-                    <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                    <div className="text-xs">
-                      <div className="text-muted-foreground">Total</div>
-                      <div className="font-bold">$15.231,89</div>
-                    </div>
+                  ))}
+                  <div className="border-t pt-2 flex justify-between items-center">
+                    <span className="text-xs font-medium">Total</span>
+                    <span className="text-sm font-bold">$4.460.000</span>
                   </div>
                 </div>
               </div>
             </Card>
 
-            {/* Feature 2: Presupuesto vs Real (2 col) */}
+            {/* Feature 2: Rentabilidad por rubro (2 col) */}
             <Card className="lg:col-span-2 gap-0 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
                 <div>
                   <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4 text-blue-500">
                     <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  <CardTitle className="text-lg sm:text-xl">Presupuesto vs. Real</CardTitle>
-                  <CardDescription className="mt-1">Detectá desvíos antes de que sea tarde.</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl">Visualizá la rentabilidad rubro por rubro</CardTitle>
+                  <CardDescription className="mt-1">Semáforo verde/amarillo/rojo para detectar desvíos al instante.</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Materiales</Badge>
-                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Mano de Obra</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Presupuestado</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Costo</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">Gasto Real</Badge>
                 </div>
               </div>
 
-              {/* CSS bar chart */}
+              {/* CSS bar chart — 3 bars per rubro */}
               <div className="h-40 sm:h-56 w-full relative">
-                {/* Grid lines */}
                 <div className="absolute inset-0 flex flex-col justify-between">
                   {[0, 1, 2, 3].map((i) => (
                     <div key={i} className="w-full border-b border-border/50 h-0" />
                   ))}
                 </div>
-                {/* Bars */}
                 <div className="absolute inset-0 flex items-end justify-around px-1 sm:px-4">
                   {[
-                    { label: 'Albañilería', shortLabel: 'Alb', budget: '80%', real: '65%' },
-                    { label: 'Electricidad', shortLabel: 'Elec', budget: '40%', real: '45%' },
-                    { label: 'Sanitaria', shortLabel: 'San', budget: '90%', real: '70%' },
-                    { label: 'Pintura', shortLabel: 'Pint', budget: '30%', real: '25%' },
+                    { label: 'Albañilería', shortLabel: 'Alb', budget: '80%', cost: '70%', real: '65%', color: 'bg-primary' },
+                    { label: 'Electricidad', shortLabel: 'Elec', budget: '40%', cost: '35%', real: '55%', color: 'bg-red-500' },
+                    { label: 'Sanitaria', shortLabel: 'San', budget: '90%', cost: '75%', real: '70%', color: 'bg-primary' },
+                    { label: 'Pintura', shortLabel: 'Pint', budget: '30%', cost: '25%', real: '20%', color: 'bg-primary' },
                   ].map((rubro) => (
                     <div key={rubro.label} className="w-10 sm:w-16 flex flex-col items-center">
-                      <div className="w-full flex gap-0.5 sm:gap-1 items-end h-32 sm:h-40">
-                        <div className="w-1/2 bg-gray-300 rounded-t-sm" style={{ height: rubro.budget }} />
-                        <div className="w-1/2 bg-primary rounded-t-sm" style={{ height: rubro.real }} />
+                      <div className="w-full flex gap-px sm:gap-0.5 items-end h-32 sm:h-40">
+                        <div className="w-1/3 bg-gray-300 rounded-t-sm" style={{ height: rubro.budget }} />
+                        <div className="w-1/3 bg-blue-400 rounded-t-sm" style={{ height: rubro.cost }} />
+                        <div className={`w-1/3 ${rubro.color} rounded-t-sm`} style={{ height: rubro.real }} />
                       </div>
                       <span className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">
                         <span className="sm:hidden">{rubro.shortLabel}</span>
@@ -264,16 +266,16 @@ export default function LandingPage() {
               </div>
             </Card>
 
-            {/* Feature 3: Control Multi-obra (full width) */}
+            {/* Feature 3: Seguimiento por obra (full width) */}
             <Card className="lg:col-span-3 gap-0 p-4 sm:p-8 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-3 sm:gap-4">
                 <div>
                   <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
                     <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    Control Multi-obra
+                    Cada peso asociado a su obra
                   </CardTitle>
                   <CardDescription className="mt-1 sm:mt-2">
-                    Todo tu estudio en una sola pantalla. Accedé al estado de cada proyecto.
+                    Ingresos, egresos y comprobantes centralizados por proyecto. Sabé al instante cuánto va cada obra.
                   </CardDescription>
                 </div>
               </div>
@@ -284,33 +286,28 @@ export default function LandingPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Proyecto</TableHead>
+                      <TableHead className="text-right">Ingresos</TableHead>
+                      <TableHead className="text-right">Egresos</TableHead>
+                      <TableHead className="text-right">Balance</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead>Avance Financiero</TableHead>
-                      <TableHead className="text-right">Última Actividad</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {[
-                      { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
-                      { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
-                      { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
+                      { name: 'Casa Martínez', income: '$4.200.000', expense: '$3.150.000', balance: '$1.050.000', balanceColor: 'text-primary', status: 'En Curso', statusColor: 'bg-green-100 text-green-800' },
+                      { name: 'Edificio Alvear', income: '$12.800.000', expense: '$13.100.000', balance: '-$300.000', balanceColor: 'text-red-500', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800' },
+                      { name: 'Oficinas Centro', income: '$1.500.000', expense: '$450.000', balance: '$1.050.000', balanceColor: 'text-primary', status: 'Inicio', statusColor: 'bg-blue-100 text-blue-800' },
                     ].map((project) => (
                       <TableRow key={project.name}>
                         <TableCell className="font-medium">{project.name}</TableCell>
+                        <TableCell className="text-right">{project.income}</TableCell>
+                        <TableCell className="text-right">{project.expense}</TableCell>
+                        <TableCell className={`text-right font-semibold ${project.balanceColor}`}>{project.balance}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${project.statusColor}`}>
                             {project.status}
                           </span>
                         </TableCell>
-                        <TableCell className="w-1/3">
-                          <div className="flex items-center gap-3">
-                            <span className="text-muted-foreground w-8">{project.progress}%</span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right text-muted-foreground">{project.time}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -320,9 +317,9 @@ export default function LandingPage() {
               {/* Mobile cards */}
               <div className="sm:hidden space-y-3">
                 {[
-                  { name: 'Casa Martínez', status: 'En Curso', statusColor: 'bg-green-100 text-green-800', progress: 65, barColor: 'bg-primary', time: 'Hace 2h' },
-                  { name: 'Edificio Alvear', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800', progress: 22, barColor: 'bg-yellow-500', time: 'Ayer' },
-                  { name: 'Remodelación Oficinas', status: 'Planificación', statusColor: 'bg-blue-100 text-blue-800', progress: 5, barColor: 'bg-blue-500', time: 'Hace 3 días' },
+                  { name: 'Casa Martínez', income: '$4.2M', expense: '$3.1M', balance: '+$1.05M', balanceColor: 'text-primary', status: 'En Curso', statusColor: 'bg-green-100 text-green-800' },
+                  { name: 'Edificio Alvear', income: '$12.8M', expense: '$13.1M', balance: '-$300K', balanceColor: 'text-red-500', status: 'Revisión', statusColor: 'bg-yellow-100 text-yellow-800' },
+                  { name: 'Oficinas Centro', income: '$1.5M', expense: '$450K', balance: '+$1.05M', balanceColor: 'text-primary', status: 'Inicio', statusColor: 'bg-blue-100 text-blue-800' },
                 ].map((project) => (
                   <div key={project.name} className="rounded-lg border p-3 space-y-2">
                     <div className="flex items-center justify-between">
@@ -331,11 +328,10 @@ export default function LandingPage() {
                         {project.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                        <div className={`h-full ${project.barColor} rounded-full`} style={{ width: `${project.progress}%` }} />
-                      </div>
-                      <span className="text-xs text-muted-foreground w-8">{project.progress}%</span>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Ingresos: {project.income}</span>
+                      <span className="text-muted-foreground">Egresos: {project.expense}</span>
+                      <span className={`font-semibold ${project.balanceColor}`}>{project.balance}</span>
                     </div>
                   </div>
                 ))}
