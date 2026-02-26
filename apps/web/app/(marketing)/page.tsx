@@ -341,6 +341,104 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══════════════ FACILITATOR ═══════════════ */}
+      <section className="py-12 md:py-20 bg-slate-50 border-y">
+        <div className="mx-auto max-w-7xl px-4 md:px-8">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+            {/* Text */}
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+                Cargá los gastos de tu obra en segundos
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Sacale una foto al comprobante y Agentect extrae proveedor, monto,
+                CUIT y fecha automáticamente. Vos solo confirmás.
+              </p>
+            </div>
+
+            {/* Scan illustration — compact reuse */}
+            <div className="flex-1 max-w-sm w-full">
+              <div className="bg-white rounded-xl p-4 border shadow-sm">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between items-center text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Camera className="h-4 w-4" />
+                      <span>Escaneando...</span>
+                    </div>
+                    <span className="text-primary font-mono">98%</span>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded border w-3/4 mx-auto relative overflow-hidden">
+                    <div className="h-2 w-1/2 bg-muted rounded mb-2" />
+                    <div className="h-2 w-3/4 bg-muted rounded mb-4" />
+                    <div className="border-t border-dashed my-2" />
+                    <div className="flex justify-between">
+                      <div className="h-2 w-8 bg-muted rounded" />
+                      <div className="h-2 w-12 bg-primary/40 rounded" />
+                    </div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(22,196,85,0.8)] animate-scan" />
+                  </div>
+                  <div className="space-y-1.5">
+                    {[
+                      { label: 'Proveedor', value: 'Ferretería San Martín' },
+                      { label: 'Total', value: '$15.231,89' },
+                      { label: 'CUIT', value: '30-71234567-9' },
+                    ].map((field) => (
+                      <div key={field.label} className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground">{field.label}</span>
+                        <span className="font-medium">{field.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-xs font-medium">Listo para confirmar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ SOCIAL PROOF ═══════════════ */}
+      <section className="py-12 md:py-20">
+        <div className="mx-auto max-w-4xl px-4 md:px-8 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-10">
+            Lo que dicen los estudios que ya lo usan
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                quote: 'Antes cerraba cada obra sin saber si había ganado o perdido. Ahora lo veo en tiempo real.',
+                name: 'Nombre Apellido',
+                role: 'Arquitecto',
+                studio: 'Estudio Beta Tester 1',
+              },
+              {
+                quote: 'Armar presupuestos me llevaba días en Excel. Con Agentect lo hago en una tarde y después puedo comparar contra los gastos reales.',
+                name: 'Nombre Apellido',
+                role: 'Directora de Obra',
+                studio: 'Estudio Beta Tester 2',
+              },
+            ].map((testimonial) => (
+              <Card key={testimonial.studio} className="p-6 text-left">
+                <Quote className="h-8 w-8 text-primary/20 mb-3" />
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  &ldquo;{testimonial.quote}&rdquo;
+                </p>
+                <div>
+                  <p className="font-semibold text-sm">{testimonial.name}</p>
+                  <p className="text-xs text-muted-foreground">{testimonial.role} — {testimonial.studio}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-6">
+            * Nombres y estudios de beta testers. Se actualizarán con testimonios finales.
+          </p>
+        </div>
+      </section>
+
       {/* ═══════════════ PRICING ═══════════════ */}
       <section id="pricing" className="py-16 md:py-24 bg-slate-50 border-y">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
