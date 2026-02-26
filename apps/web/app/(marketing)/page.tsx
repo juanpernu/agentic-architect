@@ -18,7 +18,7 @@ import {
   ArrowRight, CheckCircle, CheckCircle2,
   Zap, Star, Lock,
   TableProperties, DollarSign, Camera,
-  Clock, Quote,
+  Quote,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
