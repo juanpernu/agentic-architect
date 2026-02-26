@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Agentect — Gestión de obras con IA para estudios argentinos',
+  title: 'Agentect — Sabé cuánto ganás en cada obra',
   description:
-    'Escaneá facturas AFIP con IA, controlá gastos y materiales en tiempo real. Diseñado para arquitectos y constructoras en Argentina.',
+    'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para estudios de arquitectura argentinos.',
   openGraph: {
-    title: 'Agentect — Gestioná tus obras sin planillas de Excel',
+    title: 'Agentect — Gestión de obras para estudios que quieren crecer',
     description:
-      'IA para extraer datos de facturas AFIP. Control de gastos, materiales y proveedores en tiempo real.',
+      'Reemplazá Excel con presupuestos integrados y control de rentabilidad obra por obra.',
     type: 'website',
   },
 };
@@ -44,23 +44,23 @@ export default function LandingPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
             <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-              Escanea tus comprobantes con IA
+              Gestión de obras inteligente
             </span>
           </div>
 
           {/* Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Gestioná tus obras{' '}
+            Sabé exactamente cuánto{' '}
             <br />
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
-              sin planillas de Excel
+              ganás en cada obra
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
-            Agentect utiliza IA para extraer datos de tus facturas y recibos
-            automáticamente. Controlá gastos, materiales y proveedores en tiempo
-            real, diseñado específicamente para estudios argentinos.
+            Agentect reemplaza tus planillas de Excel con presupuestos integrados,
+            seguimiento de gastos por rubro y control de rentabilidad en tiempo real.
+            Diseñado para estudios de arquitectura que quieren crecer.
           </p>
 
           {/* CTAs */}
@@ -72,7 +72,7 @@ export default function LandingPage() {
             </Button>
             <Button variant="outline" size="lg" asChild className="w-full sm:w-auto text-lg px-8 py-4 md:py-6 rounded-xl">
               <Link href="#features">
-                Ver Demo
+                Ver Funcionalidades
               </Link>
             </Button>
           </div>
@@ -85,7 +85,7 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-primary" />
-              <span>14 días de prueba</span>
+              <span>Setup en 5 minutos</span>
             </div>
           </div>
         </div>
