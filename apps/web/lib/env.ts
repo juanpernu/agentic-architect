@@ -18,6 +18,10 @@ const envSchema = z.object({
   STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID: z.string().min(1),
   STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID: z.string().min(1),
 
+  // Mercado Pago
+  MP_ACCESS_TOKEN: z.string().min(1),
+  MP_WEBHOOK_SECRET: z.string().min(1),
+
   // Anthropic (read by SDK automatically)
   ANTHROPIC_API_KEY: z.string().min(1),
 
