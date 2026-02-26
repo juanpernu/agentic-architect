@@ -5,7 +5,7 @@ import { mutate } from 'swr';
 import { sileo } from 'sileo';
 import {
   Plus, Save, Trash2, ChevronUp, ChevronDown,
-  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, RefreshCw,
+  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, RefreshCw, Upload,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -54,6 +54,8 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showCost, setShowCost] = useState(true);
   const [isEditSwitching, setIsEditSwitching] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   /* Re-sync when server data changes (e.g. after SWR revalidation on navigation back) */
   const serverSnapshotRef = useRef(JSON.stringify(budget.snapshot));
@@ -251,6 +253,57 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
       });
     } catch {
       sileo.error({ title: 'Error al crear rubro' });
+    }
+  }, [budget.id]);
+
+  const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`/api/budgets/${budget.id}/import`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? 'Error al importar presupuesto');
+      }
+
+      const result = await res.json();
+
+      if (result.confidence < 0.6) {
+        sileo.warning({
+          title: 'Presupuesto importado',
+          description: 'Algunos datos no pudieron interpretarse con certeza. Revisá los valores.',
+        });
+      } else {
+        sileo.success({
+          title: 'Presupuesto importado',
+          description: 'Revisá los datos importados.',
+        });
+      }
+
+      if (result.warnings?.length > 0) {
+        for (const w of result.warnings) {
+          sileo.info({ title: w });
+        }
+      }
+
+      // Revalidate SWR to refresh budget data
+      await mutate(`/api/budgets/${budget.id}`);
+    } catch (error) {
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al importar presupuesto',
+      });
+    } finally {
+      setIsImporting(false);
     }
   }, [budget.id]);
 
@@ -630,6 +683,35 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
       {/* Add rubro buttons */}
       {!readOnly && (
         <div className="flex items-center gap-2">
+          {sections.length === 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => importFileRef.current?.click()}
+                disabled={isImporting}
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    Interpretando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-1 h-4 w-4" />
+                    Importar Excel
+                  </>
+                )}
+              </Button>
+              <input
+                ref={importFileRef}
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onChange={handleImportFile}
+              />
+            </>
+          )}
           <Button variant="outline" size="sm" onClick={() => addRubro(false)}>
             <Plus className="mr-1 h-4 w-4" />
             Agregar rubro
