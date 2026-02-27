@@ -151,65 +151,70 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
   const busy = isSubmitting || isImporting;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={isImporting ? undefined : onOpenChange}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Nuevo Presupuesto</DialogTitle>
-          <DialogDescription>Selecciona el proyecto para crear su presupuesto</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field>
-            <FieldLabel htmlFor="project">Proyecto <span className="text-red-500">*</span></FieldLabel>
-            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-              <SelectTrigger id="project" className="w-full">
-                <SelectValue placeholder="Seleccionar proyecto" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableProjects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {availableProjects.length === 0 && (
-              <FieldDescription>
-                Todos los proyectos ya tienen presupuesto
-              </FieldDescription>
-            )}
-          </Field>
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleImportClick}
-              disabled={busy || !selectedProjectId}
-            >
-              {isImporting ? (
-                <>
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                  Interpretando...
-                </>
-              ) : (
-                <>
+        {isImporting ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Interpretando presupuesto...</h3>
+            <p className="text-muted-foreground text-sm text-center">
+              Analizando el Excel con IA. Esto puede tomar hasta un minuto.
+            </p>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Nuevo Presupuesto</DialogTitle>
+              <DialogDescription>Selecciona el proyecto para crear su presupuesto</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field>
+                <FieldLabel htmlFor="project">Proyecto <span className="text-red-500">*</span></FieldLabel>
+                <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                  <SelectTrigger id="project" className="w-full">
+                    <SelectValue placeholder="Seleccionar proyecto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProjects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableProjects.length === 0 && (
+                  <FieldDescription>
+                    Todos los proyectos ya tienen presupuesto
+                  </FieldDescription>
+                )}
+              </Field>
+              <DialogFooter className="flex-col gap-2 sm:flex-row">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleImportClick}
+                  disabled={busy || !selectedProjectId}
+                >
                   <Upload className="mr-1 h-4 w-4" />
                   Importar Excel
-                </>
-              )}
-            </Button>
-            <Button type="submit" disabled={busy || !selectedProjectId}>
-              {isSubmitting ? 'Creando...' : 'Crear vacío'}
-            </Button>
-          </DialogFooter>
-        </form>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+                </Button>
+                <Button type="submit" disabled={busy || !selectedProjectId}>
+                  {isSubmitting ? 'Creando...' : 'Crear vacío'}
+                </Button>
+              </DialogFooter>
+            </form>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

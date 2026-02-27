@@ -105,7 +105,7 @@ export async function extractBudgetData(
   try {
     const response = await client.messages.create({
       model: DEFAULT_MODEL,
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [
         {
           role: 'user',
@@ -122,9 +122,11 @@ export async function extractBudgetData(
       throw new Error('No text response from Claude');
     }
 
+    console.log('[extractBudgetData] Claude raw response (first 500 chars):', textBlock.text.slice(0, 500));
     return parseBudgetImportResponse(textBlock.text);
   } catch (error) {
     if (error instanceof SyntaxError) {
+      console.error('[extractBudgetData] Failed to parse Claude response as JSON. Raw response logged above.');
       throw new Error('Error al interpretar el presupuesto. Intentá de nuevo.');
     }
     if (error instanceof Error && error.message === 'No text response from Claude') {

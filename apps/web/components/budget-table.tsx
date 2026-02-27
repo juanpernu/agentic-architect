@@ -680,8 +680,26 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
         </Table>
       </div>
 
-      {/* Add rubro buttons */}
-      {!readOnly && (
+      {/* Add rubro buttons / import loading */}
+      {!readOnly && isImporting && sections.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold mb-1">Interpretando presupuesto...</h3>
+          <p className="text-muted-foreground text-sm text-center">
+            Analizando el Excel con IA. Esto puede tomar hasta un minuto.
+          </p>
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+        </div>
+      )}
+      {!readOnly && !isImporting && (
         <div className="flex items-center gap-2">
           {sections.length === 0 && (
             <>
@@ -689,19 +707,9 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => importFileRef.current?.click()}
-                disabled={isImporting}
               >
-                {isImporting ? (
-                  <>
-                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                    Interpretando...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-1 h-4 w-4" />
-                    Importar Excel
-                  </>
-                )}
+                <Upload className="mr-1 h-4 w-4" />
+                Importar Excel
               </Button>
               <input
                 ref={importFileRef}
