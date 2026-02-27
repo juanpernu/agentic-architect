@@ -553,7 +553,8 @@ await mutate('/api/endpoint');
 20. Rename a Agentect: rename global de ObraLink/Architech → Agentect en UI, metadata, docs e internal cache keys. Se preservo el scope npm `@architech/*`. PR #39.
 21. Mobile nav redesign: reemplazo de `bottom-nav.tsx` (tabs inferiores) por `mobile-header.tsx` (hamburger menu + slide-in sidebar Sheet). Extraccion de `SidebarContent` para reuso desktop/mobile. Titulo dinamico por ruta. PR #41.
 22. Database reset para produccion: truncado de las 14 tablas y vaciado de buckets storage (receipts + org-assets). DB lista para lanzamiento.
-23. Migracion Stripe → Mercado Pago: reemplazo completo de pasarela de pagos. PreApproval subscriptions (plan + subscription two-step), webhook handler (HMAC-SHA256), billing UI custom (cancel, pause/resume, update seats, payment history), pricing en ARS ($30.000 base + $5.000/seat mensual). Eliminacion total de codigo Stripe.
+23. Migracion Stripe → Mercado Pago: reemplazo completo de pasarela de pagos. Standalone PreApproval subscriptions (sin plan vinculado), webhook handler con HMAC-SHA256, billing UI custom (cancel, pause/resume, update seats, payment history), pricing en ARS ($45.000 base + $8.000/seat mensual). Eliminacion total de codigo Stripe. PR #45.
+24. Produccion MP debugging: CSP fixes (clerk.agentect.tech, vercel.live, images.clerk.dev), webhook GET handler para verificacion MP, fix webhook URL en panel MP (/api/webhooks/mercadopago), test end-to-end exitoso (checkout → authorized → cancel → cancelled). Nota: no se puede suscribir con la misma cuenta que creo la app en MP (vendedor ≠ comprador).
 
 ---
 
@@ -563,7 +564,7 @@ await mutate('/api/endpoint');
 - Auth + multi-tenancy con Clerk + Supabase RLS
 - CRUD completo de projects, receipts, budgets, rubros, bank accounts, users
 - AI extraction con Claude Vision funcionando
-- Subscription system con Mercado Pago (PreApproval subscriptions, custom billing UI)
+- Subscription system con Mercado Pago (standalone PreApproval, webhook HMAC-SHA256, custom billing UI). Verificado end-to-end en produccion.
 - Dashboard con KPIs y charts
 - Reports con drill-down
 - Budget editor con autosave y versionado
