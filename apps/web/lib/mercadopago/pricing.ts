@@ -8,8 +8,8 @@
  * Amounts are in ARS (Argentine Peso).
  */
 export const MP_PRICING = {
-  monthly: { base: 30_000, seat: 5_000 },
-  yearly: { base: 300_000, seat: 50_000 },
+  monthly: { base: 45_000, seat: 8_000 },
+  yearly: { base: 450_000, seat: 80_000 },
 } as const;
 
 export type BillingCycle = 'monthly' | 'yearly';
