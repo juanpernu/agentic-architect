@@ -504,11 +504,11 @@ export default function LandingPage() {
                   <Zap className="h-5 w-5 text-amber-500" />
                 </h3>
                 <span className="text-xl font-bold">
-                  $30.000<span className="text-xs font-normal text-muted-foreground">/mes</span>
+                  $45.000<span className="text-xs font-normal text-muted-foreground">/mes</span>
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mb-1">Para equipos en crecimiento</p>
-              <p className="text-xs text-muted-foreground mb-4">+ $5.000/usuario/mes</p>
+              <p className="text-xs text-muted-foreground mb-4">+ $8.000/usuario/mes</p>
               <ul className="space-y-2 mb-4">
                 {['20 proyectos', 'Comprobantes ilimitados', 'Reportes de gastos', 'Seats flexibles'].map((f) => (
                   <li key={f} className="flex items-center gap-3 text-sm">
