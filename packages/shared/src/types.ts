@@ -181,9 +181,11 @@ export interface UpdateProjectInput {
 }
 
 export interface ConfirmReceiptInput {
+  category: 'income' | 'expense';
   project_id: string;
-  rubro_id: string;
+  rubro_id?: string;
   bank_account_id?: string;
+  paid_by?: string;
   image_url: string;
   ai_raw_response: Record<string, unknown>;
   ai_confidence: number;

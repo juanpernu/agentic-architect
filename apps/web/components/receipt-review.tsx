@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import useSWR, { mutate } from 'swr';
@@ -80,11 +80,25 @@ export function ReceiptReview({
     }))
   );
 
+  const [category, setCategory] = useState<'income' | 'expense'>('expense');
+  const [paidById, setPaidById] = useState('');
+  const [receiptNumber, setReceiptNumber] = useState(extractionResult.receipt.number ?? '');
+
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const { data: projects } = useSWR<Project[]>('/api/projects', fetcher);
   const { data: budgets } = useSWR<BudgetListItem[]>('/api/budgets', fetcher);
   const { data: bankAccounts } = useSWR<BankAccount[]>('/api/bank-accounts', fetcher);
+  const { data: orgMembers = [] } = useSWR<Array<{ id: string; full_name: string }>>(
+    category === 'expense' ? '/api/org-members' : null, fetcher
+  );
+
+  useEffect(() => {
+    if (category === 'income') {
+      setRubroId('');
+      setPaidById('');
+    }
+  }, [category]);
 
   // Find the budget for the selected project, then fetch its rubros
   const selectedBudget = budgets?.find((b) => b.project_id === projectId);
@@ -147,14 +161,11 @@ export function ReceiptReview({
   };
 
   const handleConfirm = async () => {
-    const result = receiptReviewSchema.safeParse({
-      vendor,
-      date,
-      total,
-      projectId,
-      rubroId,
-      items,
-    });
+    const formData = category === 'expense'
+      ? { category, vendor, date, total, projectId, rubroId, paidById, receiptNumber, items }
+      : { category, vendor, date, total, projectId, receiptNumber, items };
+
+    const result = receiptReviewSchema.safeParse(formData);
 
     if (!result.success) {
       const firstError = result.error.issues[0];
@@ -166,9 +177,12 @@ export function ReceiptReview({
 
     try {
       const payload: ConfirmReceiptInput = {
+        category,
         project_id: projectId,
-        rubro_id: rubroId,
+        ...(category === 'expense' ? { rubro_id: rubroId } : {}),
         bank_account_id: bankAccountId || undefined,
+        paid_by: category === 'expense' ? paidById || undefined : undefined,
+        receipt_number: receiptNumber || undefined,
         image_url: storagePath,
         ai_raw_response: { ...extractionResult },
         ai_confidence: confidence,
@@ -186,7 +200,6 @@ export function ReceiptReview({
         },
         receipt_type: extractionResult.receipt.type,
         receipt_code: extractionResult.receipt.code,
-        receipt_number: extractionResult.receipt.number,
         receipt_date: date,
         receipt_time: extractionResult.receipt.time,
         total_amount: parseFloat(total) || calculatedTotal,
@@ -291,6 +304,32 @@ export function ReceiptReview({
 
         {/* Form fields */}
         <div className="px-5 space-y-5">
+          {/* Category toggle */}
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            <button
+              type="button"
+              className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                category === 'expense'
+                  ? 'bg-red-50 text-red-700 border-r border-border'
+                  : 'bg-muted/30 text-muted-foreground border-r border-border hover:bg-muted/50'
+              }`}
+              onClick={() => setCategory('expense')}
+            >
+              Egreso
+            </button>
+            <button
+              type="button"
+              className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                category === 'income'
+                  ? 'bg-green-50 text-green-700'
+                  : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
+              }`}
+              onClick={() => setCategory('income')}
+            >
+              Ingreso
+            </button>
+          </div>
+
           {/* Vendor */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="vendor">
@@ -348,6 +387,19 @@ export function ReceiptReview({
             </div>
           </div>
 
+          {/* Receipt Number */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="receiptNumber">
+              Nro. Comprobante
+            </label>
+            <Input
+              id="receiptNumber"
+              value={receiptNumber}
+              onChange={(e) => setReceiptNumber(e.target.value)}
+              placeholder="Ej: 0001-00001234"
+            />
+          </div>
+
           {/* Project */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">
@@ -376,37 +428,58 @@ export function ReceiptReview({
           </div>
 
           {/* Rubro */}
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-              Rubro *
-            </label>
-            {projectId && !selectedBudget ? (
-              <p className="text-sm text-muted-foreground">
-                Este proyecto no tiene presupuesto con rubros
-              </p>
-            ) : (
-              <Select value={rubroId} onValueChange={setRubroId} disabled={!selectedBudget}>
-                <SelectTrigger className="w-full py-3 text-base">
-                  <SelectValue placeholder="Seleccionar rubro" />
+          {category === 'expense' && (
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                Rubro *
+              </label>
+              {projectId && !selectedBudget ? (
+                <p className="text-sm text-muted-foreground">
+                  Este proyecto no tiene presupuesto con rubros
+                </p>
+              ) : (
+                <Select value={rubroId} onValueChange={setRubroId} disabled={!selectedBudget}>
+                  <SelectTrigger className="w-full py-3 text-base">
+                    <SelectValue placeholder="Seleccionar rubro" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rubros?.map((rubro) => (
+                      <SelectItem key={rubro.id} value={rubro.id}>
+                        <span className="flex items-center gap-2">
+                          {rubro.color && (
+                            <span
+                              className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: rubro.color }}
+                            />
+                          )}
+                          {rubro.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
+
+          {/* Quién pagó */}
+          {category === 'expense' && (
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="paidBy">
+                Quién pagó <span className="text-red-500">*</span>
+              </label>
+              <Select value={paidById} onValueChange={setPaidById}>
+                <SelectTrigger id="paidBy" className="w-full py-3 text-base">
+                  <SelectValue placeholder="Seleccionar responsable" />
                 </SelectTrigger>
                 <SelectContent>
-                  {rubros?.map((rubro) => (
-                    <SelectItem key={rubro.id} value={rubro.id}>
-                      <span className="flex items-center gap-2">
-                        {rubro.color && (
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: rubro.color }}
-                          />
-                        )}
-                        {rubro.name}
-                      </span>
-                    </SelectItem>
+                  {orgMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Bank Account */}
           <div>
