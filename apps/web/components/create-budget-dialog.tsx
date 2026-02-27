@@ -138,7 +138,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
 
       await mutate('/api/budgets');
       onOpenChange(false);
-      router.push(`/budgets/${budget.id}`);
+      router.push(`/budgets/${budget.id}?confidence=${result.confidence}`);
     } catch (error) {
       sileo.error({
         title: error instanceof Error ? error.message : 'Error al importar presupuesto',

@@ -5,7 +5,7 @@ import { mutate } from 'swr';
 import { sileo } from 'sileo';
 import {
   Plus, Save, Trash2, ChevronUp, ChevronDown,
-  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, RefreshCw, Upload,
+  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, AlertTriangle, RefreshCw, Upload,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -35,13 +35,14 @@ interface BudgetTableProps {
   };
   onPublish?: () => void;
   onEdit?: () => void;
+  initialConfidence?: number;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
+export function BudgetTable({ budget, onPublish, onEdit, initialConfidence }: BudgetTableProps) {
   const { isAdminOrSupervisor } = useCurrentUser();
   const isDraft = budget.status === 'draft';
   const readOnly = !isDraft || !isAdminOrSupervisor;
@@ -55,6 +56,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   const [showCost, setShowCost] = useState(true);
   const [isEditSwitching, setIsEditSwitching] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [importConfidence, setImportConfidence] = useState<number | null>(initialConfidence ?? null);
   const importFileRef = useRef<HTMLInputElement>(null);
 
   /* Re-sync when server data changes (e.g. after SWR revalidation on navigation back) */
@@ -295,6 +297,8 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
           sileo.info({ title: w });
         }
       }
+
+      setImportConfidence(result.confidence);
 
       // Revalidate SWR to refresh budget data
       await mutate(`/api/budgets/${budget.id}`);
@@ -579,6 +583,27 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
           {isDraft && (
             <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
               Borrador
+            </Badge>
+          )}
+          {importConfidence !== null && (
+            <Badge
+              variant="outline"
+              className={
+                importConfidence > 0.85
+                  ? 'border-green-400 text-green-700 bg-green-50'
+                  : importConfidence >= 0.6
+                    ? 'border-yellow-400 text-yellow-700 bg-yellow-50'
+                    : 'border-red-400 text-red-700 bg-red-50'
+              }
+            >
+              {importConfidence > 0.85 ? (
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+              ) : importConfidence >= 0.6 ? (
+                <AlertCircle className="mr-1 h-3 w-3" />
+              ) : (
+                <AlertTriangle className="mr-1 h-3 w-3" />
+              )}
+              Confianza IA: {importConfidence > 0.85 ? 'Alta' : importConfidence >= 0.6 ? 'Media' : 'Baja'}
             </Badge>
           )}
           <span className="text-sm text-muted-foreground">Total</span>

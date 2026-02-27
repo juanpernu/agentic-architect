@@ -15,6 +15,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
   const { id } = use(params);
   const searchParams = useSearchParams();
   const versionParam = searchParams.get('version');
+  const confidenceParam = searchParams.get('confidence');
 
   const apiUrl = versionParam
     ? `/api/budgets/${id}?version=${versionParam}`
@@ -111,6 +112,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           budget={budgetForTable}
           onPublish={handlePublish}
           onEdit={handleEdit}
+          initialConfidence={confidenceParam ? parseFloat(confidenceParam) : undefined}
         />
       )}
     </div>

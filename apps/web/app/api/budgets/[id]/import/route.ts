@@ -88,9 +88,10 @@ export async function POST(
     if (error instanceof Error && error.message === 'El Excel no contiene datos') {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    return apiError(error, 'Error al procesar el archivo Excel', 422, {
-      route: '/api/budgets/[id]/import',
-    });
+    const message = error instanceof Error
+      ? error.message
+      : 'Error al procesar el archivo Excel';
+    return NextResponse.json({ error: message }, { status: 422 });
   }
 
   // 4. Validate confidence threshold
