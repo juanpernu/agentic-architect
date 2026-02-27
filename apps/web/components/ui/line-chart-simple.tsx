@@ -9,6 +9,7 @@ interface LineChartSimpleProps {
   description?: string;
   data: LineChartItem[];
   legend?: string;
+  headerExtra?: React.ReactNode;
   emptyMessage?: string;
 }
 
@@ -17,6 +18,7 @@ export function LineChartSimple({
   description,
   data,
   legend,
+  headerExtra,
   emptyMessage = 'No hay datos disponibles',
 }: LineChartSimpleProps) {
   const maxValue = Math.max(...data.map((d) => d.value), 1);
@@ -53,12 +55,15 @@ export function LineChartSimple({
       <div className="p-6 flex flex-col space-y-1.5 pb-4 border-b border-border/50">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold leading-none tracking-tight">{title}</h3>
-          {legend && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-xs text-muted-foreground">{legend}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {headerExtra}
+            {legend && (
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span className="text-xs text-muted-foreground">{legend}</span>
+              </div>
+            )}
+          </div>
         </div>
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>

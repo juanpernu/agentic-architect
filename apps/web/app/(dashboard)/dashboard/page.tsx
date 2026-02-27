@@ -3,18 +3,12 @@ import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
 import { DashboardKPIs } from '@/components/dashboard/dashboard-kpis';
 import { RecentReceipts } from '@/components/dashboard/recent-receipts';
 import { ProgressBarList } from '@/components/ui/progress-bar-list';
-import { LineChartSimple } from '@/components/ui/line-chart-simple';
+import { SpendTrendChart } from '@/components/dashboard/spend-trend-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { formatCurrencyCompact } from '@/lib/format';
-import type { SpendByProject, SpendTrend } from '@architech/shared';
-
-const monthLabels: Record<string, string> = {
-  '01': 'Ene', '02': 'Feb', '03': 'Mar', '04': 'Abr',
-  '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Ago',
-  '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dic',
-};
+import type { SpendByProject } from '@architech/shared';
 
 async function fetchSpendByProject(): Promise<SpendByProject[]> {
   const ctx = await getAuthContext();
@@ -44,31 +38,6 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
     .sort((a, b) => b.total_spend - a.total_spend);
 }
 
-async function fetchSpendTrend(): Promise<SpendTrend[]> {
-  const ctx = await getAuthContext();
-  if (!ctx) return [];
-
-  const db = getDb();
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  const { data } = await db
-    .from('expenses')
-    .select('amount, date')
-    .eq('org_id', ctx.orgId)
-    .gte('date', sixMonthsAgo.toISOString().split('T')[0]);
-
-  const monthMap = new Map<string, number>();
-  for (const expense of data ?? []) {
-    const month = expense.date.substring(0, 7);
-    monthMap.set(month, (monthMap.get(month) ?? 0) + Number(expense.amount));
-  }
-
-  return Array.from(monthMap.entries())
-    .map(([month, total]) => ({ month, total }))
-    .sort((a, b) => a.month.localeCompare(b.month));
-}
-
 async function SpendByProjectSection() {
   const data = await fetchSpendByProject();
   return (
@@ -84,25 +53,6 @@ async function SpendByProjectSection() {
       maxItems={5}
       actionLabel="Ver Todo"
       actionHref="/projects"
-    />
-  );
-}
-
-async function SpendTrendSection() {
-  const data = await fetchSpendTrend();
-  return (
-    <LineChartSimple
-      title="Egresos Mensuales"
-      description="Evolución de egresos en los últimos 6 meses."
-      data={data.map((item) => {
-        const [, monthNum] = item.month.split('-');
-        return {
-          label: monthLabels[monthNum] || item.month,
-          value: item.total,
-          formattedValue: `${monthLabels[monthNum] || item.month}: ${formatCurrencyCompact(item.total)}`,
-        };
-      })}
-      legend="Egresos"
     />
   );
 }
@@ -173,9 +123,7 @@ export default function DashboardPage() {
         <Suspense fallback={<ChartSkeleton />}>
           <SpendByProjectSection />
         </Suspense>
-        <Suspense fallback={<ChartSkeleton />}>
-          <SpendTrendSection />
-        </Suspense>
+        <SpendTrendChart />
       </div>
 
       {/* Recent Receipts */}

@@ -27,10 +27,10 @@ import {
 import { ExpenseFormDialog } from '@/components/expense-form-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
-import type { Expense } from '@architech/shared';
+import type { Expense, ProjectColor } from '@architech/shared';
 
 type ExpenseRow = Expense & {
-  project?: { id: string; name: string; color?: string };
+  project?: { id: string; name: string; color?: ProjectColor };
   expense_type?: { id: string; name: string };
   rubro?: { id: string; name: string } | null;
 };

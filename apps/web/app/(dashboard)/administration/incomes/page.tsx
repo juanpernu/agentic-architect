@@ -26,10 +26,10 @@ import {
 import { IncomeFormDialog } from '@/components/income-form-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
-import type { Income } from '@architech/shared';
+import type { Income, ProjectColor } from '@architech/shared';
 
 type IncomeRow = Income & {
-  project?: { id: string; name: string; color?: string };
+  project?: { id: string; name: string; color?: ProjectColor };
   income_type?: { id: string; name: string };
 };
 
