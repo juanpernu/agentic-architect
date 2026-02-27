@@ -78,6 +78,17 @@ export async function POST(req: NextRequest) {
     if (!incomeType) return NextResponse.json({ error: 'Tipo de ingreso no válido' }, { status: 400 });
   }
 
+  // Verify receipt belongs to this project (if provided)
+  if (body.receipt_id) {
+    const { data: receipt } = await db
+      .from('receipts')
+      .select('id')
+      .eq('id', body.receipt_id)
+      .eq('project_id', body.project_id)
+      .single();
+    if (!receipt) return NextResponse.json({ error: 'El comprobante no pertenece a este proyecto' }, { status: 400 });
+  }
+
   const { data, error } = await db
     .from('incomes')
     .insert({

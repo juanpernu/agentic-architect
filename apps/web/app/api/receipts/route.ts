@@ -68,9 +68,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'project_id, total_amount, receipt_date, and image_url are required' }, { status: 400 });
   }
 
+  // Validate category value
+  if (body.category && body.category !== 'income' && body.category !== 'expense') {
+    return NextResponse.json({ error: 'category must be "income" or "expense"' }, { status: 400 });
+  }
+
   const guard = await checkPlanLimit(ctx.orgId, 'receipt', { projectId: body.project_id as string });
   if (!guard.allowed) {
     return NextResponse.json({ error: guard.reason }, { status: 403 });
+  }
+
+  const db = getDb();
+
+  // Validate project belongs to org
+  const { data: validProject } = await db
+    .from('projects')
+    .select('id')
+    .eq('id', body.project_id as string)
+    .eq('organization_id', ctx.orgId)
+    .single();
+  if (!validProject) {
+    return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
+  }
+
+  // Validate paid_by belongs to org (if provided)
+  if (body.paid_by) {
+    const { data: validUser } = await db
+      .from('users')
+      .select('id')
+      .eq('id', body.paid_by as string)
+      .eq('organization_id', ctx.orgId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!validUser) {
+      return NextResponse.json({ error: 'Usuario no válido' }, { status: 400 });
+    }
   }
 
   // rubro_id is required for expenses and when category is not set (backwards compat)
@@ -80,8 +112,6 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
-  const db = getDb();
 
   // Validate rubro_id belongs to the same org (via budget) — skip when not provided (income)
   if (body.rubro_id) {
