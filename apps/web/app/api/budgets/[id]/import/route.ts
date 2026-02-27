@@ -113,7 +113,15 @@ export async function POST(
   }
 
   // 5. Create rubros in DB and assemble snapshot
+  const createdRubroIds: string[] = [];
   const sections: BudgetSection[] = [];
+
+  // Cleanup helper: delete already-created rubros on failure
+  const rollbackRubros = async () => {
+    if (createdRubroIds.length > 0) {
+      await db.from('rubros').delete().in('id', createdRubroIds);
+    }
+  };
 
   for (let i = 0; i < result.sections.length; i++) {
     const importSection = result.sections[i];
@@ -130,6 +138,7 @@ export async function POST(
       .single();
 
     if (rubroError || !rubro) {
+      await rollbackRubros();
       return apiError(
         rubroError,
         `Error al crear rubro "${importSection.rubro_name}"`,
@@ -137,6 +146,8 @@ export async function POST(
         { route: '/api/budgets/[id]/import' }
       );
     }
+
+    createdRubroIds.push(rubro.id);
 
     const section: BudgetSection = {
       rubro_id: rubro.id,
@@ -167,6 +178,7 @@ export async function POST(
   // 6. Validate the assembled snapshot
   const parsed = budgetSnapshotSchema.safeParse(snapshot);
   if (!parsed.success) {
+    await rollbackRubros();
     return NextResponse.json(
       { error: 'Error al armar el presupuesto importado' },
       { status: 422 }
@@ -181,6 +193,7 @@ export async function POST(
     .eq('organization_id', ctx.orgId);
 
   if (updateError) {
+    await rollbackRubros();
     return apiError(updateError, 'Error al guardar el presupuesto', 500, {
       route: '/api/budgets/[id]/import',
     });
