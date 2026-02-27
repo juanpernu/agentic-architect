@@ -334,6 +334,7 @@ export function BudgetTable({ budget, onPublish, onEdit, initialConfidence }: Bu
 
       const result = await response.json();
       sileo.success({ title: `Version ${result.version_number} guardada` });
+      setImportConfidence(null);
       setShowSaveDialog(false);
       await mutate(`/api/budgets/${budget.id}`);
       await mutate('/api/budgets');
