@@ -12,7 +12,7 @@ interface CashflowData {
   balance: number;
 }
 
-const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
+const currencyTooltipFormatter = (value: string | number | (string | number)[]) => formatCurrency(Number(value ?? 0));
 
 export function CashflowChart({ data }: { data: CashflowData[] }) {
   // Show last 6 months with data
