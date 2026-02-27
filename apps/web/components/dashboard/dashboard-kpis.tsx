@@ -110,6 +110,8 @@ export async function DashboardKPIs() {
         iconBg="bg-emerald-50 dark:bg-emerald-900/20"
         iconColor="text-emerald-600 dark:text-emerald-400"
         badge={spendBadge}
+        href="/administration/expenses"
+        actionLabel="Ver egresos"
       />
       <StatCard
         title="Comprobantes (Sem)"
@@ -118,6 +120,8 @@ export async function DashboardKPIs() {
         iconBg="bg-purple-50 dark:bg-purple-900/20"
         iconColor="text-purple-600 dark:text-purple-400"
         subtitle="Esta semana"
+        href="/administration/receipts"
+        actionLabel="Ver comprobantes"
       />
     </div>
   );
