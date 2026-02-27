@@ -25,10 +25,12 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { ExpenseFormDialog } from '@/components/expense-form-dialog';
+import { Badge } from '@/components/ui/badge';
+import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
 import type { Expense } from '@architech/shared';
 
 type ExpenseRow = Expense & {
-  project?: { id: string; name: string };
+  project?: { id: string; name: string; color?: string };
   expense_type?: { id: string; name: string };
   rubro?: { id: string; name: string } | null;
 };
@@ -235,7 +237,23 @@ export default function ExpensesPage() {
                   <TableCell className="whitespace-nowrap">
                     {new Date(expense.date).toLocaleDateString('es-AR')}
                   </TableCell>
-                  <TableCell>{expense.project?.name ?? '-'}</TableCell>
+                  <TableCell>
+                    {expense.project ? (
+                      expense.project.color && PROJECT_BADGE_STYLES[expense.project.color] ? (
+                        <Badge
+                          style={{
+                            backgroundColor: PROJECT_BADGE_STYLES[expense.project.color].bg,
+                            color: PROJECT_BADGE_STYLES[expense.project.color].text,
+                            borderColor: 'transparent',
+                          }}
+                        >
+                          {expense.project.name}
+                        </Badge>
+                      ) : (
+                        expense.project.name
+                      )
+                    ) : '-'}
+                  </TableCell>
                   <TableCell>{expense.expense_type?.name ?? '-'}</TableCell>
                   <TableCell>{expense.rubro?.name ?? '-'}</TableCell>
                   <TableCell className="text-right font-medium whitespace-nowrap">

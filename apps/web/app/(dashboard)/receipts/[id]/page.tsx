@@ -515,6 +515,20 @@ export default function ReceiptDetailPage() {
             <div className="space-y-4">
               <h4 className="font-medium text-sm border-b border-slate-100 pb-2">Informacion General</h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                {/* Nro. Comprobante (editable) */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Nro. Comprobante</label>
+                  <input
+                    type="text"
+                    className="w-full text-sm font-medium border border-slate-200 rounded-lg px-3 py-2 bg-slate-50/50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    value={editReceiptNumber}
+                    onChange={(e) => setEditReceiptNumber(e.target.value)}
+                    onBlur={() => { if (editReceiptNumber !== (receipt.receipt_number ?? '')) saveField('receipt_number', editReceiptNumber); }}
+                    disabled={isSavingField}
+                    placeholder="Ej: 0001-00001234"
+                  />
+                </div>
+
                 {/* Proveedor — full width, editable */}
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Proveedor / Razon Social</label>
@@ -578,20 +592,6 @@ export default function ReceiptDetailPage() {
                     onChange={(e) => setEditDate(e.target.value)}
                     onBlur={() => { if (editDate !== receipt.receipt_date) saveField('receipt_date', editDate); }}
                     disabled={isSavingField}
-                  />
-                </div>
-
-                {/* Nro. Comprobante (editable) */}
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Nro. Comprobante</label>
-                  <input
-                    type="text"
-                    className="w-full text-sm font-medium border border-slate-200 rounded-lg px-3 py-2 bg-slate-50/50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                    value={editReceiptNumber}
-                    onChange={(e) => setEditReceiptNumber(e.target.value)}
-                    onBlur={() => { if (editReceiptNumber !== (receipt.receipt_number ?? '')) saveField('receipt_number', editReceiptNumber); }}
-                    disabled={isSavingField}
-                    placeholder="Ej: 0001-00001234"
                   />
                 </div>
 

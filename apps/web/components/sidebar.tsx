@@ -17,7 +17,7 @@ export const navItems: Array<{
   icon: typeof LayoutDashboard;
   roles?: UserRole[];
 }> = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Panel', icon: LayoutDashboard },
   { href: '/projects', label: 'Proyectos', icon: FolderKanban },
   { href: '/upload', label: 'Escanear comprobante', icon: Sparkles },
   { href: '/budgets', label: 'Presupuestos', icon: Calculator },

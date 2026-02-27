@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     .select(`
       *,
       income_type:income_types(id, name),
-      project:projects(id, name)
+      project:projects(id, name, color)
     `, { count: 'exact' })
     .eq('org_id', ctx.orgId)
     .order('date', { ascending: false })

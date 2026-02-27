@@ -3,7 +3,7 @@ import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
 import { DashboardKPIs } from '@/components/dashboard/dashboard-kpis';
 import { RecentReceipts } from '@/components/dashboard/recent-receipts';
 import { ProgressBarList } from '@/components/ui/progress-bar-list';
-import { BarChartSimple } from '@/components/ui/bar-chart-simple';
+import { LineChartSimple } from '@/components/ui/line-chart-simple';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
@@ -24,7 +24,7 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
 
   let query = db
     .from('projects')
-    .select('id, name, receipts!inner(total_amount)')
+    .select('id, name, expenses!inner(amount)')
     .eq('organization_id', ctx.orgId)
     .eq('status', 'active');
 
@@ -38,8 +38,8 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
     .map((p) => ({
       project_id: p.id,
       project_name: p.name,
-      total_spend: (p.receipts as Array<{ total_amount: number }>)
-        ?.reduce((sum: number, r) => sum + Number(r.total_amount), 0) ?? 0,
+      total_spend: (p.expenses as Array<{ amount: number }>)
+        ?.reduce((sum: number, e) => sum + Number(e.amount), 0) ?? 0,
     }))
     .sort((a, b) => b.total_spend - a.total_spend);
 }
@@ -52,22 +52,16 @@ async function fetchSpendTrend(): Promise<SpendTrend[]> {
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-  let query = db
-    .from('receipts')
-    .select('total_amount, receipt_date, projects!inner(organization_id, architect_id)')
-    .eq('projects.organization_id', ctx.orgId)
-    .gte('receipt_date', sixMonthsAgo.toISOString().split('T')[0]);
-
-  if (ctx.role === 'architect') {
-    query = query.eq('projects.architect_id', ctx.dbUserId);
-  }
-
-  const { data } = await query;
+  const { data } = await db
+    .from('expenses')
+    .select('amount, date')
+    .eq('org_id', ctx.orgId)
+    .gte('date', sixMonthsAgo.toISOString().split('T')[0]);
 
   const monthMap = new Map<string, number>();
-  for (const receipt of data ?? []) {
-    const month = receipt.receipt_date.substring(0, 7);
-    monthMap.set(month, (monthMap.get(month) ?? 0) + Number(receipt.total_amount));
+  for (const expense of data ?? []) {
+    const month = expense.date.substring(0, 7);
+    monthMap.set(month, (monthMap.get(month) ?? 0) + Number(expense.amount));
   }
 
   return Array.from(monthMap.entries())
@@ -97,9 +91,9 @@ async function SpendByProjectSection() {
 async function SpendTrendSection() {
   const data = await fetchSpendTrend();
   return (
-    <BarChartSimple
-      title="Tendencia Mensual"
-      description="Flujo de gastos en los últimos 6 meses."
+    <LineChartSimple
+      title="Egresos Mensuales"
+      description="Evolución de egresos en los últimos 6 meses."
       data={data.map((item) => {
         const [, monthNum] = item.month.split('-');
         return {
@@ -108,8 +102,7 @@ async function SpendTrendSection() {
           formattedValue: `${monthLabels[monthNum] || item.month}: ${formatCurrencyCompact(item.total)}`,
         };
       })}
-      legend="Actual"
-      highlightLast
+      legend="Egresos"
     />
   );
 }

@@ -330,20 +330,34 @@ export function ReceiptReview({
             </button>
           </div>
 
-          {/* Vendor */}
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="vendor">
-              Proveedor
-            </label>
-            <div className="relative">
-              <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Receipt Number + Vendor side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="receiptNumber">
+                Nro. Comprobante
+              </label>
               <Input
-                id="vendor"
-                value={vendor}
-                onChange={(e) => setVendor(e.target.value)}
-                className="pl-10 py-3 text-base"
-                placeholder="Nombre del proveedor"
+                id="receiptNumber"
+                value={receiptNumber}
+                onChange={(e) => setReceiptNumber(e.target.value)}
+                placeholder="Ej: 0001-00001234"
+                className="py-3 text-base"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="vendor">
+                Proveedor
+              </label>
+              <div className="relative">
+                <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="vendor"
+                  value={vendor}
+                  onChange={(e) => setVendor(e.target.value)}
+                  className="pl-10 py-3 text-base"
+                  placeholder="Nombre del proveedor"
+                />
+              </div>
             </div>
           </div>
 
@@ -385,19 +399,6 @@ export function ReceiptReview({
                 </p>
               )}
             </div>
-          </div>
-
-          {/* Receipt Number */}
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5" htmlFor="receiptNumber">
-              Nro. Comprobante
-            </label>
-            <Input
-              id="receiptNumber"
-              value={receiptNumber}
-              onChange={(e) => setReceiptNumber(e.target.value)}
-              placeholder="Ej: 0001-00001234"
-            />
           </div>
 
           {/* Project */}
@@ -481,8 +482,8 @@ export function ReceiptReview({
             </div>
           )}
 
-          {/* Bank Account */}
-          <div>
+          {/* Bank Account (only for expenses) */}
+          {category === 'expense' && <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">
               Cuenta Bancaria (opcional)
             </label>
@@ -498,7 +499,7 @@ export function ReceiptReview({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div>}
 
           <hr className="border-border my-2" />
 

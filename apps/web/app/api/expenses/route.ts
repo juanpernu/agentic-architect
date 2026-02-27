@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     .select(`
       *,
       expense_type:expense_types(id, name),
-      project:projects(id, name),
+      project:projects(id, name, color),
       rubro:rubros(id, name)
     `, { count: 'exact' })
     .eq('org_id', ctx.orgId)
