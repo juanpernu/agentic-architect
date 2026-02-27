@@ -69,6 +69,7 @@ export interface Receipt {
   ai_confidence: number;
   rubro_id: string | null;
   bank_account_id: string | null;
+  category: 'income' | 'expense' | null;
   created_at: string;
   updated_at: string;
 }
@@ -315,7 +316,8 @@ export interface Income {
   project_id: string;
   amount: number;
   date: string;
-  income_type_id: string;
+  income_type_id: string | null;
+  receipt_id: string | null;
   description: string | null;
   created_by: string;
   created_at: string;
@@ -328,9 +330,10 @@ export interface Expense {
   project_id: string;
   amount: number;
   date: string;
-  expense_type_id: string;
+  expense_type_id: string | null;
   rubro_id: string | null;
   receipt_id: string | null;
+  paid_by: string | null;
   description: string | null;
   created_by: string;
   created_at: string;
