@@ -167,7 +167,7 @@ export default function LandingPage() {
                 </div>
                 <div className="relative z-10">
                   <h3 className="text-primary font-bold mb-4 flex items-center gap-2">
-                    <Check className="h-5 w-5" /> Con Agentect
+                    <Check className="h-5 w-5" /> Con <img src="/agentect-logo-green.svg" alt="Agentect" className="h-3 inline-block -ml-[3px]" />
                   </h3>
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-start gap-3">

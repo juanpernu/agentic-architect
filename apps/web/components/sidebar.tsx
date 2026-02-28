@@ -91,7 +91,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
       <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-bold">Agentect</h1>
+        <img src="/agentect-logo-black.svg" alt="Agentect" className="h-4" />
       </div>
       <SidebarContent />
     </aside>
