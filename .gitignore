@@ -11,6 +11,7 @@ dist
 
 # AI agent tools
 skills/
+skills-lock.json
 prpm.lock
 
 # AI agent configs
