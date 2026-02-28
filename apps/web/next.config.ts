@@ -4,12 +4,12 @@ const isProd = process.env.NODE_ENV === 'production';
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://js.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://js.stripe.com",
+  "script-src 'self' 'unsafe-inline' https://js.clerk.com https://*.clerk.accounts.dev https://clerk.agentect.tech https://challenges.cloudflare.com https://sdk.mercadopago.com https://vercel.live",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.supabase.co https://img.clerk.com",
+  "img-src 'self' data: blob: https://*.supabase.co https://img.clerk.com https://images.clerk.dev",
   "font-src 'self'",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.clerk.com https://*.clerk.accounts.dev https://api.stripe.com https://clerk-telemetry.com",
-  "frame-src https://js.stripe.com https://hooks.stripe.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.clerk.com https://*.clerk.accounts.dev https://clerk.agentect.tech https://api.mercadopago.com https://www.mercadopago.com.ar https://clerk-telemetry.com",
+  "frame-src https://www.mercadopago.com.ar https://mercadopago.com.ar https://*.clerk.accounts.dev https://challenges.cloudflare.com https://vercel.live",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "frame-ancestors 'none'",

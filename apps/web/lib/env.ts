@@ -9,14 +9,9 @@ const envSchema = z.object({
   // Clerk
   CLERK_WEBHOOK_SECRET: z.string().min(1),
 
-  // Stripe
-  STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_'),
-  STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_'),
-  STRIPE_ADVANCE_MONTHLY_BASE_PRICE_ID: z.string().min(1),
-  STRIPE_ADVANCE_YEARLY_BASE_PRICE_ID: z.string().min(1),
-  STRIPE_ADVANCE_MONTHLY_SEAT_PRICE_ID: z.string().min(1),
-  STRIPE_ADVANCE_YEARLY_SEAT_PRICE_ID: z.string().min(1),
+  // Mercado Pago
+  MP_ACCESS_TOKEN: z.string().min(1),
+  MP_WEBHOOK_SECRET: z.string().min(1),
 
   // Anthropic (read by SDK automatically)
   ANTHROPIC_API_KEY: z.string().min(1),

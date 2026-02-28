@@ -6,7 +6,7 @@ import { PLAN_LIMITS } from '@architech/shared/plans';
 
 interface PlanData {
   plan: 'free' | 'advance' | 'enterprise';
-  subscriptionStatus: 'active' | 'past_due' | 'canceled' | 'trialing';
+  subscriptionStatus: 'active' | 'past_due' | 'canceled' | 'trialing' | 'paused';
   billingCycle: string | null;
   currentPeriodEnd: string | null;
   maxSeats: number | null;
@@ -49,6 +49,7 @@ export function usePlan() {
     canViewAdministration,
     isFreePlan: plan === 'free',
     isPastDue: data?.subscriptionStatus === 'past_due',
+    isPaused: data?.subscriptionStatus === 'paused',
     isLoading,
     error,
     mutate,

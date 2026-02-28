@@ -91,7 +91,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
   }
 
-  // Validate paid_by belongs to org (if provided)
+  // Validate paid_by: required for expenses, must belong to org
+  if (body.category === 'expense' && !body.paid_by) {
+    return NextResponse.json({ error: 'paid_by is required for expenses' }, { status: 400 });
+  }
   if (body.paid_by) {
     const { data: validUser } = await db
       .from('users')
@@ -264,8 +267,8 @@ export async function POST(req: NextRequest) {
 
   // Create linked financial record (only if org has Administration access)
   if (body.category) {
-    const adminBlock = await requireAdministrationAccess(ctx.orgId);
-    if (!adminBlock) {
+    const accessDenied = await requireAdministrationAccess(ctx.orgId);
+    if (!accessDenied) {
       if (body.category === 'expense') {
         const { error: expError } = await db.from('expenses').insert({
           org_id: ctx.orgId,

@@ -86,6 +86,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
     e.target.value = '';
 
     setIsImporting(true);
+    let createdBudgetId: string | null = null;
 
     try {
       // 1. Create empty budget
@@ -101,6 +102,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
       }
 
       const budget = await createRes.json();
+      createdBudgetId = budget.id;
 
       // 2. Import Excel into the budget
       const formData = new FormData();
@@ -117,6 +119,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
       }
 
       const result = await importRes.json();
+      createdBudgetId = null; // Import succeeded — don't cleanup
 
       if (result.confidence < 0.6) {
         sileo.warning({
@@ -140,6 +143,10 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
       onOpenChange(false);
       router.push(`/budgets/${budget.id}?confidence=${result.confidence}`);
     } catch (error) {
+      // Cleanup orphaned empty budget if import failed after creation
+      if (createdBudgetId) {
+        await fetch(`/api/budgets/${createdBudgetId}`, { method: 'DELETE' }).catch(() => {});
+      }
       sileo.error({
         title: error instanceof Error ? error.message : 'Error al importar presupuesto',
       });

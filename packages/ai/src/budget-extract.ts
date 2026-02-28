@@ -122,7 +122,6 @@ export async function extractBudgetData(
       throw new Error('No text response from Claude');
     }
 
-    console.log('[extractBudgetData] Claude raw response (first 500 chars):', textBlock.text.slice(0, 500));
     return parseBudgetImportResponse(textBlock.text);
   } catch (error) {
     if (error instanceof SyntaxError) {

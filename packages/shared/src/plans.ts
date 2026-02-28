@@ -10,7 +10,7 @@ export const PLAN_LIMITS = {
   advance: {
     maxProjects: 20,
     maxReceiptsPerProject: Infinity,
-    maxSeats: null, // dynamic — uses org.max_seats from Stripe
+    maxSeats: null, // dynamic — uses org.max_seats from subscription
     reports: true,
     administration: true,
     prioritySupport: false,
