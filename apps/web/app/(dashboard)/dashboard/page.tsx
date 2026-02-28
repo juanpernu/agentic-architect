@@ -3,18 +3,12 @@ import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
 import { DashboardKPIs } from '@/components/dashboard/dashboard-kpis';
 import { RecentReceipts } from '@/components/dashboard/recent-receipts';
 import { ProgressBarList } from '@/components/ui/progress-bar-list';
-import { BarChartSimple } from '@/components/ui/bar-chart-simple';
+import { SpendTrendChart } from '@/components/dashboard/spend-trend-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAuthContext } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { formatCurrencyCompact } from '@/lib/format';
-import type { SpendByProject, SpendTrend } from '@architech/shared';
-
-const monthLabels: Record<string, string> = {
-  '01': 'Ene', '02': 'Feb', '03': 'Mar', '04': 'Abr',
-  '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Ago',
-  '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dic',
-};
+import type { SpendByProject } from '@architech/shared';
 
 async function fetchSpendByProject(): Promise<SpendByProject[]> {
   const ctx = await getAuthContext();
@@ -24,7 +18,7 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
 
   let query = db
     .from('projects')
-    .select('id, name, receipts!inner(total_amount)')
+    .select('id, name, expenses!inner(amount)')
     .eq('organization_id', ctx.orgId)
     .eq('status', 'active');
 
@@ -38,41 +32,10 @@ async function fetchSpendByProject(): Promise<SpendByProject[]> {
     .map((p) => ({
       project_id: p.id,
       project_name: p.name,
-      total_spend: (p.receipts as Array<{ total_amount: number }>)
-        ?.reduce((sum: number, r) => sum + Number(r.total_amount), 0) ?? 0,
+      total_spend: (p.expenses as Array<{ amount: number }>)
+        ?.reduce((sum: number, e) => sum + Number(e.amount), 0) ?? 0,
     }))
     .sort((a, b) => b.total_spend - a.total_spend);
-}
-
-async function fetchSpendTrend(): Promise<SpendTrend[]> {
-  const ctx = await getAuthContext();
-  if (!ctx) return [];
-
-  const db = getDb();
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  let query = db
-    .from('receipts')
-    .select('total_amount, receipt_date, projects!inner(organization_id, architect_id)')
-    .eq('projects.organization_id', ctx.orgId)
-    .gte('receipt_date', sixMonthsAgo.toISOString().split('T')[0]);
-
-  if (ctx.role === 'architect') {
-    query = query.eq('projects.architect_id', ctx.dbUserId);
-  }
-
-  const { data } = await query;
-
-  const monthMap = new Map<string, number>();
-  for (const receipt of data ?? []) {
-    const month = receipt.receipt_date.substring(0, 7);
-    monthMap.set(month, (monthMap.get(month) ?? 0) + Number(receipt.total_amount));
-  }
-
-  return Array.from(monthMap.entries())
-    .map(([month, total]) => ({ month, total }))
-    .sort((a, b) => a.month.localeCompare(b.month));
 }
 
 async function SpendByProjectSection() {
@@ -90,26 +53,6 @@ async function SpendByProjectSection() {
       maxItems={5}
       actionLabel="Ver Todo"
       actionHref="/projects"
-    />
-  );
-}
-
-async function SpendTrendSection() {
-  const data = await fetchSpendTrend();
-  return (
-    <BarChartSimple
-      title="Tendencia Mensual"
-      description="Flujo de gastos en los últimos 6 meses."
-      data={data.map((item) => {
-        const [, monthNum] = item.month.split('-');
-        return {
-          label: monthLabels[monthNum] || item.month,
-          value: item.total,
-          formattedValue: `${monthLabels[monthNum] || item.month}: ${formatCurrencyCompact(item.total)}`,
-        };
-      })}
-      legend="Actual"
-      highlightLast
     />
   );
 }
@@ -180,9 +123,7 @@ export default function DashboardPage() {
         <Suspense fallback={<ChartSkeleton />}>
           <SpendByProjectSection />
         </Suspense>
-        <Suspense fallback={<ChartSkeleton />}>
-          <SpendTrendSection />
-        </Suspense>
+        <SpendTrendChart />
       </div>
 
       {/* Recent Receipts */}

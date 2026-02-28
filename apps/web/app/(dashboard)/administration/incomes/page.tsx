@@ -24,10 +24,12 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { IncomeFormDialog } from '@/components/income-form-dialog';
-import type { Income } from '@architech/shared';
+import { Badge } from '@/components/ui/badge';
+import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
+import type { Income, ProjectColor } from '@architech/shared';
 
 type IncomeRow = Income & {
-  project?: { id: string; name: string };
+  project?: { id: string; name: string; color?: ProjectColor };
   income_type?: { id: string; name: string };
 };
 
@@ -194,7 +196,23 @@ export default function IncomesPage() {
                   <TableCell className="whitespace-nowrap">
                     {new Date(income.date).toLocaleDateString('es-AR')}
                   </TableCell>
-                  <TableCell>{income.project?.name ?? '-'}</TableCell>
+                  <TableCell>
+                    {income.project ? (
+                      income.project.color && PROJECT_BADGE_STYLES[income.project.color] ? (
+                        <Badge
+                          style={{
+                            backgroundColor: PROJECT_BADGE_STYLES[income.project.color].bg,
+                            color: PROJECT_BADGE_STYLES[income.project.color].text,
+                            borderColor: 'transparent',
+                          }}
+                        >
+                          {income.project.name}
+                        </Badge>
+                      ) : (
+                        income.project.name
+                      )
+                    ) : '-'}
+                  </TableCell>
                   <TableCell>{income.income_type?.name ?? '-'}</TableCell>
                   <TableCell className="text-right font-medium whitespace-nowrap">
                     {formatCurrency(income.amount)}

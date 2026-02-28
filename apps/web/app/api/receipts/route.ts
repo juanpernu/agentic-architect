@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb, getSignedImageUrl } from '@/lib/supabase';
-import { checkPlanLimit } from '@/lib/plan-guard';
+import { checkPlanLimit, requireAdministrationAccess } from '@/lib/plan-guard';
 import { dbError } from '@/lib/api-error';
 import { logger } from '@/lib/logger';
 
@@ -68,32 +68,68 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'project_id, total_amount, receipt_date, and image_url are required' }, { status: 400 });
   }
 
+  // Validate category value
+  if (body.category && body.category !== 'income' && body.category !== 'expense') {
+    return NextResponse.json({ error: 'category must be "income" or "expense"' }, { status: 400 });
+  }
+
   const guard = await checkPlanLimit(ctx.orgId, 'receipt', { projectId: body.project_id as string });
   if (!guard.allowed) {
     return NextResponse.json({ error: guard.reason }, { status: 403 });
   }
 
-  if (!body.rubro_id) {
+  const db = getDb();
+
+  // Validate project belongs to org
+  const { data: validProject } = await db
+    .from('projects')
+    .select('id')
+    .eq('id', body.project_id as string)
+    .eq('organization_id', ctx.orgId)
+    .single();
+  if (!validProject) {
+    return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
+  }
+
+  // Validate paid_by: required for expenses, must belong to org
+  if (body.category === 'expense' && !body.paid_by) {
+    return NextResponse.json({ error: 'paid_by is required for expenses' }, { status: 400 });
+  }
+  if (body.paid_by) {
+    const { data: validUser } = await db
+      .from('users')
+      .select('id')
+      .eq('id', body.paid_by as string)
+      .eq('organization_id', ctx.orgId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!validUser) {
+      return NextResponse.json({ error: 'Usuario no válido' }, { status: 400 });
+    }
+  }
+
+  // rubro_id is required for expenses and when category is not set (backwards compat)
+  if (body.category !== 'income' && !body.rubro_id) {
     return NextResponse.json(
       { error: 'rubro_id is required' },
       { status: 400 }
     );
   }
 
-  const db = getDb();
+  // Validate rubro_id belongs to the same org (via budget) — skip when not provided (income)
+  if (body.rubro_id) {
+    const { data: validRubro } = await db
+      .from('rubros')
+      .select('id, budget:budgets!budget_id(organization_id)')
+      .eq('id', body.rubro_id as string)
+      .maybeSingle();
 
-  // Validate rubro_id belongs to the same org (via budget)
-  const { data: validRubro } = await db
-    .from('rubros')
-    .select('id, budget:budgets!budget_id(organization_id)')
-    .eq('id', body.rubro_id as string)
-    .maybeSingle();
-
-  if (!validRubro || (validRubro.budget as unknown as { organization_id: string })?.organization_id !== ctx.orgId) {
-    return NextResponse.json(
-      { error: 'Rubro no válido' },
-      { status: 400 }
-    );
+    if (!validRubro || (validRubro.budget as unknown as { organization_id: string })?.organization_id !== ctx.orgId) {
+      return NextResponse.json(
+        { error: 'Rubro no válido' },
+        { status: 400 }
+      );
+    }
   }
 
   // Validate bank_account_id if provided
@@ -183,7 +219,8 @@ export async function POST(req: NextRequest) {
     .from('receipts')
     .insert({
       project_id: body.project_id,
-      rubro_id: body.rubro_id,
+      category: body.category ?? null,
+      rubro_id: body.rubro_id ?? null,
       bank_account_id: body.bank_account_id ?? null,
       uploaded_by: ctx.dbUserId,
       vendor: (supplierData?.name as string) ?? (body.vendor as string) ?? null,
@@ -225,6 +262,45 @@ export async function POST(req: NextRequest) {
     if (itemsError) {
       await db.from('receipts').delete().eq('id', receipt.id);
       return dbError(itemsError, 'insert', { route: '/api/receipts' });
+    }
+  }
+
+  // Create linked financial record (only if org has Administration access)
+  if (body.category) {
+    const accessDenied = await requireAdministrationAccess(ctx.orgId);
+    if (!accessDenied) {
+      if (body.category === 'expense') {
+        const { error: expError } = await db.from('expenses').insert({
+          org_id: ctx.orgId,
+          project_id: body.project_id,
+          amount: body.total_amount,
+          date: body.receipt_date,
+          rubro_id: body.rubro_id || null,
+          receipt_id: receipt.id,
+          paid_by: body.paid_by || null,
+          description: `Comprobante ${body.receipt_number ?? ''}`.trim() || null,
+          created_by: ctx.dbUserId,
+        });
+        if (expError) {
+          // Rollback: delete receipt (items cascade)
+          await db.from('receipts').delete().eq('id', receipt.id);
+          return dbError(expError, 'insert', { route: '/api/receipts (expense)' });
+        }
+      } else if (body.category === 'income') {
+        const { error: incError } = await db.from('incomes').insert({
+          org_id: ctx.orgId,
+          project_id: body.project_id,
+          amount: body.total_amount,
+          date: body.receipt_date,
+          receipt_id: receipt.id,
+          description: `Comprobante ${body.receipt_number ?? ''}`.trim() || null,
+          created_by: ctx.dbUserId,
+        });
+        if (incError) {
+          await db.from('receipts').delete().eq('id', receipt.id);
+          return dbError(incError, 'insert', { route: '/api/receipts (income)' });
+        }
+      }
     }
   }
 

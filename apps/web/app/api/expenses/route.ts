@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     .select(`
       *,
       expense_type:expense_types(id, name),
-      project:projects(id, name),
+      project:projects(id, name, color),
       rubro:rubros(id, name)
     `, { count: 'exact' })
     .eq('org_id', ctx.orgId)
@@ -69,15 +69,17 @@ export async function POST(req: NextRequest) {
     .single();
   if (!project) return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 400 });
 
-  // Verify expense_type belongs to org
-  const { data: expenseType } = await db
-    .from('expense_types')
-    .select('id')
-    .eq('id', body.expense_type_id)
-    .eq('org_id', ctx.orgId)
-    .eq('is_active', true)
-    .single();
-  if (!expenseType) return NextResponse.json({ error: 'Tipo de egreso no válido' }, { status: 400 });
+  // Verify expense_type belongs to org (if provided)
+  if (body.expense_type_id) {
+    const { data: expenseType } = await db
+      .from('expense_types')
+      .select('id')
+      .eq('id', body.expense_type_id)
+      .eq('org_id', ctx.orgId)
+      .eq('is_active', true)
+      .single();
+    if (!expenseType) return NextResponse.json({ error: 'Tipo de egreso no válido' }, { status: 400 });
+  }
 
   // If rubroId provided, verify it belongs to a budget of this project and org
   if (body.rubro_id) {
@@ -110,9 +112,10 @@ export async function POST(req: NextRequest) {
       project_id: body.project_id,
       amount: body.amount,
       date: body.date,
-      expense_type_id: body.expense_type_id,
+      expense_type_id: body.expense_type_id || null,
       rubro_id: body.rubro_id || null,
       receipt_id: body.receipt_id || null,
+      paid_by: body.paid_by || null,
       description: body.description,
       created_by: ctx.dbUserId,
     })

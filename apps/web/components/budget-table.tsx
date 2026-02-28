@@ -5,7 +5,7 @@ import { mutate } from 'swr';
 import { sileo } from 'sileo';
 import {
   Plus, Save, Trash2, ChevronUp, ChevronDown,
-  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, RefreshCw,
+  EyeOff, Eye, Pencil, Loader2, CheckCircle2, AlertCircle, AlertTriangle, RefreshCw, Upload,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -35,13 +35,14 @@ interface BudgetTableProps {
   };
   onPublish?: () => void;
   onEdit?: () => void;
+  initialConfidence?: number;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
+export function BudgetTable({ budget, onPublish, onEdit, initialConfidence }: BudgetTableProps) {
   const { isAdminOrSupervisor } = useCurrentUser();
   const isDraft = budget.status === 'draft';
   const readOnly = !isDraft || !isAdminOrSupervisor;
@@ -54,6 +55,9 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showCost, setShowCost] = useState(true);
   const [isEditSwitching, setIsEditSwitching] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importConfidence, setImportConfidence] = useState<number | null>(initialConfidence ?? null);
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   /* Re-sync when server data changes (e.g. after SWR revalidation on navigation back) */
   const serverSnapshotRef = useRef(JSON.stringify(budget.snapshot));
@@ -254,6 +258,59 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
     }
   }, [budget.id]);
 
+  const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`/api/budgets/${budget.id}/import`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? 'Error al importar presupuesto');
+      }
+
+      const result = await res.json();
+
+      if (result.confidence < 0.6) {
+        sileo.warning({
+          title: 'Presupuesto importado',
+          description: 'Algunos datos no pudieron interpretarse con certeza. Revisá los valores.',
+        });
+      } else {
+        sileo.success({
+          title: 'Presupuesto importado',
+          description: 'Revisá los datos importados.',
+        });
+      }
+
+      if (result.warnings?.length > 0) {
+        for (const w of result.warnings) {
+          sileo.info({ title: w });
+        }
+      }
+
+      setImportConfidence(result.confidence);
+
+      // Revalidate SWR to refresh budget data
+      await mutate(`/api/budgets/${budget.id}`);
+    } catch (error) {
+      sileo.error({
+        title: error instanceof Error ? error.message : 'Error al importar presupuesto',
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  }, [budget.id]);
+
   /* ---- Publish (Guardar version) ---- */
 
   const handlePublish = async () => {
@@ -277,6 +334,7 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
 
       const result = await response.json();
       sileo.success({ title: `Version ${result.version_number} guardada` });
+      setImportConfidence(null);
       setShowSaveDialog(false);
       await mutate(`/api/budgets/${budget.id}`);
       await mutate('/api/budgets');
@@ -528,6 +586,27 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
               Borrador
             </Badge>
           )}
+          {importConfidence !== null && (
+            <Badge
+              variant="outline"
+              className={
+                importConfidence > 0.85
+                  ? 'border-green-400 text-green-700 bg-green-50'
+                  : importConfidence >= 0.6
+                    ? 'border-yellow-400 text-yellow-700 bg-yellow-50'
+                    : 'border-red-400 text-red-700 bg-red-50'
+              }
+            >
+              {importConfidence > 0.85 ? (
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+              ) : importConfidence >= 0.6 ? (
+                <AlertCircle className="mr-1 h-3 w-3" />
+              ) : (
+                <AlertTriangle className="mr-1 h-3 w-3" />
+              )}
+              Confianza IA: {importConfidence > 0.85 ? 'Alta' : importConfidence >= 0.6 ? 'Media' : 'Baja'}
+            </Badge>
+          )}
           <span className="text-sm text-muted-foreground">Total</span>
           <span className="text-lg font-semibold">{formatCurrency(grandTotalSubtotal)}</span>
           {isDraft && (
@@ -627,9 +706,37 @@ export function BudgetTable({ budget, onPublish, onEdit }: BudgetTableProps) {
         </Table>
       </div>
 
-      {/* Add rubro buttons */}
-      {!readOnly && (
+      {/* Add rubro buttons / import loading */}
+      <input
+        ref={importFileRef}
+        type="file"
+        accept=".xlsx,.xls"
+        className="hidden"
+        onChange={handleImportFile}
+      />
+      {!readOnly && isImporting && sections.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold mb-1">Interpretando presupuesto...</h3>
+          <p className="text-muted-foreground text-sm text-center">
+            Analizando el Excel con IA. Esto puede tomar hasta un minuto.
+          </p>
+        </div>
+      )}
+      {!readOnly && !isImporting && (
         <div className="flex items-center gap-2">
+          {sections.length === 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => importFileRef.current?.click()}
+            >
+              <Upload className="mr-1 h-4 w-4" />
+              Importar Excel
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => addRubro(false)}>
             <Plus className="mr-1 h-4 w-4" />
             Agregar rubro

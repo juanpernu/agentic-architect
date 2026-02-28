@@ -7,7 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./extract": "./src/extract.ts",
-    "./prompt": "./src/prompt.ts"
+    "./prompt": "./src/prompt.ts",
+    "./budget-extract": "./src/budget-extract.ts",
+    "./budget-prompt": "./src/budget-prompt.ts"
   },
   "scripts": {
     "lint": "eslint src/",
@@ -16,7 +18,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39",
-    "@architech/shared": "*"
+    "@architech/shared": "*",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "typescript": "^5",

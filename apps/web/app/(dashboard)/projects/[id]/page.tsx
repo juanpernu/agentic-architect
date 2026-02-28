@@ -343,59 +343,81 @@ export default function ProjectDetailPage() {
       {/* Stats cards row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Budget card */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet className="h-14 w-14 text-primary" />
-          </div>
-          <p className="text-sm font-medium text-muted-foreground mb-1">Total Presupuestado</p>
-          <h3 className="text-3xl font-bold tracking-tight">
-            {budgetAmount > 0 ? formatCurrency(budgetAmount) : '—'}
-          </h3>
-          {budgetAmount > 0 && budgets?.[0] && (
-            <div className="mt-4 flex items-center gap-2 text-xs font-medium text-green-600 bg-green-50 py-1 px-2 rounded w-fit">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>v{budgets[0].current_version}</span>
+        <div className="rounded-xl border border-border bg-card shadow-sm relative overflow-hidden group flex flex-col">
+          <div className="p-6 flex-1">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Wallet className="h-14 w-14 text-primary" />
             </div>
-          )}
-          {budgetAmount === 0 && (
-            <div className="mt-4">
-              {isAdminOrSupervisor ? (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/budgets">
-                    <Calculator className="mr-2 h-4 w-4" />
-                    Crear presupuesto
-                  </Link>
-                </Button>
-              ) : (
-                <p className="text-xs text-muted-foreground">Sin presupuesto</p>
-              )}
+            <p className="text-sm font-medium text-muted-foreground mb-1">Total Presupuestado</p>
+            <h3 className="text-3xl font-bold tracking-tight">
+              {budgetAmount > 0 ? formatCurrency(budgetAmount) : '—'}
+            </h3>
+            {budgetAmount > 0 && budgets?.[0] && (
+              <div className="mt-4 flex items-center gap-2 text-xs font-medium text-green-600 bg-green-50 py-1 px-2 rounded w-fit">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span>v{budgets[0].current_version}</span>
+              </div>
+            )}
+            {budgetAmount === 0 && (
+              <div className="mt-4">
+                {isAdminOrSupervisor ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/budgets">
+                      <Calculator className="mr-2 h-4 w-4" />
+                      Crear presupuesto
+                    </Link>
+                  </Button>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Sin presupuesto</p>
+                )}
+              </div>
+            )}
+          </div>
+          {budgetAmount > 0 && budgets?.[0] && (
+            <div className="px-6 py-3 border-t border-border">
+              <Link
+                href={`/budgets/${budgets[0].id}`}
+                className="text-xs font-semibold text-primary hover:underline transition-colors"
+              >
+                Ver presupuesto →
+              </Link>
             </div>
           )}
         </div>
 
         {/* Spend card */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <p className="text-sm font-medium text-muted-foreground mb-1">Gasto total</p>
-          <h3 className="text-3xl font-bold tracking-tight mb-4">
-            {formatCurrency(totalSpend)}
-          </h3>
-          {budgetAmount > 0 && (
-            <div className="flex flex-col gap-2">
-              <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-primary h-3 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${spendPercent}%` }}
-                />
+        <div className="rounded-xl border border-border bg-card shadow-sm flex flex-col">
+          <div className="p-6 flex-1">
+            <p className="text-sm font-medium text-muted-foreground mb-1">Gasto total</p>
+            <h3 className="text-3xl font-bold tracking-tight mb-4">
+              {formatCurrency(totalSpend)}
+            </h3>
+            {budgetAmount > 0 && (
+              <div className="flex flex-col gap-2">
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-primary h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${spendPercent}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>$0</span>
+                  <span>Meta: {formatCurrencyCompact(budgetAmount)}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>$0</span>
-                <span>Meta: {formatCurrencyCompact(budgetAmount)}</span>
-              </div>
-            </div>
-          )}
-          {budgetAmount === 0 && (
-            <p className="text-xs text-muted-foreground">{receipts?.length ?? 0} comprobantes</p>
-          )}
+            )}
+            {budgetAmount === 0 && (
+              <p className="text-xs text-muted-foreground">{receipts?.length ?? 0} comprobantes</p>
+            )}
+          </div>
+          <div className="px-6 py-3 border-t border-border">
+            <Link
+              href={`/administration/expenses?projectId=${projectId}`}
+              className="text-xs font-semibold text-primary hover:underline transition-colors"
+            >
+              Ver egresos →
+            </Link>
+          </div>
         </div>
 
         {/* Rubro distribution card */}

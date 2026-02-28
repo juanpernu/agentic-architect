@@ -1,7 +1,7 @@
 # Agentect — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
-> Ultima actualizacion: 2026-02-26
+> Ultima actualizacion: 2026-02-28
 
 ---
 
@@ -15,6 +15,7 @@
 - Ver **reportes** de gastos agrupados por proyecto y rubro
 - Gestionar **usuarios** con 3 roles (admin, supervisor, architect) y **suscripciones** (Free, Advance, Enterprise)
 - Asociar **cuentas bancarias** y **proveedores** a comprobantes
+- Clasificar comprobantes como **Ingreso** o **Egreso**, creando automaticamente el registro financiero correspondiente
 
 El mercado target es Argentina. La interfaz esta en **espanol argentino**, la moneda es **ARS**, y los comprobantes fiscales siguen normativa AFIP.
 
@@ -121,13 +122,13 @@ agentic-architect/
 organizations (multi-tenant root)
 ├── users (clerk_user_id, role, is_active)
 ├── projects (name, address, status, color, architect_id)
-│   ├── receipts (vendor, total, date, type, ai_confidence)
+│   ├── receipts (vendor, total, date, type, ai_confidence, category)
 │   │   └── receipt_items (description, qty, unit_price, subtotal)
 │   ├── budgets (status: draft|published, snapshot JSON)
 │   │   ├── rubros (name, color, sort_order)
 │   │   └── budget_versions (version_number, snapshot, total)
-│   ├── incomes (amount, date, income_type_id, description, created_by)
-│   └── expenses (amount, date, expense_type_id, rubro_id?, receipt_id?, description, created_by)
+│   ├── incomes (amount, date, income_type_id?, description, created_by, receipt_id?)
+│   └── expenses (amount, date, expense_type_id?, rubro_id?, receipt_id?, paid_by?, description, created_by)
 ├── income_types (name, is_active) — seeded on org creation
 ├── expense_types (name, is_active)
 ├── suppliers (name, cuit, fiscal_condition, address)
@@ -241,7 +242,8 @@ PLAN_LIMITS = {
 5. Backend llama a Claude Sonnet 4.5 Vision con `EXTRACTION_PROMPT`
 6. Respuesta JSON se parsea con `parseExtractionResponse()`
 7. Usuario revisa en `ReceiptReview` component — puede editar todos los campos
-8. Al confirmar: `POST /api/receipts` crea receipt + items + upsert supplier
+8. Usuario selecciona **categoria** (Ingreso/Egreso) — toggle pill-style, default "Egreso"
+9. Al confirmar: `POST /api/receipts` crea receipt + items + upsert supplier + crea expense o income automaticamente
 
 ### Extraction prompt highlights
 
@@ -276,6 +278,7 @@ PLAN_LIMITS = {
 |----------|---------|------|-------|
 | `/api/organization` | GET, PATCH | Any/Admin | Get org / Update org fields |
 | `/api/organization/logo` | POST | Admin | Upload logo a Supabase |
+| `/api/org-members` | GET | !Architect | Lista usuarios activos de la org (id, full_name) — para dropdown "Quien pago" |
 
 ### Projects
 
@@ -288,7 +291,7 @@ PLAN_LIMITS = {
 
 | Endpoint | Methods | Auth | Notes |
 |----------|---------|------|-------|
-| `/api/receipts` | GET, POST | Any | Lista / Crear (con items + supplier upsert) |
+| `/api/receipts` | GET, POST | Any | Lista / Crear (con items + supplier upsert + expense/income auto-creation) |
 | `/api/receipts/[id]` | GET, PATCH, DELETE | Any / !Architect / Admin | Detalle con signed URL |
 | `/api/receipts/upload` | POST | Any | Upload imagen (max 10MB) |
 | `/api/receipts/extract` | POST | Any | AI extraction con Claude Vision |
@@ -337,7 +340,7 @@ PLAN_LIMITS = {
 |----------|---------|------|-------|
 | `/api/dashboard/stats` | GET | Any | KPIs: active_projects, monthly_spend, etc. |
 | `/api/dashboard/spend-by-project` | GET | Any | Bar chart data |
-| `/api/dashboard/spend-trend` | GET | Any | Line chart (6 meses) |
+| `/api/dashboard/spend-trend` | GET | Any | Line chart — `?granularity=month` (6 meses) o `week` (28 dias, por dia) |
 | `/api/reports/by-rubro` | GET | Any | Gasto por rubro, filtros: date_from, date_to, project_id |
 
 ### Billing
@@ -372,7 +375,7 @@ PLAN_LIMITS = {
 
 | Componente | Archivo | Descripcion |
 |------------|---------|-------------|
-| ReceiptReview | `receipt-review.tsx` | Paso 3 del upload: image + editable fields + selects + items accordion |
+| ReceiptReview | `receipt-review.tsx` | Paso 3 del upload: image + category toggle (Ingreso/Egreso) + Nro. Comprobante + editable fields + "Quien pago" (expenses) + items accordion |
 | BudgetTable | `budget-table.tsx` | Editor spreadsheet: sections/items editables, autosave, publish, cost toggle |
 | CameraCapture | `camera-capture.tsx` | Overlay full-screen para captura mobile (environment/user facing) |
 | ProjectFormDialog | `project-form-dialog.tsx` | Dialog crear/editar proyecto |
@@ -387,11 +390,11 @@ PLAN_LIMITS = {
 
 ### Dashboard Components
 
-- `dashboard-kpis.tsx` — 3 KPI cards (proyectos activos, gasto mensual, comprobantes semanales)
+- `dashboard-kpis.tsx` — 3 KPI StatCards con footer links: Proyectos Activos (→ /projects), Gasto Mensual (→ /administration/expenses), Comprobantes Semanales (→ /administration/receipts)
 - `recent-receipts.tsx` — Tabla de ultimos comprobantes
 - `create-project-card.tsx` — CTA card para crear primer proyecto
-- `spend-by-project-chart.tsx` — Bar chart de gasto por proyecto
-- `spend-trend-chart.tsx` — Line chart de tendencia mensual
+- `spend-by-project-chart.tsx` — ProgressBarList de egresos por proyecto (query a `expenses` table)
+- `spend-trend-chart.tsx` — Client component: Recharts LineChart + shadcn ChartContainer, toggle Semana (diario 28d) / Mes (mensual 6m), query a `expenses` table
 
 ### Administration Components
 
@@ -401,7 +404,7 @@ PLAN_LIMITS = {
 
 ### UI Components (Shadcn customizados)
 
-AlertDialog, Avatar, Badge, Button, Card (con CardAction), Collapsible, CurrencyInput, Dialog, DropdownMenu, EmptyState, Field/FieldGroup/FieldLabel, Input, KpiCard, Label, LoadingSkeleton, PageHeader, RouteError, Select, Separator, Sheet, Skeleton, Switch, Table, Tabs, Textarea
+AlertDialog, Avatar, Badge, Button, Card (con CardAction), Chart (shadcn Recharts wrapper: ChartContainer, ChartTooltip, ChartTooltipContent), Collapsible, CurrencyInput, Dialog, DropdownMenu, EmptyState, Field/FieldGroup/FieldLabel, Input, KpiCard, Label, LoadingSkeleton, PageHeader, RouteError, Select, Separator, Sheet, Skeleton, StatCard (title, value, icon, badge, footer link), Switch, Table, Tabs, Textarea
 
 ---
 
@@ -437,7 +440,7 @@ Todos en `apps/web/lib/schemas/`:
 |--------|---------|-----|
 | `projectCreateSchema` / `projectUpdateSchema` | `project.ts` | API: crear/editar proyecto |
 | `projectSchema` | `project.ts` | Form client-side |
-| `receiptReviewSchema` | `receipt-review.ts` | Validar review antes de confirm |
+| `receiptReviewSchema` | `receipt-review.ts` | Discriminated union en `category`: expense (requiere rubro + paidBy) / income |
 | `budgetSnapshotSchema` | `budget.ts` | Validar snapshot JSON |
 | `bankAccountCreateSchema` / `bankAccountUpdateSchema` | `bank-account.ts` | API: CRUD cuentas |
 | `inviteCreateSchema` | `invite.ts` | API: invitar usuario |
@@ -555,6 +558,10 @@ await mutate('/api/endpoint');
 22. Database reset para produccion: truncado de las 14 tablas y vaciado de buckets storage (receipts + org-assets). DB lista para lanzamiento.
 23. Migracion Stripe → Mercado Pago: reemplazo completo de pasarela de pagos. Standalone PreApproval subscriptions (sin plan vinculado), webhook handler con HMAC-SHA256, billing UI custom (cancel, pause/resume, update seats, payment history), pricing en ARS ($45.000 base + $8.000/seat mensual). Eliminacion total de codigo Stripe. PR #45.
 24. Produccion MP debugging: CSP fixes (clerk.agentect.tech, vercel.live, images.clerk.dev), webhook GET handler para verificacion MP, fix webhook URL en panel MP (/api/webhooks/mercadopago), test end-to-end exitoso (checkout → authorized → cancel → cancelled). Nota: no se puede suscribir con la misma cuenta que creo la app en MP (vendedor ≠ comprador).
+25. Receipt categorization (Ingreso/Egreso): toggle pill-style en receipt review, campo "Nro. Comprobante" editable, campo "Quien pago" (expenses), creacion automatica de expense/income al confirmar comprobante. Category read-only post-creacion. Badge Ingreso/Egreso en `/receipts/[id]`. Migracion: `receipts.category`, `expenses.paid_by`, `incomes.receipt_id`, type IDs nullable.
+26. Dashboard overhaul: sidebar renombrado "Panel", KPI StatCards con footer links, chart de egresos con Recharts/shadcn (LineChart + toggle Semana/Mes), gasto por proyecto basado en `expenses` table. Project detail cards con links a presupuesto y egresos filtrados.
+27. Colored project badges: tablas de egresos e ingresos muestran proyecto como Badge con color (usando `PROJECT_BADGE_STYLES`), consistente con tabla de comprobantes.
+28. `/api/org-members` endpoint: lista lightweight (id, full_name) de usuarios activos de la org, accesible por admin+supervisor.
 
 ---
 
@@ -565,11 +572,13 @@ await mutate('/api/endpoint');
 - CRUD completo de projects, receipts, budgets, rubros, bank accounts, users
 - AI extraction con Claude Vision funcionando
 - Subscription system con Mercado Pago (standalone PreApproval, webhook HMAC-SHA256, custom billing UI). Verificado end-to-end en produccion.
-- Dashboard con KPIs y charts
+- Dashboard ("Panel") con KPIs (StatCards con footer links), chart de egresos (Recharts LineChart con toggle Semana/Mes), gasto por proyecto
 - Reports con drill-down
 - Budget editor con autosave y versionado
 - Modulo Administracion: ingresos, egresos, cashflow, balance, presupuestado vs real
+- Receipt categorization: Ingreso/Egreso toggle, creacion automatica de expense/income, "Quien pago", Nro. Comprobante editable
 - UX mobile: hamburger menu + slide-in sidebar Sheet (reemplaza bottom tabs), layouts responsive, a11y (keyboard nav, aria-current, aria-expanded), shared utils
+- Colored project badges en tablas de comprobantes, egresos e ingresos
 - Base de datos de produccion limpia (reset 2026-02-24), storage vaciado
 
 ### Pendientes / mejoras posibles
@@ -632,4 +641,10 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Administration module plan | `docs/plans/2026-02-20-administration-module.md` |
 | Rename design + plan | `docs/plans/2026-02-23-rename-to-agentect-design.md`, `...-rename-to-agentect.md` |
 | Mobile nav design + plan | `docs/plans/2026-02-24-mobile-nav-design.md`, `...-mobile-nav.md` |
+| StatCard component | `apps/web/components/ui/stat-card.tsx` |
+| Shadcn Chart wrapper | `apps/web/components/ui/chart.tsx` |
+| Spend trend chart (client) | `apps/web/components/dashboard/spend-trend-chart.tsx` |
+| Org members endpoint | `apps/web/app/api/org-members/route.ts` |
+| Project badge styles | `apps/web/lib/project-colors.ts` |
+| Receipt category migration | `supabase/migrations/20260226120000_receipt_category.sql` |
 | Designer prompt | `docs/designer-prompt.md` |

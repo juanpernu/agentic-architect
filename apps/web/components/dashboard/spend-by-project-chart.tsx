@@ -6,7 +6,7 @@ import { formatCurrency, formatCurrencyCompact } from '@/lib/format';
 import type { SpendByProject } from '@architech/shared';
 
 const currencyTickFormatter = (value: number) => formatCurrencyCompact(value);
-const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(Number(value ?? 0));
+const currencyTooltipFormatter = (value: string | number | (string | number)[]) => formatCurrency(Number(value ?? 0));
 
 export function SpendByProjectChart({ data }: { data: SpendByProject[] }) {
   if (data.length === 0) {

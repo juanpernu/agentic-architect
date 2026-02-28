@@ -21,6 +21,7 @@ import { PROJECT_COLOR_HEX } from '@/lib/project-colors';
 import { useCurrentUser } from '@/lib/use-current-user';
 import type { ReceiptDetail } from '@/lib/api-types';
 import type { Rubro, BankAccount } from '@architech/shared';
+import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
@@ -248,6 +249,7 @@ export default function ReceiptDetailPage() {
   const [editVendor, setEditVendor] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editAmount, setEditAmount] = useState('');
+  const [editReceiptNumber, setEditReceiptNumber] = useState('');
   const [isEditingAmount, setIsEditingAmount] = useState(false);
   const [isSavingField, setIsSavingField] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -333,6 +335,7 @@ export default function ReceiptDetailPage() {
       setEditVendor(receipt.vendor ?? '');
       setEditDate(receipt.receipt_date);
       setEditAmount(String(receipt.total_amount));
+      setEditReceiptNumber(receipt.receipt_number ?? '');
     }
   }, [receipt]);
 
@@ -435,6 +438,11 @@ export default function ReceiptDetailPage() {
               {receipt.receipt_number && (
                 <span className="text-muted-foreground font-normal ml-2 text-base md:text-xl">#{receipt.receipt_number}</span>
               )}
+              {receipt.category && (
+                <Badge className={`ml-2 ${receipt.category === 'income' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                  {receipt.category === 'income' ? 'Ingreso' : 'Egreso'}
+                </Badge>
+              )}
             </h1>
           </div>
           {isAdmin && (
@@ -507,6 +515,20 @@ export default function ReceiptDetailPage() {
             <div className="space-y-4">
               <h4 className="font-medium text-sm border-b border-slate-100 pb-2">Informacion General</h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                {/* Nro. Comprobante (editable) */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Nro. Comprobante</label>
+                  <input
+                    type="text"
+                    className="w-full text-sm font-medium border border-slate-200 rounded-lg px-3 py-2 bg-slate-50/50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    value={editReceiptNumber}
+                    onChange={(e) => setEditReceiptNumber(e.target.value)}
+                    onBlur={() => { if (editReceiptNumber !== (receipt.receipt_number ?? '')) saveField('receipt_number', editReceiptNumber); }}
+                    disabled={isSavingField}
+                    placeholder="Ej: 0001-00001234"
+                  />
+                </div>
+
                 {/* Proveedor — full width, editable */}
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Proveedor / Razon Social</label>
@@ -626,7 +648,8 @@ export default function ReceiptDetailPage() {
                   )}
                 </div>
 
-                {/* Rubro — full width, optional dropdown from project budget */}
+                {/* Rubro — full width, optional dropdown from project budget (hidden for income) */}
+                {receipt.category !== 'income' && (
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Rubro</label>
                   {isAdminOrSupervisor ? (
@@ -663,6 +686,7 @@ export default function ReceiptDetailPage() {
                     </div>
                   )}
                 </div>
+                )}
 
                 {/* Cuenta Bancaria — full width */}
                 <div className="col-span-2">
