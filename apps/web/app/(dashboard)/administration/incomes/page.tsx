@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import { Wallet, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { sileo } from 'sileo';
@@ -39,7 +40,10 @@ export default function IncomesPage() {
   const [incomeTypeId, setIncomeTypeId] = useState('all');
 
   // Dialog state
-  const [formOpen, setFormOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const [formOpen, setFormOpen] = useState(
+    searchParams.get('create') === 'true'
+  );
   const [editingIncome, setEditingIncome] = useState<IncomeRow | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingIncome, setDeletingIncome] = useState<IncomeRow | null>(null);
