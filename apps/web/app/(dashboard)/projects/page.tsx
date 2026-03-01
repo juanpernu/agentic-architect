@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { Building2, MapPin, Plus, Search } from 'lucide-react';
@@ -47,6 +48,15 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreateDialog(true);
+      window.history.replaceState(null, '', pathname);
+    }
+  }, [searchParams, pathname]);
 
   const { data: projects, isLoading, error } = useSWR<ProjectWithDetails[]>(
     '/api/projects',

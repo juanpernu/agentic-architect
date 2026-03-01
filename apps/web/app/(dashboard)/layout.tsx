@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { MobileHeader } from '@/components/mobile-header';
 import { Toaster } from 'sileo';
+import { FloatingActionButton } from '@/components/floating-action-button';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -20,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </main>
         <Toaster position="bottom-right" options={{ fill: '#000000' }} />
+        <FloatingActionButton />
       </div>
     </ClerkProvider>
   );

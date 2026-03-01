@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import { Wallet, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { sileo } from 'sileo';
@@ -40,6 +41,15 @@ export default function IncomesPage() {
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setFormOpen(true);
+      window.history.replaceState(null, '', pathname);
+    }
+  }, [searchParams, pathname]);
   const [editingIncome, setEditingIncome] = useState<IncomeRow | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingIncome, setDeletingIncome] = useState<IncomeRow | null>(null);

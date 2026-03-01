@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
 import { Receipt, Plus, MoreHorizontal, Pencil, Trash2, Paperclip, ExternalLink } from 'lucide-react';
@@ -43,6 +44,15 @@ export default function ExpensesPage() {
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setFormOpen(true);
+      window.history.replaceState(null, '', pathname);
+    }
+  }, [searchParams, pathname]);
   const [editingExpense, setEditingExpense] = useState<ExpenseRow | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingExpense, setDeletingExpense] = useState<ExpenseRow | null>(null);
