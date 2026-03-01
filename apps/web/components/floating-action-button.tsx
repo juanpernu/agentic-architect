@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -31,6 +31,18 @@ export function FloatingActionButton() {
     p.endsWith('/') ? pathname.startsWith(p) : pathname === p
   );
 
+  // Close on Escape key
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [open, handleEscape]);
+
   if (isHidden) return null;
 
   return (
@@ -51,6 +63,8 @@ export function FloatingActionButton() {
             key={action.label}
             href={action.href}
             onClick={() => setOpen(false)}
+            tabIndex={open ? 0 : -1}
+            aria-hidden={!open}
             className={cn(
               'flex items-center gap-3 transition-all duration-200',
               open

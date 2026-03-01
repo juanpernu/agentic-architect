@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { sileo } from 'sileo';
 import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
@@ -27,10 +27,16 @@ export default function BudgetsPage() {
   const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const searchParams = useSearchParams();
-  const [showCreateDialog, setShowCreateDialog] = useState(
-    searchParams.get('create') === 'true'
-  );
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreateDialog(true);
+      window.history.replaceState(null, '', pathname);
+    }
+  }, [searchParams, pathname]);
   const [deletingBudget, setDeletingBudget] = useState<BudgetListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
