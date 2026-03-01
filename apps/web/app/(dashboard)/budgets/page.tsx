@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { sileo } from 'sileo';
 import { Calculator, Plus, Search, Trash2 } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
@@ -27,7 +27,10 @@ export default function BudgetsPage() {
   const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const searchParams = useSearchParams();
+  const [showCreateDialog, setShowCreateDialog] = useState(
+    searchParams.get('create') === 'true'
+  );
   const [deletingBudget, setDeletingBudget] = useState<BudgetListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
