@@ -579,8 +579,8 @@ export function BudgetTable({ budget, onPublish, onEdit, initialConfidence }: Bu
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {isDraft && (
             <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
               Borrador

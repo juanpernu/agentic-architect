@@ -454,16 +454,16 @@ export default function ProjectDetailPage() {
         <div className="rounded-xl border border-border bg-card shadow-sm flex flex-col h-full overflow-hidden">
             {/* Table header */}
             <div className="p-6 border-b border-border/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
+              <div className="flex items-center gap-3">
                 <h2 className="text-lg font-bold">Comprobantes del Proyecto</h2>
-                <p className="text-sm text-muted-foreground">Registro detallado de facturas y gastos.</p>
+                <Button asChild size="icon" className="md:w-auto md:px-4 md:py-2">
+                  <Link href={`/upload?project_id=${projectId}`}>
+                    <Plus className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Cargar Comprobante</span>
+                  </Link>
+                </Button>
               </div>
-              <Button asChild>
-                <Link href={`/upload?project_id=${projectId}`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Cargar Comprobante
-                </Link>
-              </Button>
+              <p className="text-sm text-muted-foreground">Registro detallado de facturas y gastos.</p>
             </div>
 
             {/* Filters */}

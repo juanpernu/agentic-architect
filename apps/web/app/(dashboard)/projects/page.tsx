@@ -91,9 +91,9 @@ export default function ProjectsPage() {
             <p className="text-muted-foreground mt-1">Gestioná y controlá el avance de tus obras.</p>
           </div>
           {isAdminOrSupervisor && (
-            <Button onClick={() => setShowCreateDialog(true)} disabled={!canCreateProject}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Proyecto
+            <Button onClick={() => setShowCreateDialog(true)} disabled={!canCreateProject} size="icon" className="md:w-auto md:px-4 md:py-2">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Nuevo Proyecto</span>
             </Button>
           )}
         </div>
@@ -109,8 +109,8 @@ export default function ProjectsPage() {
               aria-label="Buscar proyectos"
             />
           </div>
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList>
+          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+            <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="all">Todos</TabsTrigger>
               <TabsTrigger value="active">Activos</TabsTrigger>
               <TabsTrigger value="completed">Finalizados</TabsTrigger>
@@ -163,7 +163,7 @@ export default function ProjectsPage() {
               <Link key={project.id} href={`/projects/${project.id}`}>
                 <Card
                   className={cn(
-                    'shadow-soft border-border/50 hover:border-primary/50 transition-all cursor-pointer h-full',
+                    'shadow-soft border-border/50 hover:border-primary/50 transition-all cursor-pointer h-full overflow-hidden',
                     isPaused && 'opacity-75'
                   )}
                 >
@@ -198,9 +198,9 @@ export default function ProjectsPage() {
                       {project.name}
                     </h3>
                     {project.address && (
-                      <div className="flex items-center text-muted-foreground text-sm mt-1">
-                        <MapPin className="h-3.5 w-3.5 mr-1 shrink-0" />
-                        <p className="truncate">{project.address}</p>
+                      <div className="flex items-center text-muted-foreground text-sm mt-1 overflow-hidden">
+                        <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                        <span className="text-wrap">{project.address}</span>
                       </div>
                     )}
                   </CardContent>

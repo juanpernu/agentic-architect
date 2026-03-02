@@ -51,18 +51,18 @@ export function VsBudgetTable({ rubros, totalBudgeted, totalCost, totalActual, t
 
       {/* KPI cards */}
       <div className="grid gap-4 grid-cols-3">
-        <Card className="p-4">
+        <Card className="p-4 overflow-hidden">
           <div className="text-xs text-muted-foreground">Presupuestado</div>
-          <div className="text-xl font-bold mt-1">{formatCurrency(totalBudgeted)}</div>
+          <div className="text-base md:text-xl font-bold mt-1 truncate">{formatCurrency(totalBudgeted)}</div>
         </Card>
-        <Card className="p-4">
+        <Card className="p-4 overflow-hidden">
           <div className="text-xs text-muted-foreground">Gasto real</div>
-          <div className="text-xl font-bold mt-1">{formatCurrency(totalActual)}</div>
+          <div className="text-base md:text-xl font-bold mt-1 truncate">{formatCurrency(totalActual)}</div>
         </Card>
-        <Card className="p-4">
+        <Card className="p-4 overflow-hidden">
           <div className="text-xs text-muted-foreground">Disponible</div>
           <div className={cn(
-            'text-xl font-bold mt-1',
+            'text-base md:text-xl font-bold mt-1 truncate',
             totalDifference >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           )}>
             {formatCurrency(totalDifference)}

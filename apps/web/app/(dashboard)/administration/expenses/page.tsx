@@ -148,10 +148,10 @@ export default function ExpensesPage() {
       {/* Filter bar */}
       <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
         <div className="flex items-end gap-4">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
             <Select value={projectId} onValueChange={handleProjectChange}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -163,10 +163,10 @@ export default function ExpensesPage() {
             </Select>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-muted-foreground">Tipo de egreso</label>
             <Select value={expenseTypeId} onValueChange={setExpenseTypeId}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -179,10 +179,10 @@ export default function ExpensesPage() {
           </div>
 
           {projectId && projectId !== 'all' && (
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 flex-1 min-w-0">
               <label className="text-sm font-medium text-muted-foreground">Rubro</label>
               <Select value={rubroId} onValueChange={setRubroId}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -195,12 +195,10 @@ export default function ExpensesPage() {
             </div>
           )}
 
-          <div className="ml-auto">
-            <Button onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo egreso
-            </Button>
-          </div>
+          <Button onClick={handleCreate} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
+            <Plus className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Nuevo egreso</span>
+          </Button>
         </div>
       </div>
 

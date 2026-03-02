@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/format';
 import type { RubroSpend, Project } from '@architech/shared';
 import type { ReceiptWithDetails } from '@/lib/api-types';
 import { EmptyState } from '@/components/ui/empty-state';
-import { KPICard } from '@/components/ui/kpi-card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingTable } from '@/components/ui/loading-skeleton';
 import { Input } from '@/components/ui/input';
@@ -160,11 +160,11 @@ export default function ReportsPage() {
           <p className="text-muted-foreground mt-1">Analisis de gastos por proyecto y rubro</p>
         </div>
         {/* Filters */}
-        <div className="flex items-end gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-[250px]">
+              <SelectTrigger className="w-full sm:w-[250px]">
                 <SelectValue placeholder="Todos los proyectos" />
               </SelectTrigger>
               <SelectContent>
@@ -177,23 +177,25 @@ export default function ReportsPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Desde</label>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-[160px]"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Hasta</label>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-[160px]"
-            />
+          <div className="flex gap-4">
+            <div className="space-y-1.5 flex-1">
+              <label className="text-sm font-medium text-muted-foreground">Desde</label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full sm:w-[160px]"
+              />
+            </div>
+            <div className="space-y-1.5 flex-1">
+              <label className="text-sm font-medium text-muted-foreground">Hasta</label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full sm:w-[160px]"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -203,14 +205,28 @@ export default function ReportsPage() {
       {!isLoadingReport && reportData && (
         <>
           {/* KPI Cards */}
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 mb-6">
-            <KPICard title="Total Gastado" value={formatCurrency(totalSpend)} icon={DollarSign} />
-            <KPICard title="Comprobantes" value={totalReceipts} icon={Receipt} />
-            <KPICard
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+            <StatCard
+              title="Total Gastado"
+              value={formatCurrency(totalSpend)}
+              icon={DollarSign}
+              iconBg="bg-emerald-50 dark:bg-emerald-900/20"
+              iconColor="text-emerald-600 dark:text-emerald-400"
+            />
+            <StatCard
+              title="Comprobantes"
+              value={totalReceipts}
+              icon={Receipt}
+              iconBg="bg-purple-50 dark:bg-purple-900/20"
+              iconColor="text-purple-600 dark:text-purple-400"
+            />
+            <StatCard
               title="Mayor Gasto"
               value={topProject?.project_name ?? '—'}
               icon={TrendingUp}
-              description={topProject ? formatCurrency(topProject.total_amount) : undefined}
+              iconBg="bg-blue-50 dark:bg-blue-900/20"
+              iconColor="text-blue-600 dark:text-blue-400"
+              subtitle={topProject ? formatCurrency(topProject.total_amount) : undefined}
             />
           </div>
 
