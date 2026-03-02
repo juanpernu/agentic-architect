@@ -1,7 +1,7 @@
 # Agentect — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
-> Ultima actualizacion: 2026-02-28
+> Ultima actualizacion: 2026-03-02
 
 ---
 
@@ -53,6 +53,7 @@ agentic-architect/
 │   └── web/                    # Next.js 16 app
 │       ├── app/                # App Router
 │       │   ├── (auth)/         # Route group: sign-in, sign-up
+│       │   ├── (marketing)/    # Route group: landing page publica
 │       │   ├── (dashboard)/    # Route group: todas las paginas autenticadas
 │       │   │   ├── page.tsx            # Dashboard (/)
 │       │   │   ├── projects/           # /projects, /projects/[id]
@@ -61,14 +62,15 @@ agentic-architect/
 │       │   │   ├── budgets/            # /budgets, /budgets/[id], /budgets/[id]/history
 │       │   │   ├── administration/     # /administration (resumen, ingresos, egresos)
 │       │   │   ├── reports/            # /reports
-│       │   │   └── settings/           # /settings/{general,users,banks,billing,administration}
+│       │   │   └── settings/           # /settings/{general,users,cajas,billing,administration}
 │       │   └── api/            # API routes (ver seccion 7)
 │       ├── components/         # Componentes React
 │       │   ├── ui/             # Shadcn/ui base components (25+)
 │       │   ├── dashboard/      # KPIs, charts, recent receipts, create-project-card
 │       │   ├── administration/ # cashflow-chart, balance-by-project-table, vs-budget-table
-│       │   ├── reports/        # Chart de reportes
-│       │   └── *.tsx           # Feature components (sidebar, budget-table, receipt-review, etc.)
+│       │   ├── reports/        # Chart de reportes (ProgressBarList)
+│       │   ├── landing/        # Landing page components (hero, features, pricing, etc.)
+│       │   └── *.tsx           # Feature components (sidebar, budget-table, receipt-review, floating-action-button, etc.)
 │       ├── lib/                # Utilidades y hooks
 │       │   ├── schemas/        # Zod schemas (9 archivos)
 │       │   ├── mercadopago/     # MP client, pricing, subscription, webhook verification
@@ -82,6 +84,7 @@ agentic-architect/
 │       │   ├── use-current-user.ts  # Hook: role, fullName, isAdmin
 │       │   ├── use-plan.ts     # Hook: plan limits, canCreate
 │       │   ├── use-autosave.ts # Hook: budget autosave con debounce
+│       │   ├── use-create-param.ts # Hook: ?create=true → open dialog + clean URL
 │       │   └── ...
 │       ├── middleware.ts       # Clerk auth middleware
 │       └── next.config.ts      # transpilePackages, images
@@ -369,7 +372,8 @@ PLAN_LIMITS = {
 
 - **`sidebar.tsx`** — Exporta `navItems` (con tipado `UserRole[]`), `SidebarContent` (nav links + user footer reutilizable) y `Sidebar` (desktop aside `hidden md:flex md:w-64 md:fixed`). Props: `onNavigate?: () => void`, `showUserFooter?: boolean`. Role gates, UserButton de Clerk + badge de rol, `aria-current="page"` en links activos.
 - **`mobile-header.tsx`** — Header mobile sticky (`md:hidden`): hamburger button + titulo dinamico (mapeado de `navItems` + `EXTRA_TITLES`) + UserButton. Abre Shadcn Sheet (`side="left"`) con `SidebarContent`. Auto-cierra al navegar. Accesibilidad: `aria-expanded`, `aria-haspopup="dialog"`, `VisuallyHidden` SheetTitle.
-- **Dashboard layout** — `md:pl-64 pt-[52px] md:pt-0` para compensar sidebar (desktop) y mobile header
+- **Dashboard layout** — `md:pl-64 pt-0 md:pt-0 overflow-x-hidden` para compensar sidebar (desktop). FAB montado en el layout.
+- **`floating-action-button.tsx`** — Material-style FAB speed dial, solo mobile (`md:hidden`). 5 acciones de creacion rapida. Navega con `?create=true`, las paginas leen el param con `useCreateParam` hook. Hidden en `/upload`, `/receipts/*`, `/settings/billing*`. A11y: `role="menu"`, focus management, Escape key.
 
 ### Feature Components
 
@@ -393,14 +397,18 @@ PLAN_LIMITS = {
 - `dashboard-kpis.tsx` — 3 KPI StatCards con footer links: Proyectos Activos (→ /projects), Gasto Mensual (→ /administration/expenses), Comprobantes Semanales (→ /administration/receipts)
 - `recent-receipts.tsx` — Tabla de ultimos comprobantes
 - `create-project-card.tsx` — CTA card para crear primer proyecto
-- `spend-by-project-chart.tsx` — ProgressBarList de egresos por proyecto (query a `expenses` table)
+- `spend-by-project-chart.tsx` — ProgressBarList de egresos por proyecto
 - `spend-trend-chart.tsx` — Client component: Recharts LineChart + shadcn ChartContainer, toggle Semana (diario 28d) / Mes (mensual 6m), query a `expenses` table
+
+### Reports Components
+
+- `spend-by-rubro-chart.tsx` — Agrupacion por proyecto usando `ProgressBarList` (reemplazo de Recharts)
 
 ### Administration Components
 
 - `cashflow-chart.tsx` — Recharts LineChart: ingresos vs egresos mensual (azul/naranja)
 - `balance-by-project-table.tsx` — Tabla de balance por proyecto (ingreso, egreso, saldo)
-- `vs-budget-table.tsx` — Presupuestado vs ejecutado por rubro con barras de progreso y semaforo (verde <80%, ambar 80-100%, rojo >100%)
+- `vs-budget-table.tsx` — Presupuestado vs ejecutado por rubro con barras de progreso y semaforo (verde <80%, ambar 80-100%, rojo >100%). KPI cards responsive con `overflow-hidden` + `truncate`.
 
 ### UI Components (Shadcn customizados)
 
@@ -415,6 +423,7 @@ AlertDialog, Avatar, Badge, Button, Card (con CardAction), Chart (shadcn Rechart
 | `useCurrentUser()` | `use-current-user.ts` | Role, fullName, isAdmin, isAdminOrSupervisor. Fast path via Clerk metadata, fallback a /api/me |
 | `usePlan()` | `use-plan.ts` | Plan, limits, canCreateProject, canInviteUser, isFreePlan, isPastDue |
 | `useAutosave()` | `use-autosave.ts` | Autosave con debounce 2s, status indicator, flush on unmount (keepalive), retry |
+| `useCreateParam()` | `use-create-param.ts` | Lee `?create=true` del URL, ejecuta callback, limpia el param preservando otros query params |
 | `useFormValidation()` | `use-form-validation.ts` | Hook para validacion con Zod |
 | `formatRelativeShort()` | `date-utils.ts` | "Hoy", "Ayer", "Hace 3d", "15/02" — Argentina TZ aware |
 | `formatRelativeDay()` | `date-utils.ts` | "Hoy", "Ayer", "15 feb 2026" — para receipts |
@@ -562,6 +571,9 @@ await mutate('/api/endpoint');
 26. Dashboard overhaul: sidebar renombrado "Panel", KPI StatCards con footer links, chart de egresos con Recharts/shadcn (LineChart + toggle Semana/Mes), gasto por proyecto basado en `expenses` table. Project detail cards con links a presupuesto y egresos filtrados.
 27. Colored project badges: tablas de egresos e ingresos muestran proyecto como Badge con color (usando `PROJECT_BADGE_STYLES`), consistente con tabla de comprobantes.
 28. `/api/org-members` endpoint: lista lightweight (id, full_name) de usuarios activos de la org, accesible por admin+supervisor.
+29. Marketing landing page: hero, features, pricing, comparison (Excel vs Agentect), facilitador, social proof. Responsive. PRs #43, #44, #46.
+30. Production hardening: env validation (Zod lazy proxy), structured logger (JSON prod, readable dev), error sanitization (`dbError`/`apiError`), rate limiting (sliding window per-org), security headers (CSP, HSTS, X-Frame-Options). PR #40.
+31. Mobile FAB speed dial: Material-style floating action button, 5 quick-create actions (Comprobante, Proyecto, Presupuesto, Egreso, Ingreso). Navigation-only (`?create=true` param), custom hook `useCreateParam`, a11y (`role="menu"`, focus management, Escape), hidden en /upload, /receipts/*, /settings/billing*. Responsive UI polish: compact buttons, responsive filters (`flex-1 min-w-0`), overflow fixes, reports ProgressBarList, "Bancos" → "Cajas" wording. PR #48.
 
 ---
 
@@ -578,6 +590,9 @@ await mutate('/api/endpoint');
 - Modulo Administracion: ingresos, egresos, cashflow, balance, presupuestado vs real
 - Receipt categorization: Ingreso/Egreso toggle, creacion automatica de expense/income, "Quien pago", Nro. Comprobante editable
 - UX mobile: hamburger menu + slide-in sidebar Sheet (reemplaza bottom tabs), layouts responsive, a11y (keyboard nav, aria-current, aria-expanded), shared utils
+- Mobile FAB speed dial: 5 quick-create actions con staggered animations, `?create=true` param, a11y completo
+- Marketing landing page: hero, features, pricing, comparison, facilitador, social proof
+- Production hardening: env validation, structured logging, error sanitization, rate limiting, security headers (CSP, HSTS)
 - Colored project badges en tablas de comprobantes, egresos e ingresos
 - Base de datos de produccion limpia (reset 2026-02-24), storage vaciado
 
@@ -631,7 +646,7 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Budget editor | `apps/web/components/budget-table.tsx` |
 | Receipt review (AI) | `apps/web/components/receipt-review.tsx` |
 | Upload flow | `apps/web/app/(dashboard)/upload/page.tsx` |
-| Settings tabs | `apps/web/app/(dashboard)/settings/layout.tsx` (general, users, banks, administration, billing) |
+| Settings tabs | `apps/web/app/(dashboard)/settings/layout.tsx` (general, users, cajas, administration, billing) |
 | Zod schemas | `apps/web/lib/schemas/` (9 archivos) |
 | MP client + subscriptions | `apps/web/lib/mercadopago/` (client, pricing, subscription, webhook) |
 | Documentacion visual | `docs/flowchart/index.html` (abrir en browser) |
@@ -647,4 +662,12 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Org members endpoint | `apps/web/app/api/org-members/route.ts` |
 | Project badge styles | `apps/web/lib/project-colors.ts` |
 | Receipt category migration | `supabase/migrations/20260226120000_receipt_category.sql` |
+| FAB speed dial | `apps/web/components/floating-action-button.tsx` |
+| Create param hook | `apps/web/lib/use-create-param.ts` |
+| Landing page | `apps/web/app/(marketing)/page.tsx` |
+| Env validation | `apps/web/lib/env.ts` |
+| Logger | `apps/web/lib/logger.ts` |
+| Error sanitization | `apps/web/lib/api-error.ts` |
+| Rate limiting | `apps/web/lib/rate-limit.ts` |
+| ProgressBarList | `apps/web/components/ui/progress-bar-list.tsx` |
 | Designer prompt | `docs/designer-prompt.md` |
