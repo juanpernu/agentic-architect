@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useCallback, useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
 import { Receipt, Plus, MoreHorizontal, Pencil, Trash2, Paperclip, ExternalLink } from 'lucide-react';
@@ -28,6 +27,7 @@ import {
 import { ExpenseFormDialog } from '@/components/expense-form-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
+import { useCreateParam } from '@/lib/use-create-param';
 import type { Expense, ProjectColor } from '@architech/shared';
 
 type ExpenseRow = Expense & {
@@ -44,15 +44,9 @@ export default function ExpensesPage() {
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
 
-  useEffect(() => {
-    if (searchParams.get('create') === 'true') {
-      setFormOpen(true);
-      window.history.replaceState(null, '', pathname);
-    }
-  }, [searchParams, pathname]);
+  useCreateParam(useCallback(() => setFormOpen(true), []));
+
   const [editingExpense, setEditingExpense] = useState<ExpenseRow | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingExpense, setDeletingExpense] = useState<ExpenseRow | null>(null);

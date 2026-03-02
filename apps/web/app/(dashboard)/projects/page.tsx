@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { Building2, MapPin, Plus, Search } from 'lucide-react';
@@ -22,6 +21,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { CreateProjectCard } from '@/components/dashboard/create-project-card';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { useCreateParam } from '@/lib/use-create-param';
 import { cn } from '@/lib/utils';
 
 const STATUS_DOT_COLORS: Record<ProjectStatus, string> = {
@@ -48,15 +48,8 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
 
-  useEffect(() => {
-    if (searchParams.get('create') === 'true') {
-      setShowCreateDialog(true);
-      window.history.replaceState(null, '', pathname);
-    }
-  }, [searchParams, pathname]);
+  useCreateParam(useCallback(() => setShowCreateDialog(true), []));
 
   const { data: projects, isLoading, error } = useSWR<ProjectWithDetails[]>(
     '/api/projects',

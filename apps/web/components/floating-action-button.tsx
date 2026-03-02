@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -21,15 +21,19 @@ const FAB_ACTIONS = [
   { label: 'Comprobante', icon: Sparkles, href: '/upload' },
 ] as const;
 
-const HIDDEN_PATTERNS = ['/upload', '/receipts/', '/settings/billing'];
+const HIDDEN_EXACT = ['/upload'];
+const HIDDEN_PREFIX = ['/receipts/', '/settings/billing'];
 
 export function FloatingActionButton() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const firstActionRef = useRef<HTMLAnchorElement>(null);
+  const wasOpen = useRef(false);
 
-  const isHidden = HIDDEN_PATTERNS.some((p) =>
-    p.endsWith('/') ? pathname.startsWith(p) : pathname === p
-  );
+  const isHidden =
+    HIDDEN_EXACT.includes(pathname) ||
+    HIDDEN_PREFIX.some((p) => pathname.startsWith(p));
 
   // Close on Escape key
   const handleEscape = useCallback((e: KeyboardEvent) => {
@@ -38,8 +42,13 @@ export function FloatingActionButton() {
 
   useEffect(() => {
     if (open) {
+      wasOpen.current = true;
       document.addEventListener('keydown', handleEscape);
+      firstActionRef.current?.focus();
       return () => document.removeEventListener('keydown', handleEscape);
+    } else if (wasOpen.current) {
+      wasOpen.current = false;
+      fabRef.current?.focus();
     }
   }, [open, handleEscape]);
 
@@ -57,14 +66,16 @@ export function FloatingActionButton() {
       )}
 
       {/* Speed dial actions */}
-      <div className="flex flex-col-reverse items-end gap-3 mb-3">
+      <div className="flex flex-col-reverse items-end gap-3 mb-3" role="menu">
         {FAB_ACTIONS.map((action, i) => (
           <Link
             key={action.label}
             href={action.href}
+            ref={i === FAB_ACTIONS.length - 1 ? firstActionRef : undefined}
             onClick={() => setOpen(false)}
             tabIndex={open ? 0 : -1}
             aria-hidden={!open}
+            role="menuitem"
             className={cn(
               'flex items-center gap-3 transition-all duration-200',
               open
@@ -87,15 +98,17 @@ export function FloatingActionButton() {
 
       {/* Main FAB button */}
       <button
+        ref={fabRef}
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          'w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg ml-auto',
-          'flex items-center justify-center transition-transform duration-200',
+          'w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg',
+          'flex items-center justify-center transition-transform duration-200 float-right',
           'hover:shadow-xl active:scale-95',
           open && 'rotate-45'
         )}
         aria-label={open ? 'Cerrar menú rápido' : 'Abrir menú rápido'}
         aria-expanded={open}
+        aria-haspopup="true"
       >
         <Plus className="h-6 w-6" />
       </button>
