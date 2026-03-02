@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import { useRouter } from 'next/navigation';
 import { sileo } from 'sileo';
@@ -22,12 +22,16 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { CreateBudgetDialog } from '@/components/create-budget-dialog';
+import { useCreateParam } from '@/lib/use-create-param';
 
 export default function BudgetsPage() {
   const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  useCreateParam(useCallback(() => setShowCreateDialog(true), []));
+
   const [deletingBudget, setDeletingBudget] = useState<BudgetListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 

@@ -9,7 +9,7 @@ import { useCurrentUser } from '@/lib/use-current-user';
 const tabs = [
   { href: '/settings/general', label: 'General', icon: Settings, roles: ['admin', 'supervisor', 'architect'] },
   { href: '/settings/users', label: 'Usuarios', icon: Users, roles: ['admin'] },
-  { href: '/settings/banks', label: 'Bancos', icon: Landmark, roles: ['admin', 'supervisor'] },
+  { href: '/settings/banks', label: 'Cajas', icon: Landmark, roles: ['admin', 'supervisor'] },
   { href: '/settings/billing', label: 'Facturación', icon: CreditCard, roles: ['admin'] },
 ];
 

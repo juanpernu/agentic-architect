@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import { Wallet, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { sileo } from 'sileo';
@@ -26,6 +26,7 @@ import {
 import { IncomeFormDialog } from '@/components/income-form-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PROJECT_BADGE_STYLES } from '@/lib/project-colors';
+import { useCreateParam } from '@/lib/use-create-param';
 import type { Income, ProjectColor } from '@architech/shared';
 
 type IncomeRow = Income & {
@@ -40,6 +41,9 @@ export default function IncomesPage() {
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
+
+  useCreateParam(useCallback(() => setFormOpen(true), []));
+
   const [editingIncome, setEditingIncome] = useState<IncomeRow | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingIncome, setDeletingIncome] = useState<IncomeRow | null>(null);
@@ -116,10 +120,10 @@ export default function IncomesPage() {
       {/* Filter bar */}
       <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
         <div className="flex items-end gap-4">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-muted-foreground">Proyecto</label>
             <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -131,10 +135,10 @@ export default function IncomesPage() {
             </Select>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-muted-foreground">Tipo de ingreso</label>
             <Select value={incomeTypeId} onValueChange={setIncomeTypeId}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -146,12 +150,10 @@ export default function IncomesPage() {
             </Select>
           </div>
 
-          <div className="ml-auto">
-            <Button onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo ingreso
-            </Button>
-          </div>
+          <Button onClick={handleCreate} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
+            <Plus className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Nuevo ingreso</span>
+          </Button>
         </div>
       </div>
 

@@ -39,7 +39,7 @@ export default function BanksPage() {
       <EmptyState
         icon={ShieldAlert}
         title="Acceso denegado"
-        description="No tenés permisos para ver las cuentas bancarias."
+        description="No tenés permisos para ver las cajas."
       />
     );
   }
@@ -87,7 +87,7 @@ export default function BanksPage() {
     content = (
       <EmptyState
         icon={Landmark}
-        title="Error al cargar cuentas bancarias"
+        title="Error al cargar cajas"
         description="Hubo un problema. Por favor, intenta de nuevo."
       />
     );
@@ -95,11 +95,11 @@ export default function BanksPage() {
     content = (
       <EmptyState
         icon={Landmark}
-        title="No hay cuentas bancarias"
-        description="Registra tu primera cuenta bancaria para vincular egresos."
+        title="No hay cajas"
+        description="Registra tu primera caja para vincular egresos."
         action={
           isAdmin ? (
-            <Button onClick={handleCreate}>Crear cuenta bancaria</Button>
+            <Button onClick={handleCreate}>Crear caja</Button>
           ) : undefined
         }
       />
@@ -109,7 +109,7 @@ export default function BanksPage() {
       <>
         {isAdmin && (
           <div className="flex justify-end mb-4">
-            <Button onClick={handleCreate}>Nueva cuenta bancaria</Button>
+            <Button onClick={handleCreate}>Nueva caja</Button>
           </div>
         )}
 
@@ -171,7 +171,7 @@ export default function BanksPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eliminar Cuenta Bancaria</DialogTitle>
+            <DialogTitle>Eliminar Caja</DialogTitle>
             <DialogDescription>
               ¿Estás seguro? Los comprobantes vinculados conservarán la referencia pero no se podrá seleccionar en nuevos comprobantes.
             </DialogDescription>
