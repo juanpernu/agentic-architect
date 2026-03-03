@@ -8,6 +8,9 @@ import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import type { RubroSpend, Project } from '@architech/shared';
 import type { ReceiptWithDetails } from '@/lib/api-types';
+import { usePlan } from '@/lib/use-plan';
+import { PlanGatePage } from '@/components/plan-gate-page';
+import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatCard } from '@/components/ui/stat-card';
 import { Badge } from '@/components/ui/badge';
@@ -62,9 +65,74 @@ function groupByProject(data: RubroSpend[]): ProjectGroup[] {
   return Array.from(map.values()).sort((a, b) => b.total_amount - a.total_amount);
 }
 
+/* ── Skeleton ── */
+
+function ReportsSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Fake header band */}
+      <div className="-mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-6 pb-6 mb-6 border-b border-border bg-card space-y-5">
+        <div>
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-4 w-64 mt-2" />
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full sm:w-[250px]" />
+          </div>
+          <div className="flex gap-4">
+            <div className="space-y-1.5 flex-1">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-10 w-full sm:w-[160px]" />
+            </div>
+            <div className="space-y-1.5 flex-1">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-10 w-full sm:w-[160px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* KPI cards */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="rounded-xl border p-6 space-y-3">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-3 w-1/4" />
+          </div>
+        ))}
+      </div>
+      {/* Chart area */}
+      <div className="rounded-lg border p-6">
+        <Skeleton className="h-[200px] w-full" />
+      </div>
+      {/* Table */}
+      <div className="rounded-lg border overflow-hidden">
+        <div className="p-3 flex gap-4 border-b">
+          <Skeleton className="h-4 w-8" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-24 ml-auto" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="p-3 flex gap-4 border-b">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-16 ml-auto" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Page ── */
 
-export default function ReportsPage() {
+function ReportsContent() {
   const router = useRouter();
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -396,4 +464,32 @@ export default function ReportsPage() {
       )}
     </div>
   );
+}
+
+/* ── Default export with plan gate ── */
+
+export default function ReportsPage() {
+  const { limits, isLoading: isPlanLoading } = usePlan();
+
+  if (isPlanLoading) {
+    return <ReportsSkeleton />;
+  }
+
+  if (!limits.reports) {
+    return (
+      <PlanGatePage
+        title="Reportes"
+        description="Analizá tus gastos con reportes detallados."
+        features={[
+          'Análisis de gastos por rubro',
+          'Filtros por fecha y proyecto',
+          'Desglose detallado por comprobante',
+        ]}
+      >
+        <ReportsSkeleton />
+      </PlanGatePage>
+    );
+  }
+
+  return <ReportsContent />;
 }
