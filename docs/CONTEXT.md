@@ -1,7 +1,7 @@
 # Agentect — Full Repository Context
 
 > Documento de contexto completo para que un main planner pueda retomar el proyecto sin conocimiento previo.
-> Ultima actualizacion: 2026-03-02
+> Ultima actualizacion: 2026-03-03
 
 ---
 
@@ -70,7 +70,8 @@ agentic-architect/
 │       │   ├── administration/ # cashflow-chart, balance-by-project-table, vs-budget-table
 │       │   ├── reports/        # Chart de reportes (ProgressBarList)
 │       │   ├── landing/        # Landing page components (hero, features, pricing, etc.)
-│       │   └── *.tsx           # Feature components (sidebar, budget-table, receipt-review, floating-action-button, etc.)
+│       │   ├── onboarding/     # Onboarding flow (provider, welcome, tooltip, overlay, snackbar, summary, steps, __tests__/)
+│       │   └── *.tsx           # Feature components (sidebar, budget-table, receipt-review, floating-action-button, plan-gate-page, etc.)
 │       ├── lib/                # Utilidades y hooks
 │       │   ├── schemas/        # Zod schemas (9 archivos)
 │       │   ├── mercadopago/     # MP client, pricing, subscription, webhook verification
@@ -91,7 +92,7 @@ agentic-architect/
 ├── packages/
 │   ├── shared/                 # @architech/shared
 │   │   └── src/
-│   │       ├── types.ts        # Todas las interfaces TypeScript
+│   │       ├── types.ts        # Todas las interfaces TypeScript + OnboardingStep, ONBOARDING_STEPS
 │   │       ├── enums.ts        # UserRole, ProjectStatus, etc.
 │   │       ├── plans.ts        # PLAN_LIMITS (free/advance/enterprise)
 │   │       └── index.ts        # Re-exports
@@ -123,7 +124,7 @@ agentic-architect/
 
 ```
 organizations (multi-tenant root)
-├── users (clerk_user_id, role, is_active)
+├── users (clerk_user_id, role, is_active, onboarding_step, onboarding_completed_at)
 ├── projects (name, address, status, color, architect_id)
 │   ├── receipts (vendor, total, date, type, ai_confidence, category)
 │   │   └── receipt_items (description, qty, unit_price, subtotal)
@@ -346,6 +347,12 @@ PLAN_LIMITS = {
 | `/api/dashboard/spend-trend` | GET | Any | Line chart — `?granularity=month` (6 meses) o `week` (28 dias, por dia) |
 | `/api/reports/by-rubro` | GET | Any | Gasto por rubro, filtros: date_from, date_to, project_id |
 
+### Onboarding
+
+| Endpoint | Methods | Auth | Notes |
+|----------|---------|------|-------|
+| `/api/onboarding` | GET, PATCH | Any | GET: lee onboarding_step del user. PATCH: actualiza step (valida schema, rate limited, prevents regression si ya completed) |
+
 ### Billing
 
 | Endpoint | Methods | Auth | Notes |
@@ -391,6 +398,13 @@ PLAN_LIMITS = {
 | ExpenseFormDialog | `expense-form-dialog.tsx` | Dialog crear/editar egreso (project, type, rubro, receipt, amount) |
 | IncomeFormDialog | `income-form-dialog.tsx` | Dialog crear/editar ingreso (project, type, amount) |
 | UpgradeBanner | `upgrade-banner.tsx` | Banner cuando se alcanza un limite de plan |
+| PlanGatePage | `plan-gate-page.tsx` | Paywall dialog para features de plan Advance+ (administracion, reportes). Blur + dialog modal con preview animado, CTA a billing |
+| OnboardingProvider | `onboarding/provider.tsx` | Context provider del onboarding. Monta en dashboard layout. SWR sync, role-based variants, step navigation, snackbar resume, sessionStorage persistence |
+| OnboardingWelcome | `onboarding/welcome.tsx` | Dialog de bienvenida — inicia el tour o lo skipea |
+| OnboardingTooltip | `onboarding/tooltip.tsx` | Tooltip posicionado sobre target elements (MutationObserver + ResizeObserver via `useTargetElement`) |
+| OnboardingOverlay | `onboarding/overlay.tsx` | Overlay con spotlight cutout sobre el elemento target |
+| OnboardingSnackbar | `onboarding/snackbar.tsx` | Snackbar "Tenes un onboarding en curso" — Portal a body, z-[10001], resume/dismiss |
+| OnboardingSummary | `onboarding/summary.tsx` | Pantalla final del onboarding con resumen de lo aprendido |
 
 ### Dashboard Components
 
@@ -425,6 +439,8 @@ AlertDialog, Avatar, Badge, Button, Card (con CardAction), Chart (shadcn Rechart
 | `useAutosave()` | `use-autosave.ts` | Autosave con debounce 2s, status indicator, flush on unmount (keepalive), retry |
 | `useCreateParam()` | `use-create-param.ts` | Lee `?create=true` del URL, ejecuta callback, limpia el param preservando otros query params |
 | `useFormValidation()` | `use-form-validation.ts` | Hook para validacion con Zod |
+| `useOnboarding()` | `use-onboarding.ts` | Hook: accede al OnboardingContext (step, isActive, variant, projectId, nextStep, goToStep, skip, complete) |
+| `useTargetElement()` | `use-target-element.ts` | Hook: MutationObserver + ResizeObserver + scroll/resize para trackear un DOM element por selector. 10s timeout safety. Usado por overlay y tooltip |
 | `formatRelativeShort()` | `date-utils.ts` | "Hoy", "Ayer", "Hace 3d", "15/02" — Argentina TZ aware |
 | `formatRelativeDay()` | `date-utils.ts` | "Hoy", "Ayer", "15 feb 2026" — para receipts |
 | `getInitials()` | `avatar-utils.ts` | "Juan Perez" → "JP" — max 2 chars |
@@ -443,7 +459,7 @@ AlertDialog, Avatar, Badge, Button, Card (con CardAction), Chart (shadcn Rechart
 
 ## 10. Validation Schemas (Zod)
 
-Todos en `apps/web/lib/schemas/`:
+Todos en `apps/web/lib/schemas/` (10 archivos):
 
 | Schema | Archivo | Uso |
 |--------|---------|-----|
@@ -459,6 +475,7 @@ Todos en `apps/web/lib/schemas/`:
 | `expenseCreateSchema` / `expenseUpdateSchema` | `administration.ts` | API: CRUD egresos |
 | `incomeTypeCreateSchema` / `incomeTypeUpdateSchema` | `administration.ts` | API: CRUD tipos ingreso |
 | `expenseTypeCreateSchema` / `expenseTypeUpdateSchema` | `administration.ts` | API: CRUD tipos egreso |
+| `onboardingUpdateSchema` | `onboarding.ts` | API: actualizar onboarding step (valida contra `ONBOARDING_STEPS`) |
 
 ---
 
@@ -574,6 +591,8 @@ await mutate('/api/endpoint');
 29. Marketing landing page: hero, features, pricing, comparison (Excel vs Agentect), facilitador, social proof. Responsive. PRs #43, #44, #46.
 30. Production hardening: env validation (Zod lazy proxy), structured logger (JSON prod, readable dev), error sanitization (`dbError`/`apiError`), rate limiting (sliding window per-org), security headers (CSP, HSTS, X-Frame-Options). PR #40.
 31. Mobile FAB speed dial: Material-style floating action button, 5 quick-create actions (Comprobante, Proyecto, Presupuesto, Egreso, Ingreso). Navigation-only (`?create=true` param), custom hook `useCreateParam`, a11y (`role="menu"`, focus management, Escape), hidden en /upload, /receipts/*, /settings/billing*. Responsive UI polish: compact buttons, responsive filters (`flex-1 min-w-0`), overflow fixes, reports ProgressBarList, "Bancos" → "Cajas" wording. PR #48.
+32. Plan gate paywall: `PlanGatePage` component para features de plan Advance+ (Administracion, Reportes). Renderiza contenido real con blur+opacity detras de un Dialog modal no-dismissable. Preview animado custom para cada seccion (mini KPI cards, mini cashflow chart, mini rubro bars). CTA "Ver planes" → `/settings/billing`. Usado en `administration/layout.tsx` y `reports/page.tsx`. PR #50.
+33. User onboarding flow: sistema de onboarding role-based con 2 variantes — Creator (9 steps: welcome→tour-1..6→summary→completed) y Viewer (6 steps: welcome→tour-1..3→summary→completed). Componentes: welcome dialog, tooltip posicionado (MutationObserver+ResizeObserver via `useTargetElement` hook), overlay con spotlight cutout, snackbar resume (Portal a body, z-[10001]). Persistencia: `onboarding_step`+`onboarding_completed_at` en tabla `users`, API `/api/onboarding` (GET/PATCH), SWR sync con flag isHydrated. SessionStorage para `onboarding_project_id` y `onboarding_budget_id` entre navegaciones. Provider en dashboard layout. Tests: 26 tests en `onboarding/__tests__/provider.test.tsx` (vitest). Type `OnboardingStep` + const `ONBOARDING_STEPS` en `@architech/shared`. PR #49.
 
 ---
 
@@ -594,10 +613,12 @@ await mutate('/api/endpoint');
 - Marketing landing page: hero, features, pricing, comparison, facilitador, social proof
 - Production hardening: env validation, structured logging, error sanitization, rate limiting, security headers (CSP, HSTS)
 - Colored project badges en tablas de comprobantes, egresos e ingresos
+- Plan gate paywall: dialog modal con preview animado para features Advance+ (Administracion, Reportes). Blur background, CTA a billing
+- User onboarding: tour guiado role-based (creator 9 steps, viewer 6 steps). Tooltips, overlay spotlight, snackbar resume, API persistence, 26 tests
 - Base de datos de produccion limpia (reset 2026-02-24), storage vaciado
 
 ### Pendientes / mejoras posibles
-- **Tests**: solo hay tests en `packages/ai/src/__tests__/` — el resto del codigo no tiene tests
+- **Tests**: tests en `packages/ai/src/__tests__/` (AI extraction) y `apps/web/components/onboarding/__tests__/` (26 tests, vitest) — el resto del codigo no tiene tests
 - **Notifications**: no hay sistema de notificaciones (email, push)
 - **Export**: no hay export de datos a CSV/Excel
 - **Soft deletes**: solo bank_accounts usa soft delete (is_active). Receipts y projects son hard delete.
@@ -647,7 +668,7 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Receipt review (AI) | `apps/web/components/receipt-review.tsx` |
 | Upload flow | `apps/web/app/(dashboard)/upload/page.tsx` |
 | Settings tabs | `apps/web/app/(dashboard)/settings/layout.tsx` (general, users, cajas, administration, billing) |
-| Zod schemas | `apps/web/lib/schemas/` (9 archivos) |
+| Zod schemas | `apps/web/lib/schemas/` (10 archivos) |
 | MP client + subscriptions | `apps/web/lib/mercadopago/` (client, pricing, subscription, webhook) |
 | Documentacion visual | `docs/flowchart/index.html` (abrir en browser) |
 | Date utilities (ARG TZ) | `apps/web/lib/date-utils.ts` |
@@ -670,4 +691,14 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Error sanitization | `apps/web/lib/api-error.ts` |
 | Rate limiting | `apps/web/lib/rate-limit.ts` |
 | ProgressBarList | `apps/web/components/ui/progress-bar-list.tsx` |
+| Plan gate paywall | `apps/web/components/plan-gate-page.tsx` |
+| Onboarding provider | `apps/web/components/onboarding/provider.tsx` |
+| Onboarding steps/routes | `apps/web/components/onboarding/steps.ts` |
+| Onboarding context hook | `apps/web/lib/use-onboarding.ts` |
+| Target element hook | `apps/web/lib/use-target-element.ts` |
+| Onboarding API | `apps/web/app/api/onboarding/route.ts` |
+| Onboarding schema | `apps/web/lib/schemas/onboarding.ts` |
+| Onboarding migration | `supabase/migrations/20260302120000_user_onboarding.sql` |
+| Onboarding tests | `apps/web/components/onboarding/__tests__/provider.test.tsx` |
+| Vitest config | `apps/web/vitest.config.ts` |
 | Designer prompt | `docs/designer-prompt.md` |
