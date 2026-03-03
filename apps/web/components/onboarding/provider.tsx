@@ -26,6 +26,16 @@ const VIEWER_STEPS: OnboardingStep[] = [
   'welcome', 'tour-1', 'tour-2', 'tour-3', 'summary', 'completed',
 ];
 
+// Map step → expected route prefix (used by snackbar for resume logic)
+export const STEP_ROUTES: Partial<Record<OnboardingStep, string>> = {
+  'tour-1': '/',
+  'tour-2': '/projects',
+  'tour-3': '/projects/',
+  'tour-4': '/projects/',
+  'tour-5': '/budgets/',
+  'tour-6': '/projects/',
+};
+
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -246,7 +256,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       )}
 
       {/* tour-6 (creator only) -- back to project, show budget impacted */}
-      {step === 'tour-6' && pathname.startsWith('/projects/') && (
+      {step === 'tour-6' && variant === 'creator' && pathname.startsWith('/projects/') && (
         <>
           <OnboardingOverlay targetSelector='[data-onboarding="project-stats"]' />
           <OnboardingTooltip
