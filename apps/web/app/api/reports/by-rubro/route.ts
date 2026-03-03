@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, unauthorized } from '@/lib/auth';
+import { checkPlanLimit } from '@/lib/plan-guard';
 import { getDb } from '@/lib/supabase';
 import { dbError } from '@/lib/api-error';
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
+
+  const planCheck = await checkPlanLimit(ctx.orgId, 'reports');
+  if (!planCheck.allowed) {
+    return NextResponse.json({ error: planCheck.reason }, { status: 403 });
+  }
 
   const db = getDb();
   const projectId = req.nextUrl.searchParams.get('project_id');

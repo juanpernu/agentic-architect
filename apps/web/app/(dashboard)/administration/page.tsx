@@ -6,7 +6,7 @@ import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { StatCard } from '@/components/ui/stat-card';
-import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
+import { LoadingCards } from '@/components/ui/loading-skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CashflowChart } from '@/components/administration/cashflow-chart';
 import { BalanceByProjectTable } from '@/components/administration/balance-by-project-table';
