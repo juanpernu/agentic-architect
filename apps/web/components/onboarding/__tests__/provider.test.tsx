@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ONBOARDING_STEPS } from '@architech/shared';
 import type { OnboardingStep } from '@architech/shared';
-import { CREATOR_STEPS, VIEWER_STEPS, STEP_ROUTES } from '../provider';
+import { CREATOR_STEPS, VIEWER_STEPS, STEP_ROUTES } from '../steps';
 
 describe('Onboarding step progression', () => {
   it('steps progress in correct order', () => {

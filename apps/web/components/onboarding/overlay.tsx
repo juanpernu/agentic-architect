@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useTargetElement } from '@/lib/use-target-element';
 
 interface OnboardingOverlayProps {
   targetSelector: string;
@@ -12,46 +13,9 @@ export function OnboardingOverlay({ targetSelector, className }: OnboardingOverl
   const maskId = useId();
   const [rect, setRect] = useState<DOMRect | null>(null);
 
-  useEffect(() => {
-    let resizeObserver: ResizeObserver | null = null;
-    let mutationObserver: MutationObserver | null = null;
-    let updateFn: (() => void) | null = null;
-
-    const setup = (el: Element) => {
-      updateFn = () => setRect(el.getBoundingClientRect());
-      updateFn();
-
-      resizeObserver = new ResizeObserver(updateFn);
-      resizeObserver.observe(el);
-      window.addEventListener('scroll', updateFn, true);
-      window.addEventListener('resize', updateFn);
-    };
-
-    const el = document.querySelector(targetSelector);
-    if (el) {
-      setup(el);
-    } else {
-      // Element not yet in DOM (e.g. page still loading data) — wait for it
-      mutationObserver = new MutationObserver(() => {
-        const found = document.querySelector(targetSelector);
-        if (found) {
-          mutationObserver?.disconnect();
-          mutationObserver = null;
-          setup(found);
-        }
-      });
-      mutationObserver.observe(document.body, { childList: true, subtree: true });
-    }
-
-    return () => {
-      resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
-      if (updateFn) {
-        window.removeEventListener('scroll', updateFn, true);
-        window.removeEventListener('resize', updateFn);
-      }
-    };
-  }, [targetSelector]);
+  useTargetElement(targetSelector, (el) => {
+    setRect(el.getBoundingClientRect());
+  });
 
   if (!rect) return null;
 

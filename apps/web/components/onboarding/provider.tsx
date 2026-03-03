@@ -12,30 +12,16 @@ import { OnboardingSummary } from './summary';
 import { OnboardingOverlay } from './overlay';
 import { OnboardingTooltip } from './tooltip';
 import { OnboardingSnackbar } from './snackbar';
+import { CREATOR_STEPS, VIEWER_STEPS, STEP_ROUTES } from './steps';
 import type { OnboardingStep } from '@architech/shared';
+
+// Re-export for backwards compat
+export { CREATOR_STEPS, VIEWER_STEPS, STEP_ROUTES } from './steps';
 
 interface OnboardingState {
   step: OnboardingStep;
   completedAt: string | null;
 }
-
-export const CREATOR_STEPS: OnboardingStep[] = [
-  'welcome', 'tour-1', 'tour-2', 'tour-3', 'tour-4', 'tour-5', 'tour-6', 'summary', 'completed',
-];
-
-export const VIEWER_STEPS: OnboardingStep[] = [
-  'welcome', 'tour-1', 'tour-2', 'tour-3', 'summary', 'completed',
-];
-
-// Map step → expected route prefix (used by snackbar for resume logic)
-export const STEP_ROUTES: Partial<Record<OnboardingStep, string>> = {
-  'tour-1': '/projects',
-  'tour-2': '/projects',
-  'tour-3': '/projects/',
-  'tour-4': '/projects/',
-  'tour-5': '/budgets/',
-  'tour-6': '/projects/',
-};
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -106,27 +92,27 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     persistStep(newStep);
   }, [persistStep]);
 
+  const cleanupSessionStorage = useCallback(() => {
+    sessionStorage.removeItem('onboarding_project_id');
+    sessionStorage.removeItem('onboarding_budget_id');
+  }, []);
+
   const skipOnboarding = useCallback(async () => {
     await persistStep('completed');
-    sessionStorage.removeItem('onboarding_project_id');
-  }, [persistStep]);
+    cleanupSessionStorage();
+  }, [persistStep, cleanupSessionStorage]);
 
   const completeOnboarding = useCallback(async () => {
     await persistStep('completed');
-    sessionStorage.removeItem('onboarding_project_id');
+    cleanupSessionStorage();
     router.push('/');
-  }, [persistStep, router]);
+  }, [persistStep, cleanupSessionStorage, router]);
 
   const isActive = step !== 'completed' && isHydrated;
 
   const expectedRoute = STEP_ROUTES[step];
   const isOnExpectedRoute = !expectedRoute || pathname.startsWith(expectedRoute);
   const showSnackbar = isActive && !isOnExpectedRoute && step !== 'welcome' && step !== 'summary';
-
-  // Debug: remove after verifying snackbar works
-  if (typeof window !== 'undefined' && isActive) {
-    console.log('[onboarding-snackbar]', { step, pathname, expectedRoute, isOnExpectedRoute, showSnackbar, isHydrated });
-  }
 
   const contextValue = useMemo(
     () => ({
@@ -142,7 +128,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       skipOnboarding,
       completeOnboarding,
     }),
-    [step, isActive, variant, projectId, isInteracting, nextStep, goToStep, skipOnboarding, completeOnboarding]
+    [step, isActive, variant, projectId, setProjectId, isInteracting, setInteracting, nextStep, goToStep, skipOnboarding, completeOnboarding]
   );
 
   if (isLoading || !isHydrated) {
@@ -343,8 +329,16 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           onResume={() => {
             const route = STEP_ROUTES[step];
             if (!route) return;
-            // Steps that need a project/budget ID in the URL
-            if (route.endsWith('/')) {
+            if (step === 'tour-5') {
+              const budgetId = sessionStorage.getItem('onboarding_budget_id');
+              if (budgetId) {
+                router.push(`/budgets/${budgetId}`);
+              } else if (projectId) {
+                router.push(`/projects/${projectId}`);
+              } else {
+                router.push('/projects');
+              }
+            } else if (route.endsWith('/')) {
               if (projectId) {
                 router.push(`/projects/${projectId}`);
               } else {

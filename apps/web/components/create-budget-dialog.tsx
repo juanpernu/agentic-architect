@@ -71,6 +71,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
       sileo.success({ title: 'Presupuesto creado' });
       await mutate('/api/budgets');
       if (onboarding?.isActive && onboarding.step === 'tour-4') {
+        sessionStorage.setItem('onboarding_budget_id', budget.id);
         onboarding.goToStep('tour-5');
       }
       onOpenChange(false);
@@ -153,6 +154,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
 
       await mutate('/api/budgets');
       if (onboarding?.isActive && onboarding.step === 'tour-4') {
+        sessionStorage.setItem('onboarding_budget_id', budget.id);
         onboarding.goToStep('tour-5');
       }
       onOpenChange(false);

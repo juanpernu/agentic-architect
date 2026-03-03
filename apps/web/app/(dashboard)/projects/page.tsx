@@ -3,7 +3,6 @@
 import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Building2, MapPin, Plus, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatRelativeCompact } from '@/lib/date-utils';
@@ -44,7 +43,6 @@ const STATUS_LABELS: Record<ProjectStatus, string> = {
 };
 
 export default function ProjectsPage() {
-  const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const { canCreateProject } = usePlan();
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,6 +91,7 @@ export default function ProjectsPage() {
           )}
         </div>
         {/* Search + Filter tabs */}
+        {/* suppressHydrationWarning: Proton Pass browser extension injects data-protonpass-form attribute before hydration */}
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between" suppressHydrationWarning>
           <div className="relative sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
