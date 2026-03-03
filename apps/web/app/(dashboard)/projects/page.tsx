@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -23,7 +23,6 @@ import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { CreateProjectCard } from '@/components/dashboard/create-project-card';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useCreateParam } from '@/lib/use-create-param';
-import { useOnboarding } from '@/lib/use-onboarding';
 import { cn } from '@/lib/utils';
 
 const STATUS_DOT_COLORS: Record<ProjectStatus, string> = {
@@ -48,7 +47,6 @@ export default function ProjectsPage() {
   const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const { canCreateProject } = usePlan();
-  const onboarding = useOnboarding();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -59,31 +57,6 @@ export default function ProjectsPage() {
     '/api/projects',
     fetcher
   );
-
-  // Onboarding: detect new project creation during tour-2 and advance to tour-3
-  // Init to null to skip false positives on first SWR resolution
-  const prevProjectCountRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!onboarding?.isActive || onboarding.step !== 'tour-2') return;
-    if (!projects) return;
-
-    // First resolution: just store the count, don't trigger
-    if (prevProjectCountRef.current === null) {
-      prevProjectCountRef.current = projects.length;
-      return;
-    }
-
-    if (projects.length > prevProjectCountRef.current) {
-      const newestProject = [...projects].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )[0];
-      onboarding.setProjectId(newestProject.id);
-      onboarding.goToStep('tour-3');
-      router.push(`/projects/${newestProject.id}`);
-    }
-    prevProjectCountRef.current = projects.length;
-  }, [projects, onboarding, router]);
 
   const filteredProjects = projects?.filter((project) => {
     const matchesSearch = project.name

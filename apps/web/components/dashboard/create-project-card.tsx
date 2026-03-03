@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { useOnboarding } from '@/lib/use-onboarding';
 
 export function CreateProjectCard() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const onboarding = useOnboarding();
 
   const handleOpenChange = useCallback((value: boolean) => {
@@ -15,6 +17,14 @@ export function CreateProjectCard() {
       onboarding.setInteracting(value);
     }
   }, [onboarding]);
+
+  const handleCreated = useCallback((projectId: string) => {
+    if (onboarding?.isActive && onboarding.step === 'tour-2') {
+      onboarding.setProjectId(projectId);
+      onboarding.goToStep('tour-3');
+      router.push(`/projects/${projectId}`);
+    }
+  }, [onboarding, router]);
 
   return (
     <>
@@ -33,7 +43,11 @@ export function CreateProjectCard() {
           </p>
         </div>
       </button>
-      <ProjectFormDialog open={open} onOpenChange={handleOpenChange} />
+      <ProjectFormDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        onCreated={handleCreated}
+      />
     </>
   );
 }
