@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/sidebar';
 import { MobileHeader } from '@/components/mobile-header';
 import { Toaster } from 'sileo';
 import { FloatingActionButton } from '@/components/floating-action-button';
+import { OnboardingProvider } from '@/components/onboarding/provider';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -12,17 +13,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <ClerkProvider>
-      <div className="min-h-screen">
-        <Sidebar />
-        <MobileHeader />
-        <main className="md:pl-64 pt-0 md:pt-0 min-h-screen overflow-x-hidden bg-slate-50/50 dark:bg-background">
-          <div className="p-4 md:p-8 max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-        <Toaster position="bottom-right" options={{ fill: '#000000' }} />
-        <FloatingActionButton />
-      </div>
+      <OnboardingProvider>
+        <div className="min-h-screen">
+          <Sidebar />
+          <MobileHeader />
+          <main className="md:pl-64 pt-0 md:pt-0 min-h-screen overflow-x-hidden bg-slate-50/50 dark:bg-background">
+            <div className="p-4 md:p-8 max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
+          <Toaster position="bottom-right" options={{ fill: '#000000' }} />
+          <FloatingActionButton />
+        </div>
+      </OnboardingProvider>
     </ClerkProvider>
   );
 }
