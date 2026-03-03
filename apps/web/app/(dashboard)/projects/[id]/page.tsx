@@ -111,6 +111,7 @@ export default function ProjectDetailPage() {
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showCreateBudget, setShowCreateBudget] = useState(false);
+  const [budgetDismissed, setBudgetDismissed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [receiptToDelete, setReceiptToDelete] = useState<string | null>(null);
@@ -120,12 +121,17 @@ export default function ProjectDetailPage() {
   const [dateFilter, setDateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Onboarding: auto-open budget dialog during tour-4
+  // Onboarding: derive budget dialog open state directly (no useEffect timing issues)
+  const isOnboardingTour4 = onboarding?.isActive && onboarding.step === 'tour-4';
+  // Dialog opens when: manually opened, OR (tour-4 AND not dismissed), OR (tour-4 AND provider CTA clicked)
+  const budgetDialogOpen = showCreateBudget || (!!isOnboardingTour4 && (!budgetDismissed || !!onboarding?.isInteracting));
+
+  // When provider tooltip CTA signals reopen (isInteracting=true), reset dismissed flag
   useEffect(() => {
-    if (onboarding?.isActive && onboarding.step === 'tour-4') {
-      setShowCreateBudget(true);
+    if (isOnboardingTour4 && onboarding?.isInteracting && budgetDismissed) {
+      setBudgetDismissed(false);
     }
-  }, [onboarding?.step, onboarding?.isActive]);
+  }, [isOnboardingTour4, onboarding?.isInteracting, budgetDismissed]);
 
   const { data: project, isLoading: isLoadingProject, error: projectError } = useSWR<ProjectDetail>(
     projectId ? `/api/projects/${projectId}` : null,
@@ -714,8 +720,14 @@ export default function ProjectDetailPage() {
       </Dialog>
 
       <CreateBudgetDialog
-        open={showCreateBudget}
-        onOpenChange={setShowCreateBudget}
+        open={budgetDialogOpen}
+        onOpenChange={(open) => {
+          setShowCreateBudget(open);
+          if (isOnboardingTour4) {
+            onboarding?.setInteracting(open);
+            if (!open) setBudgetDismissed(true);
+          }
+        }}
       />
     </div>
   );

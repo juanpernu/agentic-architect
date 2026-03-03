@@ -123,6 +123,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const isOnExpectedRoute = !expectedRoute || pathname.startsWith(expectedRoute);
   const showSnackbar = isActive && !isOnExpectedRoute && step !== 'welcome' && step !== 'summary';
 
+  // Debug: remove after verifying snackbar works
+  if (typeof window !== 'undefined' && isActive) {
+    console.log('[onboarding-snackbar]', { step, pathname, expectedRoute, isOnExpectedRoute, showSnackbar, isHydrated });
+  }
+
   const contextValue = useMemo(
     () => ({
       step,
@@ -217,7 +222,23 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         </>
       )}
 
-      {/* tour-4 is handled by the project detail page which reads onboarding context */}
+      {/* tour-4: show tooltip when budget dialog is closed (isInteracting=false) */}
+      {step === 'tour-4' && variant === 'creator' && pathname.startsWith('/projects/') && !isInteracting && (
+        <>
+          <OnboardingOverlay targetSelector='[data-onboarding="project-stats"]' />
+          <OnboardingTooltip
+            targetSelector='[data-onboarding="project-stats"]'
+            title="Crear presupuesto"
+            description="Creá un presupuesto para este proyecto para continuar con el recorrido."
+            ctaLabel="Crear presupuesto"
+            onCtaClick={() => setInteracting(true)}
+            onSkip={skipOnboarding}
+            side="bottom"
+            currentStep={4}
+            totalSteps={6}
+          />
+        </>
+      )}
 
       {step === 'tour-5' && variant === 'creator' && pathname.startsWith('/budgets/') && (
         <>

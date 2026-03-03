@@ -93,7 +93,7 @@ export default function ProjectsPage() {
           )}
         </div>
         {/* Search + Filter tabs */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between" suppressHydrationWarning>
           <div className="relative sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input

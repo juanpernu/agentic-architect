@@ -32,59 +32,81 @@ export function OnboardingTooltip({
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
-    const target = document.querySelector(targetSelector);
-    if (!target) return;
+    let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
+    let updateFn: (() => void) | null = null;
 
-    const update = () => {
-      if (!tooltipRef.current) return;
-      const targetRect = target.getBoundingClientRect();
-      const tooltipRect = tooltipRef.current.getBoundingClientRect();
-      const gap = 12;
+    const setup = (target: Element) => {
+      updateFn = () => {
+        if (!tooltipRef.current) return;
+        const targetRect = target.getBoundingClientRect();
+        const tooltipRect = tooltipRef.current.getBoundingClientRect();
+        const gap = 12;
 
-      const isMobile = window.innerWidth < 768;
-      const effectiveSide = isMobile ? 'bottom' : side;
+        const isMobile = window.innerWidth < 768;
+        const effectiveSide = isMobile ? 'bottom' : side;
 
-      let top = 0;
-      let left = 0;
+        let top = 0;
+        let left = 0;
 
-      switch (effectiveSide) {
-        case 'bottom':
-          top = targetRect.bottom + gap;
-          left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
-          break;
-        case 'top':
-          top = targetRect.top - tooltipRect.height - gap;
-          left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
-          break;
-        case 'right':
-          top = targetRect.top + (targetRect.height - tooltipRect.height) / 2;
-          left = targetRect.right + gap;
-          break;
-        case 'left':
-          top = targetRect.top + (targetRect.height - tooltipRect.height) / 2;
-          left = targetRect.left - tooltipRect.width - gap;
-          break;
-      }
+        switch (effectiveSide) {
+          case 'bottom':
+            top = targetRect.bottom + gap;
+            left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+            break;
+          case 'top':
+            top = targetRect.top - tooltipRect.height - gap;
+            left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+            break;
+          case 'right':
+            top = targetRect.top + (targetRect.height - tooltipRect.height) / 2;
+            left = targetRect.right + gap;
+            break;
+          case 'left':
+            top = targetRect.top + (targetRect.height - tooltipRect.height) / 2;
+            left = targetRect.left - tooltipRect.width - gap;
+            break;
+        }
 
-      // Clamp to viewport
-      left = Math.max(12, Math.min(left, window.innerWidth - tooltipRect.width - 12));
-      top = Math.max(12, Math.min(top, window.innerHeight - tooltipRect.height - 12));
+        // Clamp to viewport
+        left = Math.max(12, Math.min(left, window.innerWidth - tooltipRect.width - 12));
+        top = Math.max(12, Math.min(top, window.innerHeight - tooltipRect.height - 12));
 
-      setPosition({ top, left });
+        setPosition({ top, left });
+      };
+
+      requestAnimationFrame(updateFn);
+
+      resizeObserver = new ResizeObserver(updateFn);
+      resizeObserver.observe(target);
+
+      window.addEventListener('resize', updateFn);
+      window.addEventListener('scroll', updateFn, true);
     };
 
-    requestAnimationFrame(update);
-
-    const observer = new ResizeObserver(update);
-    observer.observe(target);
-
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
+    const target = document.querySelector(targetSelector);
+    if (target) {
+      setup(target);
+    } else {
+      // Element not yet in DOM (e.g. page still loading data) — wait for it
+      mutationObserver = new MutationObserver(() => {
+        const el = document.querySelector(targetSelector);
+        if (el) {
+          mutationObserver?.disconnect();
+          mutationObserver = null;
+          setup(el);
+        }
+      });
+      mutationObserver.observe(document.body, { childList: true, subtree: true });
+    }
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+      if (updateFn) {
+        window.removeEventListener('resize', updateFn);
+        window.removeEventListener('scroll', updateFn, true);
+      }
     };
   }, [targetSelector, side]);
 

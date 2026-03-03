@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { PlayCircle } from 'lucide-react';
 
@@ -9,11 +11,17 @@ interface OnboardingSnackbarProps {
 }
 
 export function OnboardingSnackbar({ onResume, onDismiss }: OnboardingSnackbarProps) {
-  return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9990] animate-in slide-in-from-bottom-4 fade-in-0">
-      <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 shadow-lg">
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const content = (
+    <div className="fixed bottom-4 left-0 right-0 z-[10001] flex justify-center pointer-events-none animate-slide-up">
+      <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 shadow-lg pointer-events-auto">
         <PlayCircle className="h-5 w-5 text-primary flex-shrink-0" />
-        <span className="text-sm font-medium">Tenés un onboarding en curso</span>
+        <span className="text-sm font-medium whitespace-nowrap">Tenés un onboarding en curso</span>
         <Button size="sm" onClick={onResume}>
           Continuar
         </Button>
@@ -26,4 +34,8 @@ export function OnboardingSnackbar({ onResume, onDismiss }: OnboardingSnackbarPr
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+
+  return createPortal(content, document.body);
 }

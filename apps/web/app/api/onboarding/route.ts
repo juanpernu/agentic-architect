@@ -33,7 +33,7 @@ export async function PATCH(req: Request) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
 
-  const rateLimited = rateLimit('billing', ctx.dbUserId);
+  const rateLimited = rateLimit('upload', ctx.dbUserId);
   if (rateLimited) return rateLimited;
 
   try {
