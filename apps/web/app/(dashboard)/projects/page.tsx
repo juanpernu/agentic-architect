@@ -123,7 +123,7 @@ export default function ProjectsPage() {
       {isLoading && <LoadingCards count={6} />}
 
       {!isLoading && filteredProjects?.length === 0 && (
-        !searchQuery && statusFilter === 'all' && isAdminOrSupervisor ? (
+        !searchQuery && statusFilter === 'all' && isAdminOrSupervisor && canCreateProject ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <CreateProjectCard />
           </div>
