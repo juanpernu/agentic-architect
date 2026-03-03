@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Sparkles, Calculator, BarChart3, Landmark, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Sparkles, Calculator, BarChart3, Landmark, Settings, Lock } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -38,10 +38,12 @@ export function SidebarContent({
   const { isFreePlan } = usePlan();
 
   const visibleNavItems = navItems.filter((item) => {
-    if (item.href === '/reports' && isFreePlan) return false;
     if (item.roles && !item.roles.includes(role)) return false;
     return true;
   });
+
+  const isGatedItem = (href: string) =>
+    isFreePlan && (href === '/administration' || href === '/reports');
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href);
@@ -64,6 +66,9 @@ export function SidebarContent({
           >
             <item.icon className="h-4 w-4" />
             {item.label}
+            {isGatedItem(item.href) && (
+              <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground/60" />
+            )}
           </Link>
         ))}
       </nav>
