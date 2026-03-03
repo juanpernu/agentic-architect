@@ -5,11 +5,10 @@ import { cn } from '@/lib/utils';
 
 interface OnboardingOverlayProps {
   targetSelector: string;
-  onClick?: () => void;
   className?: string;
 }
 
-export function OnboardingOverlay({ targetSelector, onClick, className }: OnboardingOverlayProps) {
+export function OnboardingOverlay({ targetSelector, className }: OnboardingOverlayProps) {
   const maskId = useId();
   const [rect, setRect] = useState<DOMRect | null>(null);
 
@@ -38,8 +37,7 @@ export function OnboardingOverlay({ targetSelector, onClick, className }: Onboar
 
   return (
     <div
-      className={cn('fixed inset-0 z-[9998]', className)}
-      onClick={onClick}
+      className={cn('fixed inset-0 z-[9998] pointer-events-none', className)}
       aria-hidden="true"
     >
       <svg className="absolute inset-0 w-full h-full">
