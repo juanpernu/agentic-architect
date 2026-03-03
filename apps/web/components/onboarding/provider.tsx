@@ -46,9 +46,17 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const { data, isLoading } = useSWR<OnboardingState>('/api/onboarding', fetcher);
   const [step, setStep] = useState<OnboardingStep>('completed');
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectId, _setProjectId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return sessionStorage.getItem('onboarding_project_id');
+  });
   const [isInteracting, setInteracting] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const setProjectId = useCallback((id: string) => {
+    _setProjectId(id);
+    sessionStorage.setItem('onboarding_project_id', id);
+  }, []);
 
   // Sync from server — on first load AND on subsequent SWR re-fetches (multi-tab sync)
   useEffect(() => {
@@ -98,10 +106,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const skipOnboarding = useCallback(async () => {
     await persistStep('completed');
+    sessionStorage.removeItem('onboarding_project_id');
   }, [persistStep]);
 
   const completeOnboarding = useCallback(async () => {
     await persistStep('completed');
+    sessionStorage.removeItem('onboarding_project_id');
     router.push('/');
   }, [persistStep, router]);
 
@@ -310,9 +320,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           onResume={() => {
             const route = STEP_ROUTES[step];
             if (!route) return;
-            if (route === '/projects/' || route === '/budgets/') {
-              if (projectId) router.push(`/projects/${projectId}`);
-              else router.push('/projects');
+            // Steps that need a project/budget ID in the URL
+            if (route.endsWith('/')) {
+              if (projectId) {
+                router.push(`/projects/${projectId}`);
+              } else {
+                router.push('/projects');
+              }
             } else {
               router.push(route);
             }
