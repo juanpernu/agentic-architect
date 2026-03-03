@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Sparkles, Check, ArrowLeft } from 'lucide-react';
@@ -90,11 +91,11 @@ export function PlanGatePage({
 
 /* ── Mini-UI Preview Mockups ── */
 
-function MiniKpiCard({ label, value, color, delay }: { label: string; value: string; color: string; delay: number }) {
+function MiniKpiCard({ label, value, color, delay, mounted }: { label: string; value: string; color: string; delay: number; mounted: boolean }) {
   return (
     <div
-      className="flex-1 rounded-md border border-border/40 bg-background p-2"
-      style={{ animation: `fadeSlideUp 0.4s ease-out ${delay}ms both` }}
+      className="flex-1 rounded-md border border-border/40 bg-background p-2 opacity-0 translate-y-1.5 transition-all duration-400 ease-out"
+      style={mounted ? { opacity: 1, transform: 'translateY(0)', transitionDelay: `${delay}ms` } : undefined}
     >
       <div className="text-[8px] text-muted-foreground truncate">{label}</div>
       <div className={`text-[11px] font-bold ${color}`}>{value}</div>
@@ -103,6 +104,13 @@ function MiniKpiCard({ label, value, color, delay }: { label: string; value: str
 }
 
 export function AdministrationPreview() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   const months = [
     { income: 65, expense: 45 },
     { income: 50, expense: 55 },
@@ -113,64 +121,57 @@ export function AdministrationPreview() {
   ];
 
   return (
-    <>
-      <style>{`
-        @keyframes fadeSlideUp {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes growBar {
-          from { transform: scaleY(0); }
-          to { transform: scaleY(1); }
-        }
-      `}</style>
-      <div className="px-4 py-3 space-y-2.5">
-        {/* KPI row */}
-        <div className="flex gap-2">
-          <MiniKpiCard label="Ingresado" value="$2.4M" color="text-green-600" delay={100} />
-          <MiniKpiCard label="Egresado" value="$1.8M" color="text-red-500" delay={200} />
-          <MiniKpiCard label="Balance" value="$620K" color="text-blue-600" delay={300} />
+    <div className="px-4 py-3 space-y-2.5">
+      {/* KPI row */}
+      <div className="flex gap-2">
+        <MiniKpiCard label="Ingresado" value="$2.4M" color="text-green-600" delay={100} mounted={mounted} />
+        <MiniKpiCard label="Egresado" value="$1.8M" color="text-red-500" delay={200} mounted={mounted} />
+        <MiniKpiCard label="Balance" value="$620K" color="text-blue-600" delay={300} mounted={mounted} />
+      </div>
+      {/* Mini cashflow chart */}
+      <div
+        className="rounded-md border border-border/40 bg-background p-2 opacity-0 translate-y-1.5 transition-all duration-400 ease-out"
+        style={mounted ? { opacity: 1, transform: 'translateY(0)', transitionDelay: '350ms' } : undefined}
+      >
+        <div className="text-[8px] text-muted-foreground mb-1.5">Flujo de caja mensual</div>
+        <div className="flex items-end gap-1 h-[52px]">
+          {months.map((month, i) => (
+            <div key={i} className="flex-1 flex items-end gap-px">
+              <div
+                className="flex-1 rounded-t-sm bg-green-400/70 transition-all duration-500 ease-out"
+                style={{
+                  height: mounted ? `${month.income}%` : '0%',
+                  transitionDelay: `${450 + i * 80}ms`,
+                }}
+              />
+              <div
+                className="flex-1 rounded-t-sm bg-red-400/70 transition-all duration-500 ease-out"
+                style={{
+                  height: mounted ? `${month.expense}%` : '0%',
+                  transitionDelay: `${490 + i * 80}ms`,
+                }}
+              />
+            </div>
+          ))}
         </div>
-        {/* Mini cashflow chart */}
-        <div
-          className="rounded-md border border-border/40 bg-background p-2"
-          style={{ animation: 'fadeSlideUp 0.4s ease-out 350ms both' }}
-        >
-          <div className="text-[8px] text-muted-foreground mb-1.5">Flujo de caja mensual</div>
-          <div className="flex items-end gap-1 h-[52px]">
-            {months.map((month, i) => (
-              <div key={i} className="flex-1 flex items-end gap-px">
-                <div
-                  className="flex-1 rounded-t-sm bg-green-400/70"
-                  style={{
-                    height: `${month.income}%`,
-                    transformOrigin: 'bottom',
-                    animation: `growBar 0.5s ease-out ${450 + i * 80}ms both`,
-                  }}
-                />
-                <div
-                  className="flex-1 rounded-t-sm bg-red-400/70"
-                  style={{
-                    height: `${month.expense}%`,
-                    transformOrigin: 'bottom',
-                    animation: `growBar 0.5s ease-out ${490 + i * 80}ms both`,
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-1">
-            {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((m) => (
-              <span key={m} className="text-[7px] text-muted-foreground/60 flex-1 text-center">{m}</span>
-            ))}
-          </div>
+        <div className="flex justify-between mt-1">
+          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((m) => (
+            <span key={m} className="text-[7px] text-muted-foreground/60 flex-1 text-center">{m}</span>
+          ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
 export function ReportsPreview() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   const rubros = [
     { name: 'Albañilería', pct: 85, color: 'bg-blue-500' },
     { name: 'Electricidad', pct: 62, color: 'bg-amber-500' },
@@ -179,39 +180,35 @@ export function ReportsPreview() {
   ];
 
   return (
-    <>
-      <style>{`
-        @keyframes growWidth {
-          from { width: 0; }
-        }
-      `}</style>
-      <div className="px-4 py-3 space-y-2.5">
-        {/* KPI row */}
-        <div className="flex gap-2">
-          <MiniKpiCard label="Total gastado" value="$1.8M" color="text-emerald-600" delay={100} />
-          <MiniKpiCard label="Comprobantes" value="47" color="text-purple-600" delay={200} />
-          <MiniKpiCard label="Mayor gasto" value="Obra Centro" color="text-blue-600" delay={300} />
-        </div>
-        {/* Mini rubro bars */}
-        <div
-          className="rounded-md border border-border/40 bg-background p-2 space-y-1.5"
-          style={{ animation: 'fadeSlideUp 0.4s ease-out 350ms both' }}
-        >
-          <div className="text-[8px] text-muted-foreground mb-1">Gasto por rubro</div>
-          {rubros.map((rubro, i) => (
-            <div key={rubro.name} className="flex items-center gap-2">
-              <span className="text-[8px] text-muted-foreground w-14 truncate">{rubro.name}</span>
-              <div className="flex-1 h-2 rounded-full bg-muted/60 overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${rubro.color}/70`}
-                  style={{ width: `${rubro.pct}%`, animation: `growWidth 0.6s ease-out ${500 + i * 100}ms both` }}
-                />
-              </div>
-              <span className="text-[8px] font-medium text-muted-foreground w-6 text-right">{rubro.pct}%</span>
+    <div className="px-4 py-3 space-y-2.5">
+      {/* KPI row */}
+      <div className="flex gap-2">
+        <MiniKpiCard label="Total gastado" value="$1.8M" color="text-emerald-600" delay={100} mounted={mounted} />
+        <MiniKpiCard label="Comprobantes" value="47" color="text-purple-600" delay={200} mounted={mounted} />
+        <MiniKpiCard label="Mayor gasto" value="Obra Centro" color="text-blue-600" delay={300} mounted={mounted} />
+      </div>
+      {/* Mini rubro bars */}
+      <div
+        className="rounded-md border border-border/40 bg-background p-2 space-y-1.5 opacity-0 translate-y-1.5 transition-all duration-400 ease-out"
+        style={mounted ? { opacity: 1, transform: 'translateY(0)', transitionDelay: '350ms' } : undefined}
+      >
+        <div className="text-[8px] text-muted-foreground mb-1">Gasto por rubro</div>
+        {rubros.map((rubro, i) => (
+          <div key={rubro.name} className="flex items-center gap-2">
+            <span className="text-[8px] text-muted-foreground w-14 truncate">{rubro.name}</span>
+            <div className="flex-1 h-2 rounded-full bg-muted/60 overflow-hidden">
+              <div
+                className={`h-full rounded-full ${rubro.color}/70 transition-all duration-600 ease-out`}
+                style={{
+                  width: mounted ? `${rubro.pct}%` : '0%',
+                  transitionDelay: `${500 + i * 100}ms`,
+                }}
+              />
             </div>
+            <span className="text-[8px] font-medium text-muted-foreground w-6 text-right">{rubro.pct}%</span>
+          </div>
         ))}
       </div>
     </div>
-    </>
   );
 }
