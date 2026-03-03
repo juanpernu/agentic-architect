@@ -55,6 +55,13 @@ export default function ProjectsPage() {
 
   useCreateParam(useCallback(() => setShowCreateDialog(true), []));
 
+  // Signal onboarding when create-project dialog opens/closes during tour-2
+  useEffect(() => {
+    if (onboarding?.isActive && onboarding.step === 'tour-2') {
+      onboarding.setInteracting(showCreateDialog);
+    }
+  }, [showCreateDialog, onboarding]);
+
   const { data: projects, isLoading, error } = useSWR<ProjectWithDetails[]>(
     '/api/projects',
     fetcher

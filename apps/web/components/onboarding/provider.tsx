@@ -47,6 +47,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const { data, isLoading } = useSWR<OnboardingState>('/api/onboarding', fetcher);
   const [step, setStep] = useState<OnboardingStep>('completed');
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [isInteracting, setInteracting] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Sync from server — on first load AND on subsequent SWR re-fetches (multi-tab sync)
@@ -112,12 +113,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       variant,
       projectId,
       setProjectId,
+      isInteracting,
+      setInteracting,
       nextStep,
       goToStep,
       skipOnboarding,
       completeOnboarding,
     }),
-    [step, isActive, variant, projectId, nextStep, goToStep, skipOnboarding, completeOnboarding]
+    [step, isActive, variant, projectId, isInteracting, nextStep, goToStep, skipOnboarding, completeOnboarding]
   );
 
   if (isLoading || !isHydrated) {
@@ -165,7 +168,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         </>
       )}
 
-      {step === 'tour-2' && variant === 'creator' && pathname === '/projects' && (
+      {step === 'tour-2' && variant === 'creator' && pathname === '/projects' && !isInteracting && (
         <>
           <OnboardingOverlay targetSelector='[data-onboarding="create-project"]' />
           <OnboardingTooltip
@@ -180,7 +183,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         </>
       )}
 
-      {step === 'tour-3' && variant === 'creator' && pathname.startsWith('/projects/') && (
+      {step === 'tour-3' && variant === 'creator' && pathname.startsWith('/projects/') && !isInteracting && (
         <>
           <OnboardingOverlay targetSelector='[data-onboarding="project-stats"]' />
           <OnboardingTooltip

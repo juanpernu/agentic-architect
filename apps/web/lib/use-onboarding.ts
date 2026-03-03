@@ -11,6 +11,8 @@ export interface OnboardingContextValue {
   variant: OnboardingVariant;
   projectId: string | null;
   setProjectId: (id: string) => void;
+  isInteracting: boolean;
+  setInteracting: (value: boolean) => void;
   nextStep: () => void;
   goToStep: (step: OnboardingStep) => void;
   skipOnboarding: () => void;
