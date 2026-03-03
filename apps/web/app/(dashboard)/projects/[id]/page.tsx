@@ -127,13 +127,6 @@ export default function ProjectDetailPage() {
     }
   }, [onboarding?.step, onboarding?.isActive]);
 
-  // Signal onboarding when budget dialog opens/closes during tour-4
-  useEffect(() => {
-    if (onboarding?.isActive && onboarding.step === 'tour-4') {
-      onboarding.setInteracting(showCreateBudget);
-    }
-  }, [showCreateBudget, onboarding]);
-
   const { data: project, isLoading: isLoadingProject, error: projectError } = useSWR<ProjectDetail>(
     projectId ? `/api/projects/${projectId}` : null,
     fetcher

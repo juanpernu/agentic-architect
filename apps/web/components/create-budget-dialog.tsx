@@ -38,9 +38,16 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
   const projectsWithBudget = new Set(budgets.map((b) => b.project_id));
   const availableProjects = projects.filter((p) => !projectsWithBudget.has(p.id));
 
+  const isOnboardingTour4 = onboarding?.isActive && onboarding.step === 'tour-4';
+
+  // Auto-select the onboarding project during tour-4, reset otherwise
   useEffect(() => {
-    setSelectedProjectId('');
-  }, [open]);
+    if (open && isOnboardingTour4 && onboarding?.projectId) {
+      setSelectedProjectId(onboarding.projectId);
+    } else {
+      setSelectedProjectId('');
+    }
+  }, [open, isOnboardingTour4, onboarding?.projectId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,8 +189,18 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
           <>
             <DialogHeader>
               <DialogTitle>Nuevo Presupuesto</DialogTitle>
-              <DialogDescription>Selecciona el proyecto para crear su presupuesto</DialogDescription>
+              <DialogDescription>
+                {isOnboardingTour4
+                  ? 'Tu proyecto ya está seleccionado. Creá el presupuesto para continuar.'
+                  : 'Selecciona el proyecto para crear su presupuesto'}
+              </DialogDescription>
             </DialogHeader>
+            {isOnboardingTour4 && (
+              <div className="rounded-lg bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-primary flex items-center gap-2">
+                <span className="font-medium">Paso 4 de 6</span>
+                <span className="text-primary/70">— Creá un presupuesto para tu proyecto.</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <Field>
                 <FieldLabel htmlFor="project">Proyecto <span className="text-red-500">*</span></FieldLabel>
