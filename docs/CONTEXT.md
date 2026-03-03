@@ -172,8 +172,8 @@ organizations (multi-tenant root)
 | Settings — Bancos | Si | Si | No |
 | Settings — Administracion | Si | No | No |
 | Settings — Billing | Si | No | No |
-| Sidebar — Administracion | Visible | Visible | Oculto |
-| Sidebar — Reportes | Visible | Visible | Oculto |
+| Sidebar — Administracion | Visible | Visible | Oculto (role gate). Free plan: visible con Lock icon |
+| Sidebar — Reportes | Visible | Visible | Oculto (role gate). Free plan: visible con Lock icon |
 
 ### 4.4 Limites por plan
 
@@ -345,7 +345,7 @@ PLAN_LIMITS = {
 | `/api/dashboard/stats` | GET | Any | KPIs: active_projects, monthly_spend, etc. |
 | `/api/dashboard/spend-by-project` | GET | Any | Bar chart data |
 | `/api/dashboard/spend-trend` | GET | Any | Line chart — `?granularity=month` (6 meses) o `week` (28 dias, por dia) |
-| `/api/reports/by-rubro` | GET | Any | Gasto por rubro, filtros: date_from, date_to, project_id |
+| `/api/reports/by-rubro` | GET | Any | Gasto por rubro, filtros: date_from, date_to, project_id. Plan guard: `checkPlanLimit(reports)` |
 
 ### Onboarding
 
@@ -377,7 +377,7 @@ PLAN_LIMITS = {
 
 ### Layout
 
-- **`sidebar.tsx`** — Exporta `navItems` (con tipado `UserRole[]`), `SidebarContent` (nav links + user footer reutilizable) y `Sidebar` (desktop aside `hidden md:flex md:w-64 md:fixed`). Props: `onNavigate?: () => void`, `showUserFooter?: boolean`. Role gates, UserButton de Clerk + badge de rol, `aria-current="page"` en links activos.
+- **`sidebar.tsx`** — Exporta `navItems` (con tipado `UserRole[]`), `SidebarContent` (nav links + user footer reutilizable) y `Sidebar` (desktop aside `hidden md:flex md:w-64 md:fixed`). Props: `onNavigate?: () => void`, `showUserFooter?: boolean`. Role gates, UserButton de Clerk + badge de rol, `aria-current="page"` en links activos. Free plan: muestra Administracion y Reportes con icono Lock + sr-only "(requiere upgrade)".
 - **`mobile-header.tsx`** — Header mobile sticky (`md:hidden`): hamburger button + titulo dinamico (mapeado de `navItems` + `EXTRA_TITLES`) + UserButton. Abre Shadcn Sheet (`side="left"`) con `SidebarContent`. Auto-cierra al navegar. Accesibilidad: `aria-expanded`, `aria-haspopup="dialog"`, `VisuallyHidden` SheetTitle.
 - **Dashboard layout** — `md:pl-64 pt-0 md:pt-0 overflow-x-hidden` para compensar sidebar (desktop). FAB montado en el layout.
 - **`floating-action-button.tsx`** — Material-style FAB speed dial, solo mobile (`md:hidden`). 5 acciones de creacion rapida. Navega con `?create=true`, las paginas leen el param con `useCreateParam` hook. Hidden en `/upload`, `/receipts/*`, `/settings/billing*`. A11y: `role="menu"`, focus management, Escape key.
@@ -435,7 +435,7 @@ AlertDialog, Avatar, Badge, Button, Card (con CardAction), Chart (shadcn Rechart
 | Hook/Util | Archivo | Descripcion |
 |-----------|---------|-------------|
 | `useCurrentUser()` | `use-current-user.ts` | Role, fullName, isAdmin, isAdminOrSupervisor. Fast path via Clerk metadata, fallback a /api/me |
-| `usePlan()` | `use-plan.ts` | Plan, limits, canCreateProject, canInviteUser, isFreePlan, isPastDue |
+| `usePlan()` | `use-plan.ts` | Plan, limits, canCreateProject, canInviteUser, canViewAdministration, canViewReports, isFreePlan, isPastDue, isLoading |
 | `useAutosave()` | `use-autosave.ts` | Autosave con debounce 2s, status indicator, flush on unmount (keepalive), retry |
 | `useCreateParam()` | `use-create-param.ts` | Lee `?create=true` del URL, ejecuta callback, limpia el param preservando otros query params |
 | `useFormValidation()` | `use-form-validation.ts` | Hook para validacion con Zod |
@@ -591,7 +591,7 @@ await mutate('/api/endpoint');
 29. Marketing landing page: hero, features, pricing, comparison (Excel vs Agentect), facilitador, social proof. Responsive. PRs #43, #44, #46.
 30. Production hardening: env validation (Zod lazy proxy), structured logger (JSON prod, readable dev), error sanitization (`dbError`/`apiError`), rate limiting (sliding window per-org), security headers (CSP, HSTS, X-Frame-Options). PR #40.
 31. Mobile FAB speed dial: Material-style floating action button, 5 quick-create actions (Comprobante, Proyecto, Presupuesto, Egreso, Ingreso). Navigation-only (`?create=true` param), custom hook `useCreateParam`, a11y (`role="menu"`, focus management, Escape), hidden en /upload, /receipts/*, /settings/billing*. Responsive UI polish: compact buttons, responsive filters (`flex-1 min-w-0`), overflow fixes, reports ProgressBarList, "Bancos" → "Cajas" wording. PR #48.
-32. Plan gate paywall: `PlanGatePage` component para features de plan Advance+ (Administracion, Reportes). Renderiza contenido real con blur+opacity detras de un Dialog modal no-dismissable. Preview animado custom para cada seccion (mini KPI cards, mini cashflow chart, mini rubro bars). CTA "Ver planes" → `/settings/billing`. Usado en `administration/layout.tsx` y `reports/page.tsx`. PR #50.
+32. Plan gate paywall: `PlanGatePage` component para features de plan Advance+ (Administracion, Reportes). Renderiza skeleton con blur+opacity detras de Dialog modal non-dismissable (sin X, sin Escape, sin click fuera). Preview animado custom para cada seccion (`AdministrationPreview`: mini KPIs + cashflow chart; `ReportsPreview`: mini KPIs + rubro bars). CTA "Ver planes" → `/settings/billing` + "Volver al panel" → `/`. Sidebar muestra Administracion y Reportes con icono Lock para free users (antes se ocultaban). Loading skeleton previene API call leakage mientras carga el plan. Server-side: `checkPlanLimit` guard en `/api/reports/by-rubro`. Hook: `canViewReports` agregado a `usePlan()`. PR #50.
 33. User onboarding flow: sistema de onboarding role-based con 2 variantes — Creator (9 steps: welcome→tour-1..6→summary→completed) y Viewer (6 steps: welcome→tour-1..3→summary→completed). Componentes: welcome dialog, tooltip posicionado (MutationObserver+ResizeObserver via `useTargetElement` hook), overlay con spotlight cutout, snackbar resume (Portal a body, z-[10001]). Persistencia: `onboarding_step`+`onboarding_completed_at` en tabla `users`, API `/api/onboarding` (GET/PATCH), SWR sync con flag isHydrated. SessionStorage para `onboarding_project_id` y `onboarding_budget_id` entre navegaciones. Provider en dashboard layout. Tests: 26 tests en `onboarding/__tests__/provider.test.tsx` (vitest). Type `OnboardingStep` + const `ONBOARDING_STEPS` en `@architech/shared`. PR #49.
 
 ---
@@ -613,7 +613,7 @@ await mutate('/api/endpoint');
 - Marketing landing page: hero, features, pricing, comparison, facilitador, social proof
 - Production hardening: env validation, structured logging, error sanitization, rate limiting, security headers (CSP, HSTS)
 - Colored project badges en tablas de comprobantes, egresos e ingresos
-- Plan gate paywall: dialog modal con preview animado para features Advance+ (Administracion, Reportes). Blur background, CTA a billing
+- Plan gate paywall: dialog modal non-dismissable con preview animado para features Advance+ (Administracion, Reportes). Skeleton blur background, sidebar Lock icons, loading skeleton anti-leakage, server-side plan guard
 - User onboarding: tour guiado role-based (creator 9 steps, viewer 6 steps). Tooltips, overlay spotlight, snackbar resume, API persistence, 26 tests
 - Base de datos de produccion limpia (reset 2026-02-24), storage vaciado
 
@@ -692,6 +692,7 @@ cd docs/flowchart && npm install && node generate-pdf.mjs
 | Rate limiting | `apps/web/lib/rate-limit.ts` |
 | ProgressBarList | `apps/web/components/ui/progress-bar-list.tsx` |
 | Plan gate paywall | `apps/web/components/plan-gate-page.tsx` |
+| Plan gate design + plan | `docs/plans/2026-03-02-plan-gate-paywall-design.md`, `...-plan-gate-paywall.md` |
 | Onboarding provider | `apps/web/components/onboarding/provider.tsx` |
 | Onboarding steps/routes | `apps/web/components/onboarding/steps.ts` |
 | Onboarding context hook | `apps/web/lib/use-onboarding.ts` |
