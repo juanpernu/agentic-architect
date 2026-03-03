@@ -11,6 +11,7 @@ export function CreateProjectCard() {
     <>
       <button
         onClick={() => setOpen(true)}
+        data-onboarding="create-project"
         className="rounded-xl border-2 border-dashed border-border bg-card/50 p-6 flex flex-col items-center justify-center gap-3 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer min-h-[180px]"
       >
         <div className="h-12 w-12 rounded-full border-2 border-dashed border-primary/40 flex items-center justify-center">

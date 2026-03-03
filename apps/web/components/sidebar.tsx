@@ -16,10 +16,11 @@ export const navItems: Array<{
   label: string;
   icon: typeof LayoutDashboard;
   roles?: UserRole[];
+  onboarding?: string;
 }> = [
   { href: '/dashboard', label: 'Panel', icon: LayoutDashboard },
-  { href: '/projects', label: 'Proyectos', icon: FolderKanban },
-  { href: '/upload', label: 'Escanear comprobante', icon: Sparkles },
+  { href: '/projects', label: 'Proyectos', icon: FolderKanban, onboarding: 'nav-projects' },
+  { href: '/upload', label: 'Escanear comprobante', icon: Sparkles, onboarding: 'nav-upload' },
   { href: '/budgets', label: 'Presupuestos', icon: Calculator },
   { href: '/administration', label: 'Administración', icon: Landmark, roles: ['admin', 'supervisor'] },
   { href: '/reports', label: 'Reportes', icon: BarChart3, roles: ['admin', 'supervisor'] },
@@ -55,6 +56,7 @@ export function SidebarContent({
             href={item.href}
             onClick={onNavigate}
             aria-current={isActive(item.href) ? 'page' : undefined}
+            data-onboarding={item.onboarding}
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
               isActive(item.href)

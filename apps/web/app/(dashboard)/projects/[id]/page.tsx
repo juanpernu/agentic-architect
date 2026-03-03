@@ -341,7 +341,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Stats cards row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6" data-onboarding="project-stats">
         {/* Budget card */}
         <div className="rounded-xl border border-border bg-card shadow-sm relative overflow-hidden group flex flex-col">
           <div className="p-6 flex-1">

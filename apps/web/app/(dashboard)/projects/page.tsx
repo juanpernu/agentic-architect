@@ -142,7 +142,7 @@ export default function ProjectsPage() {
       )}
 
       {!isLoading && filteredProjects && filteredProjects.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children" data-onboarding="projects-list">
           {isAdminOrSupervisor && canCreateProject && (
             <CreateProjectCard />
           )}
