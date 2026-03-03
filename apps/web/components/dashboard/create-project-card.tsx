@@ -1,16 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { useOnboarding } from '@/lib/use-onboarding';
 
 export function CreateProjectCard() {
   const [open, setOpen] = useState(false);
+  const onboarding = useOnboarding();
+
+  const handleOpenChange = useCallback((value: boolean) => {
+    setOpen(value);
+    if (onboarding?.isActive && onboarding.step === 'tour-2') {
+      onboarding.setInteracting(value);
+    }
+  }, [onboarding]);
 
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => handleOpenChange(true)}
         data-onboarding="create-project"
         className="rounded-xl border-2 border-dashed border-border bg-card/50 p-6 flex flex-col items-center justify-center gap-3 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer min-h-[180px]"
       >
@@ -24,7 +33,7 @@ export function CreateProjectCard() {
           </p>
         </div>
       </button>
-      <ProjectFormDialog open={open} onOpenChange={setOpen} />
+      <ProjectFormDialog open={open} onOpenChange={handleOpenChange} />
     </>
   );
 }
