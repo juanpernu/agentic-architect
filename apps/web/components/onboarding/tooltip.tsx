@@ -42,10 +42,13 @@ export function OnboardingTooltip({
       const tooltipRect = tooltipRef.current!.getBoundingClientRect();
       const gap = 12;
 
+      const isMobile = window.innerWidth < 768;
+      const effectiveSide = isMobile ? 'bottom' : side;
+
       let top = 0;
       let left = 0;
 
-      switch (side) {
+      switch (effectiveSide) {
         case 'bottom':
           top = targetRect.bottom + gap;
           left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
