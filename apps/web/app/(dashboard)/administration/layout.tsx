@@ -63,8 +63,17 @@ export default function AdministrationLayout({ children }: { children: React.Rea
     );
   }
 
+  // Show skeleton while plan loads to prevent API call leakage
+  if (isPlanLoading) {
+    return (
+      <div className="animate-slide-up">
+        <AdministrationSkeleton />
+      </div>
+    );
+  }
+
   // Plan gate — covers all admin sub-routes
-  if (!isPlanLoading && !canViewAdministration) {
+  if (!canViewAdministration) {
     return (
       <div className="animate-slide-up">
         <PlanGatePage

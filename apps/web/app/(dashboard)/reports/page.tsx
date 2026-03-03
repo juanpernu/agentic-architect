@@ -469,13 +469,13 @@ function ReportsContent() {
 /* ── Default export with plan gate ── */
 
 export default function ReportsPage() {
-  const { limits, isLoading: isPlanLoading } = usePlan();
+  const { canViewReports, isLoading: isPlanLoading } = usePlan();
 
   if (isPlanLoading) {
     return <ReportsSkeleton />;
   }
 
-  if (!limits.reports) {
+  if (!canViewReports) {
     return (
       <PlanGatePage
         title="Reportes"
