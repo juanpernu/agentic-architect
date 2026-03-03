@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { usePlan } from '@/lib/use-plan';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PlanGatePage } from '@/components/plan-gate-page';
+import { PlanGatePage, AdministrationPreview } from '@/components/plan-gate-page';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
 
@@ -79,6 +79,7 @@ export default function AdministrationLayout({ children }: { children: React.Rea
         <PlanGatePage
           title="Administración"
           description="Controlá el flujo financiero de todos tus proyectos."
+          preview={<AdministrationPreview />}
           features={[
             'Flujo de caja mensual (ingresos vs egresos)',
             'Balance por proyecto',

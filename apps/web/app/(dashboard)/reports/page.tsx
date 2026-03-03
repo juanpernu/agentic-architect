@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/format';
 import type { RubroSpend, Project } from '@architech/shared';
 import type { ReceiptWithDetails } from '@/lib/api-types';
 import { usePlan } from '@/lib/use-plan';
-import { PlanGatePage } from '@/components/plan-gate-page';
+import { PlanGatePage, ReportsPreview } from '@/components/plan-gate-page';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatCard } from '@/components/ui/stat-card';
@@ -480,6 +480,7 @@ export default function ReportsPage() {
       <PlanGatePage
         title="Reportes"
         description="Analizá tus gastos con reportes detallados."
+        preview={<ReportsPreview />}
         features={[
           'Análisis de gastos por rubro',
           'Filtros por fecha y proyecto',
