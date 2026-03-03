@@ -20,16 +20,16 @@ function getSlides(variant: OnboardingVariant) {
   return [
     {
       icon: null,
-      title: 'Sabe exactamente cuanto ganas en cada obra',
+      title: 'Sabé exactamente cuánto ganás en cada obra',
       description:
-        'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Disenado para estudios de arquitectura.',
+        'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para estudios de arquitectura.',
     },
     {
       features: [
         {
           icon: TableProperties,
           title: 'Presupuestos profesionales',
-          description: 'Arma presupuestos con rubros, items, unidades y costos. Con versionado automatico.',
+          description: 'Armá presupuestos con rubros, items, unidades y costos. Con versionado automático.',
         },
         {
           icon: Camera,
@@ -39,7 +39,7 @@ function getSlides(variant: OnboardingVariant) {
         {
           icon: BarChart3,
           title: 'Reportes en tiempo real',
-          description: 'Controla la rentabilidad por rubro y detecta desvios a tiempo.',
+          description: 'Controlá la rentabilidad por rubro y detectá desvíos a tiempo.',
         },
       ],
     },
@@ -73,7 +73,7 @@ export function OnboardingWelcome({ open, variant, onComplete, onSkip }: Onboard
         {/* Visually hidden title and description for accessibility */}
         <DialogTitle className="sr-only">Bienvenido a Agentect</DialogTitle>
         <DialogDescription className="sr-only">
-          Onboarding de bienvenida con informacion sobre la plataforma
+          Onboarding de bienvenida con información sobre la plataforma
         </DialogDescription>
 
         <div className="flex flex-col items-center text-center p-8 min-h-[420px] justify-center">
@@ -95,7 +95,7 @@ export function OnboardingWelcome({ open, variant, onComplete, onSkip }: Onboard
           {/* Slide 2: Features */}
           {currentSlide === 1 && 'features' in slide && (
             <div className="space-y-6 w-full animate-in fade-in-0 slide-in-from-right-4">
-              <h2 className="text-lg font-semibold">Todo lo que necesitas</h2>
+              <h2 className="text-lg font-semibold">Todo lo que necesitás</h2>
               <div className="space-y-4 text-left">
                 {slide.features!.map((feat) => (
                   <div key={feat.title} className="flex gap-3">

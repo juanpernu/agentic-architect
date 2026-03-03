@@ -68,7 +68,9 @@ export default function ProjectsPage() {
     if (!projects) return;
 
     if (projects.length > prevProjectCountRef.current && projects.length > 0) {
-      const newestProject = projects[projects.length - 1];
+      const newestProject = [...projects].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
       onboarding.setProjectId(newestProject.id);
       onboarding.goToStep('tour-3');
       router.push(`/projects/${newestProject.id}`);

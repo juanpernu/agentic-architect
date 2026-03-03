@@ -13,7 +13,6 @@ interface OnboardingTooltipProps {
   onCtaClick?: () => void;
   onSkip?: () => void;
   side?: 'top' | 'bottom' | 'left' | 'right';
-  step?: string;
   totalSteps?: number;
   currentStep?: number;
 }
@@ -26,7 +25,6 @@ export function OnboardingTooltip({
   onCtaClick,
   onSkip,
   side = 'bottom',
-  step,
   currentStep,
   totalSteps,
 }: OnboardingTooltipProps) {

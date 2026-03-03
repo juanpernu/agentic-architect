@@ -29,7 +29,7 @@ export const VIEWER_STEPS: OnboardingStep[] = [
 
 // Map step → expected route prefix (used by snackbar for resume logic)
 export const STEP_ROUTES: Partial<Record<OnboardingStep, string>> = {
-  'tour-1': '/',
+  'tour-1': '/projects',
   'tour-2': '/projects',
   'tour-3': '/projects/',
   'tour-4': '/projects/',
@@ -57,14 +57,21 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   }, [data, isHydrated]);
 
   const persistStep = useCallback(async (newStep: OnboardingStep) => {
+    const prevStep = step;
     setStep(newStep);
-    await fetch('/api/onboarding', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ step: newStep }),
-    });
-    globalMutate('/api/onboarding');
-  }, []);
+    try {
+      const res = await fetch('/api/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: newStep }),
+      });
+      if (!res.ok) throw new Error(`Failed to persist onboarding step: ${res.status}`);
+      globalMutate('/api/onboarding');
+    } catch (err) {
+      console.error('Failed to persist onboarding step:', err);
+      setStep(prevStep);
+    }
+  }, [step]);
 
   const nextStep = useCallback(() => {
     const currentIndex = stepsForVariant.indexOf(step);
@@ -78,12 +85,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     persistStep(newStep);
   }, [persistStep]);
 
-  const skipOnboarding = useCallback(() => {
-    persistStep('completed');
+  const skipOnboarding = useCallback(async () => {
+    await persistStep('completed');
   }, [persistStep]);
 
-  const completeOnboarding = useCallback(() => {
-    persistStep('completed');
+  const completeOnboarding = useCallback(async () => {
+    await persistStep('completed');
     router.push('/');
   }, [persistStep, router]);
 
@@ -138,8 +145,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingOverlay targetSelector='[data-onboarding="nav-projects"]' />
           <OnboardingTooltip
             targetSelector='[data-onboarding="nav-projects"]'
-            title="Empeza aca"
-            description="Crea tu primer proyecto para organizar una obra."
+            title="Empezá acá"
+            description="Creá tu primer proyecto para organizar una obra."
             ctaLabel="Ir a Proyectos"
             onCtaClick={() => {
               persistStep('tour-2');
@@ -159,7 +166,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingTooltip
             targetSelector='[data-onboarding="create-project"]'
             title="Nuevo proyecto"
-            description="Hace click aca para crear tu primer proyecto."
+            description="Hacé click acá para crear tu primer proyecto."
             onSkip={skipOnboarding}
             side="bottom"
             currentStep={2}
@@ -174,7 +181,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingTooltip
             targetSelector='[data-onboarding="project-stats"]'
             title="Vista del proyecto"
-            description="Aca vas a ver el resumen financiero: presupuestado, gasto real y disponible. Ahora creemos un presupuesto."
+            description="Acá vas a ver el resumen financiero: presupuestado, gasto real y disponible. Ahora creemos un presupuesto."
             ctaLabel="Crear presupuesto"
             onCtaClick={() => persistStep('tour-4')}
             onSkip={skipOnboarding}
@@ -193,7 +200,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingTooltip
             targetSelector='[data-onboarding="budget-editor"]'
             title="Editor de presupuesto"
-            description="Podes agregar rubros (ej: Albanileria, Electricidad), items dentro de cada rubro, y Agentect guarda automaticamente cada cambio."
+            description="Podés agregar rubros (ej: Albañilería, Electricidad), items dentro de cada rubro, y Agentect guarda automáticamente cada cambio."
             ctaLabel="Entendido, volver al proyecto"
             onCtaClick={() => {
               persistStep('tour-6');
@@ -215,7 +222,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingTooltip
             targetSelector='[data-onboarding="nav-projects"]'
             title="Tus proyectos"
-            description="Aca vas a ver los proyectos que te asignaron."
+            description="Acá vas a ver los proyectos que te asignaron."
             ctaLabel="Ver Proyectos"
             onCtaClick={() => {
               persistStep('tour-2');
@@ -233,7 +240,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         <OnboardingTooltip
           targetSelector='[data-onboarding="projects-list"]'
           title="Mis proyectos"
-          description="Solo vas a ver los proyectos donde estes asignado como arquitecto. Desde aca podes ver comprobantes y presupuestos de cada obra."
+          description="Solo vas a ver los proyectos donde estés asignado como arquitecto. Desde acá podés ver comprobantes y presupuestos de cada obra."
           ctaLabel="Siguiente"
           onCtaClick={() => persistStep('tour-3')}
           onSkip={skipOnboarding}
@@ -249,7 +256,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingTooltip
             targetSelector='[data-onboarding="nav-upload"]'
             title="Comprobantes con IA"
-            description="Podes cargar comprobantes sacandole una foto. La IA extrae proveedor, monto y CUIT automaticamente."
+            description="Podés cargar comprobantes sacándole una foto. La IA extrae proveedor, monto y CUIT automáticamente."
             ctaLabel="Siguiente"
             onCtaClick={() => persistStep('summary')}
             onSkip={skipOnboarding}
@@ -267,7 +274,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           <OnboardingTooltip
             targetSelector='[data-onboarding="project-stats"]'
             title="Presupuesto impactado"
-            description="Ya podes ver tu presupuesto aca. A medida que cargues comprobantes, vas a ver el gasto real vs. presupuestado."
+            description="Ya podés ver tu presupuesto acá. A medida que cargues comprobantes, vas a ver el gasto real vs. presupuestado."
             ctaLabel="Siguiente"
             onCtaClick={() => persistStep('summary')}
             onSkip={skipOnboarding}

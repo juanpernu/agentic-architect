@@ -17,17 +17,17 @@ const creatorFeatures = [
   {
     icon: Camera,
     title: 'Comprobantes',
-    description: 'Subi fotos de facturas y tiques. La IA extrae los datos por vos.',
+    description: 'Subí fotos de facturas y tiques. La IA extrae los datos por vos.',
   },
   {
     icon: ArrowUpDown,
-    title: 'Administracion',
-    description: 'Registra ingresos y egresos. Controla el cashflow de cada obra.',
+    title: 'Administración',
+    description: 'Registrá ingresos y egresos. Controlá el cashflow de cada obra.',
   },
   {
     icon: BarChart3,
     title: 'Reportes',
-    description: 'Visualiza gastos por rubro y detecta desvios a tiempo.',
+    description: 'Visualizá gastos por rubro y detectá desvíos a tiempo.',
   },
 ];
 
@@ -35,17 +35,17 @@ const viewerFeatures = [
   {
     icon: Camera,
     title: 'Comprobantes',
-    description: 'Subi fotos de facturas y tiques. La IA extrae los datos por vos.',
+    description: 'Subí fotos de facturas y tiques. La IA extrae los datos por vos.',
   },
   {
     icon: FolderOpen,
     title: 'Presupuestos',
-    description: 'Consulta presupuestos de tus proyectos asignados.',
+    description: 'Consultá presupuestos de tus proyectos asignados.',
   },
   {
     icon: Settings,
-    title: 'Configuracion',
-    description: 'Personaliza tu perfil y preferencias.',
+    title: 'Configuración',
+    description: 'Personalizá tu perfil y preferencias.',
   },
 ];
 
@@ -65,8 +65,8 @@ export function OnboardingSummary({ open, variant, onComplete }: OnboardingSumma
         </VisuallyHidden.Root>
 
         <div className="flex flex-col items-center text-center p-8">
-          <h2 className="text-2xl font-bold mb-2">Tu estudio esta listo</h2>
-          <p className="text-muted-foreground mb-8">Ahora descubri el resto:</p>
+          <h2 className="text-2xl font-bold mb-2">Tu estudio está listo</h2>
+          <p className="text-muted-foreground mb-8">Ahora descubrí el resto:</p>
 
           <div className="space-y-4 w-full text-left mb-8">
             {(variant === 'creator' ? creatorFeatures : viewerFeatures).map((feat) => (

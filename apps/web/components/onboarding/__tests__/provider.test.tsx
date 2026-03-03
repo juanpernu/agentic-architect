@@ -72,7 +72,7 @@ describe('VIEWER_STEPS', () => {
 
 describe('STEP_ROUTES', () => {
   it('maps tour steps to expected route prefixes', () => {
-    expect(STEP_ROUTES['tour-1']).toBe('/');
+    expect(STEP_ROUTES['tour-1']).toBe('/projects');
     expect(STEP_ROUTES['tour-2']).toBe('/projects');
     expect(STEP_ROUTES['tour-3']).toBe('/projects/');
     expect(STEP_ROUTES['tour-4']).toBe('/projects/');
