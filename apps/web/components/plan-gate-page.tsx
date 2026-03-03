@@ -93,8 +93,8 @@ export function PlanGatePage({
 function MiniKpiCard({ label, value, color, delay }: { label: string; value: string; color: string; delay: number }) {
   return (
     <div
-      className="flex-1 rounded-md border border-border/40 bg-background p-2 animate-[fadeSlideUp_0.4s_ease-out_both]"
-      style={{ animationDelay: `${delay}ms` }}
+      className="flex-1 rounded-md border border-border/40 bg-background p-2"
+      style={{ animation: `fadeSlideUp 0.4s ease-out ${delay}ms both` }}
     >
       <div className="text-[8px] text-muted-foreground truncate">{label}</div>
       <div className={`text-[11px] font-bold ${color}`}>{value}</div>
@@ -133,20 +133,28 @@ export function AdministrationPreview() {
         </div>
         {/* Mini cashflow chart */}
         <div
-          className="rounded-md border border-border/40 bg-background p-2 animate-[fadeSlideUp_0.4s_ease-out_both]"
-          style={{ animationDelay: '350ms' }}
+          className="rounded-md border border-border/40 bg-background p-2"
+          style={{ animation: 'fadeSlideUp 0.4s ease-out 350ms both' }}
         >
           <div className="text-[8px] text-muted-foreground mb-1.5">Flujo de caja mensual</div>
           <div className="flex items-end gap-1 h-[52px]">
             {months.map((month, i) => (
               <div key={i} className="flex-1 flex items-end gap-px">
                 <div
-                  className="flex-1 rounded-t-sm bg-green-400/70 origin-bottom animate-[growBar_0.5s_ease-out_both]"
-                  style={{ height: `${month.income}%`, animationDelay: `${450 + i * 80}ms` }}
+                  className="flex-1 rounded-t-sm bg-green-400/70"
+                  style={{
+                    height: `${month.income}%`,
+                    transformOrigin: 'bottom',
+                    animation: `growBar 0.5s ease-out ${450 + i * 80}ms both`,
+                  }}
                 />
                 <div
-                  className="flex-1 rounded-t-sm bg-red-400/70 origin-bottom animate-[growBar_0.5s_ease-out_both]"
-                  style={{ height: `${month.expense}%`, animationDelay: `${490 + i * 80}ms` }}
+                  className="flex-1 rounded-t-sm bg-red-400/70"
+                  style={{
+                    height: `${month.expense}%`,
+                    transformOrigin: 'bottom',
+                    animation: `growBar 0.5s ease-out ${490 + i * 80}ms both`,
+                  }}
                 />
               </div>
             ))}
@@ -186,8 +194,8 @@ export function ReportsPreview() {
         </div>
         {/* Mini rubro bars */}
         <div
-          className="rounded-md border border-border/40 bg-background p-2 space-y-1.5 animate-[fadeSlideUp_0.4s_ease-out_both]"
-          style={{ animationDelay: '350ms' }}
+          className="rounded-md border border-border/40 bg-background p-2 space-y-1.5"
+          style={{ animation: 'fadeSlideUp 0.4s ease-out 350ms both' }}
         >
           <div className="text-[8px] text-muted-foreground mb-1">Gasto por rubro</div>
           {rubros.map((rubro, i) => (
@@ -195,8 +203,8 @@ export function ReportsPreview() {
               <span className="text-[8px] text-muted-foreground w-14 truncate">{rubro.name}</span>
               <div className="flex-1 h-2 rounded-full bg-muted/60 overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${rubro.color}/70 animate-[growWidth_0.6s_ease-out_both]`}
-                  style={{ width: `${rubro.pct}%`, animationDelay: `${500 + i * 100}ms` }}
+                  className={`h-full rounded-full ${rubro.color}/70`}
+                  style={{ width: `${rubro.pct}%`, animation: `growWidth 0.6s ease-out ${500 + i * 100}ms both` }}
                 />
               </div>
               <span className="text-[8px] font-medium text-muted-foreground w-6 text-right">{rubro.pct}%</span>
