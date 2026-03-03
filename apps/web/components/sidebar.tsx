@@ -67,7 +67,10 @@ export function SidebarContent({
             <item.icon className="h-4 w-4" />
             {item.label}
             {isGatedItem(item.href) && (
-              <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground/60" />
+              <>
+                <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground/60" aria-hidden="true" />
+                <span className="sr-only">(requiere upgrade)</span>
+              </>
             )}
           </Link>
         ))}

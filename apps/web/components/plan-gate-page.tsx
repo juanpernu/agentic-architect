@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Sparkles, Check, ArrowLeft } from 'lucide-react';
-import { usePlan } from '@/lib/use-plan';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,12 +28,6 @@ export function PlanGatePage({
   features,
   children,
 }: PlanGatePageProps) {
-  const { isFreePlan, isLoading } = usePlan();
-
-  if (isLoading || !isFreePlan) {
-    return <>{children}</>;
-  }
-
   return (
     <div className="relative">
       <div className="blur-sm opacity-50 pointer-events-none select-none" aria-hidden="true">

@@ -22,13 +22,14 @@ Mostrar un modal de upgrade sobre un preview borroso cuando usuarios del plan fr
 
 ```typescript
 interface PlanGatePageProps {
-  feature: 'administration' | 'reports'
   title: string
   description: string
   features: string[]
   children: ReactNode   // Skeleton placeholder de fondo
 }
 ```
+
+> **Nota:** El prop `feature` del diseño original fue omitido intencionalmente. El componente es puramente presentacional — los callers manejan la lógica de gate con `canViewAdministration` / `canViewReports` de `usePlan()`. Si se necesita analytics de conversión en el futuro, se puede agregar como query param al link de billing.
 
 ### Comportamiento
 
