@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Building2, MapPin, Plus, Search } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatRelativeCompact } from '@/lib/date-utils';
@@ -22,6 +23,7 @@ import { ProjectFormDialog } from '@/components/project-form-dialog';
 import { CreateProjectCard } from '@/components/dashboard/create-project-card';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { useCreateParam } from '@/lib/use-create-param';
+import { useOnboarding } from '@/lib/use-onboarding';
 import { cn } from '@/lib/utils';
 
 const STATUS_DOT_COLORS: Record<ProjectStatus, string> = {
@@ -43,8 +45,10 @@ const STATUS_LABELS: Record<ProjectStatus, string> = {
 };
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const { isAdminOrSupervisor } = useCurrentUser();
   const { canCreateProject } = usePlan();
+  const onboarding = useOnboarding();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -55,6 +59,22 @@ export default function ProjectsPage() {
     '/api/projects',
     fetcher
   );
+
+  // Onboarding: detect new project creation during tour-2 and advance to tour-3
+  const prevProjectCountRef = useRef(projects?.length ?? 0);
+
+  useEffect(() => {
+    if (!onboarding?.isActive || onboarding.step !== 'tour-2') return;
+    if (!projects) return;
+
+    if (projects.length > prevProjectCountRef.current && projects.length > 0) {
+      const newestProject = projects[projects.length - 1];
+      onboarding.setProjectId(newestProject.id);
+      onboarding.goToStep('tour-3');
+      router.push(`/projects/${newestProject.id}`);
+    }
+    prevProjectCountRef.current = projects.length;
+  }, [projects, onboarding, router]);
 
   const filteredProjects = projects?.filter((project) => {
     const matchesSearch = project.name
