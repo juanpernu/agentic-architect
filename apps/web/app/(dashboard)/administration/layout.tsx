@@ -5,7 +5,11 @@ import { usePathname } from 'next/navigation';
 import { ShieldAlert, LayoutDashboard, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { usePlan } from '@/lib/use-plan';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PlanGatePage } from '@/components/plan-gate-page';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
 
 const tabs = [
   { href: '/administration', label: 'Resumen', icon: LayoutDashboard },
@@ -14,9 +18,35 @@ const tabs = [
   { href: '/administration/receipts', label: 'Comprobantes', icon: Receipt },
 ];
 
+function AdministrationSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
+        <div className="flex gap-4">
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-[250px]" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-[120px]" />
+          </div>
+        </div>
+      </div>
+      <LoadingCards count={3} />
+      <div className="rounded-lg border p-6">
+        <Skeleton className="h-4 w-40 mb-4" />
+        <Skeleton className="h-[250px] w-full" />
+      </div>
+      <LoadingTable rows={5} />
+    </div>
+  );
+}
+
 export default function AdministrationLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { role, isLoaded } = useCurrentUser();
+  const { canViewAdministration, isLoading: isPlanLoading } = usePlan();
 
   if (!isLoaded) return null;
 
@@ -29,6 +59,26 @@ export default function AdministrationLayout({ children }: { children: React.Rea
           title="Acceso denegado"
           description="No tenes permisos para ver el modulo de administracion."
         />
+      </div>
+    );
+  }
+
+  // Plan gate — covers all admin sub-routes
+  if (!isPlanLoading && !canViewAdministration) {
+    return (
+      <div className="animate-slide-up">
+        <PlanGatePage
+          title="Administración"
+          description="Controlá el flujo financiero de todos tus proyectos."
+          features={[
+            'Flujo de caja mensual (ingresos vs egresos)',
+            'Balance por proyecto',
+            'Presupuestado vs ejecutado por rubro',
+            'Gestión de ingresos y egresos',
+          ]}
+        >
+          <AdministrationSkeleton />
+        </PlanGatePage>
       </div>
     );
   }
