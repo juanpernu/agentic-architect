@@ -58,11 +58,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     sessionStorage.setItem('onboarding_project_id', id);
   }, []);
 
-  // Sync from server — on first load AND on subsequent SWR re-fetches (multi-tab sync)
+  // Sync from server on initial hydration only.
+  // After hydration, local state is the source of truth (updated optimistically by persistStep).
+  // Re-syncing on every SWR refetch causes a race: GET can return stale data before PATCH completes.
   useEffect(() => {
-    if (data) {
+    if (data && !isHydrated) {
       setStep(data.step as OnboardingStep);
-      if (!isHydrated) setIsHydrated(true);
+      setIsHydrated(true);
     }
   }, [data, isHydrated]);
 
