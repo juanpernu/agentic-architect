@@ -173,10 +173,10 @@ export function ReportsPreview() {
   }, []);
 
   const rubros = [
-    { name: 'Albañilería', pct: 85, color: 'bg-blue-500' },
-    { name: 'Electricidad', pct: 62, color: 'bg-amber-500' },
-    { name: 'Sanitarios', pct: 45, color: 'bg-emerald-500' },
-    { name: 'Pintura', pct: 28, color: 'bg-purple-500' },
+    { name: 'Albañilería', pct: 85, barClass: 'bg-blue-500/70' },
+    { name: 'Electricidad', pct: 62, barClass: 'bg-amber-500/70' },
+    { name: 'Sanitarios', pct: 45, barClass: 'bg-emerald-500/70' },
+    { name: 'Pintura', pct: 28, barClass: 'bg-purple-500/70' },
   ];
 
   return (
@@ -198,7 +198,7 @@ export function ReportsPreview() {
             <span className="text-[8px] text-muted-foreground w-14 truncate">{rubro.name}</span>
             <div className="flex-1 h-2 rounded-full bg-muted/60 overflow-hidden">
               <div
-                className={`h-full rounded-full ${rubro.color}/70 transition-all duration-600 ease-out`}
+                className={`h-full rounded-full ${rubro.barClass} transition-all duration-500 ease-out`}
                 style={{
                   width: mounted ? `${rubro.pct}%` : '0%',
                   transitionDelay: `${500 + i * 100}ms`,
