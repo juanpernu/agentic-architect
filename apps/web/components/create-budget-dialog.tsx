@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import type { Project } from '@architech/shared';
 import type { BudgetListItem } from '@/lib/api-types';
+import { useOnboarding } from '@/lib/use-onboarding';
 
 interface CreateBudgetDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ interface CreateBudgetDialogProps {
 
 export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogProps) {
   const router = useRouter();
+  const onboarding = useOnboarding();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -61,6 +63,9 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
 
       sileo.success({ title: 'Presupuesto creado' });
       await mutate('/api/budgets');
+      if (onboarding?.isActive && onboarding.step === 'tour-4') {
+        onboarding.goToStep('tour-5');
+      }
       onOpenChange(false);
       router.push(`/budgets/${budget.id}`);
     } catch (error) {
@@ -140,6 +145,9 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
       }
 
       await mutate('/api/budgets');
+      if (onboarding?.isActive && onboarding.step === 'tour-4') {
+        onboarding.goToStep('tour-5');
+      }
       onOpenChange(false);
       router.push(`/budgets/${budget.id}?confidence=${result.confidence}`);
     } catch (error) {
