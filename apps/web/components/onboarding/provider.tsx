@@ -58,6 +58,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   }, [data, isHydrated]);
 
+  // Reset interaction flag when step changes (previous step's dialog is no longer relevant)
+  useEffect(() => {
+    setInteracting(false);
+  }, [step]);
+
   const persistStep = useCallback(async (newStep: OnboardingStep) => {
     // Capture prev step via functional update to avoid stale closure
     let prevStep: OnboardingStep = 'completed';
