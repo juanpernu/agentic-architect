@@ -19,11 +19,11 @@ interface OnboardingState {
   completedAt: string | null;
 }
 
-const CREATOR_STEPS: OnboardingStep[] = [
+export const CREATOR_STEPS: OnboardingStep[] = [
   'welcome', 'tour-1', 'tour-2', 'tour-3', 'tour-4', 'tour-5', 'tour-6', 'summary', 'completed',
 ];
 
-const VIEWER_STEPS: OnboardingStep[] = [
+export const VIEWER_STEPS: OnboardingStep[] = [
   'welcome', 'tour-1', 'tour-2', 'tour-3', 'summary', 'completed',
 ];
 
