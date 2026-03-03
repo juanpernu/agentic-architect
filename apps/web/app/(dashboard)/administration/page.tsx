@@ -6,13 +6,72 @@ import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { formatCurrency } from '@/lib/format';
 import { StatCard } from '@/components/ui/stat-card';
+import { usePlan } from '@/lib/use-plan';
+import { PlanGatePage } from '@/components/plan-gate-page';
+import { Skeleton } from '@/components/ui/skeleton';
 import { LoadingCards, LoadingTable } from '@/components/ui/loading-skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CashflowChart } from '@/components/administration/cashflow-chart';
 import { BalanceByProjectTable } from '@/components/administration/balance-by-project-table';
 import { VsBudgetTable } from '@/components/administration/vs-budget-table';
 
+function AdministrationSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Fake filter bar */}
+      <div className="-mx-4 md:-mx-8 -mt-2 px-4 md:px-8 pb-5 mb-2 border-b border-border bg-card">
+        <div className="flex gap-4">
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-[250px]" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-[120px]" />
+          </div>
+        </div>
+      </div>
+      {/* KPI cards */}
+      <LoadingCards count={3} />
+      {/* Chart area */}
+      <div className="rounded-lg border p-6">
+        <Skeleton className="h-4 w-40 mb-4" />
+        <Skeleton className="h-[250px] w-full" />
+      </div>
+      {/* Table */}
+      <LoadingTable rows={5} />
+    </div>
+  );
+}
+
 export default function AdministrationPage() {
+  const { isFreePlan, isLoading: isPlanLoading } = usePlan();
+
+  if (isPlanLoading) {
+    return <AdministrationSkeleton />;
+  }
+
+  if (isFreePlan) {
+    return (
+      <PlanGatePage
+        title="Administración"
+        description="Controlá el flujo financiero de todos tus proyectos."
+        features={[
+          'Flujo de caja mensual (ingresos vs egresos)',
+          'Balance por proyecto',
+          'Presupuestado vs ejecutado por rubro',
+          'Gestión de ingresos y egresos',
+        ]}
+      >
+        <AdministrationSkeleton />
+      </PlanGatePage>
+    );
+  }
+
+  return <AdministrationContent />;
+}
+
+function AdministrationContent() {
   const currentYear = new Date().getFullYear();
   const [projectId, setProjectId] = useState<string>('all');
   const [year, setYear] = useState<string>(currentYear.toString());
