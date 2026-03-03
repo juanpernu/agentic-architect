@@ -518,7 +518,7 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Button className="w-full mt-auto" asChild>
-                <Link href="/sign-up">Probar 14 días gratis</Link>
+                <Link href="/sign-up">Probar ahora</Link>
               </Button>
             </div>
 
