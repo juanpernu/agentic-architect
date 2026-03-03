@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface OnboardingOverlayProps {
@@ -10,6 +10,7 @@ interface OnboardingOverlayProps {
 }
 
 export function OnboardingOverlay({ targetSelector, onClick, className }: OnboardingOverlayProps) {
+  const maskId = useId();
   const [rect, setRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export function OnboardingOverlay({ targetSelector, onClick, className }: Onboar
     >
       <svg className="absolute inset-0 w-full h-full">
         <defs>
-          <mask id="onboarding-spotlight">
+          <mask id={maskId}>
             <rect width="100%" height="100%" fill="white" />
             <rect
               x={rect.left - padding}
@@ -59,7 +60,7 @@ export function OnboardingOverlay({ targetSelector, onClick, className }: Onboar
           width="100%"
           height="100%"
           fill="rgba(0, 0, 0, 0.6)"
-          mask="url(#onboarding-spotlight)"
+          mask={`url(#${maskId})`}
         />
       </svg>
     </div>

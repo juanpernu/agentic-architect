@@ -33,11 +33,12 @@ export function OnboardingTooltip({
 
   useEffect(() => {
     const target = document.querySelector(targetSelector);
-    if (!target || !tooltipRef.current) return;
+    if (!target) return;
 
     const update = () => {
+      if (!tooltipRef.current) return;
       const targetRect = target.getBoundingClientRect();
-      const tooltipRect = tooltipRef.current!.getBoundingClientRect();
+      const tooltipRect = tooltipRef.current.getBoundingClientRect();
       const gap = 12;
 
       const isMobile = window.innerWidth < 768;
@@ -73,10 +74,15 @@ export function OnboardingTooltip({
     };
 
     requestAnimationFrame(update);
+
+    const observer = new ResizeObserver(update);
+    observer.observe(target);
+
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, true);
 
     return () => {
+      observer.disconnect();
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update, true);
     };
@@ -85,7 +91,9 @@ export function OnboardingTooltip({
   return (
     <div
       ref={tooltipRef}
-      role="tooltip"
+      role="dialog"
+      aria-modal="false"
+      aria-label={title || 'Onboarding'}
       className={cn(
         'fixed z-[9999] w-80 rounded-xl border bg-card p-4 shadow-lg',
         'animate-in fade-in-0 zoom-in-95',

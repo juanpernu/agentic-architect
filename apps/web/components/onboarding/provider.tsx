@@ -49,16 +49,21 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  // Sync from server — on first load AND on subsequent SWR re-fetches (multi-tab sync)
   useEffect(() => {
-    if (data && !isHydrated) {
+    if (data) {
       setStep(data.step as OnboardingStep);
-      setIsHydrated(true);
+      if (!isHydrated) setIsHydrated(true);
     }
   }, [data, isHydrated]);
 
   const persistStep = useCallback(async (newStep: OnboardingStep) => {
-    const prevStep = step;
-    setStep(newStep);
+    // Capture prev step via functional update to avoid stale closure
+    let prevStep: OnboardingStep = 'completed';
+    setStep((current) => {
+      prevStep = current;
+      return newStep;
+    });
     try {
       const res = await fetch('/api/onboarding', {
         method: 'PATCH',
@@ -71,7 +76,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       console.error('Failed to persist onboarding step:', err);
       setStep(prevStep);
     }
-  }, [step]);
+  }, []);
 
   const nextStep = useCallback(() => {
     const currentIndex = stepsForVariant.indexOf(step);
@@ -295,12 +300,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       {showSnackbar && (
         <OnboardingSnackbar
           onResume={() => {
-            if (step === 'tour-1' || step === 'tour-2') router.push('/projects');
-            else if (step === 'tour-3' || step === 'tour-4' || step === 'tour-6') {
+            const route = STEP_ROUTES[step];
+            if (!route) return;
+            if (route === '/projects/' || route === '/budgets/') {
               if (projectId) router.push(`/projects/${projectId}`);
               else router.push('/projects');
+            } else {
+              router.push(route);
             }
-            else if (step === 'tour-5') router.push('/budgets');
           }}
           onDismiss={skipOnboarding}
         />

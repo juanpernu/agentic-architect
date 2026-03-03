@@ -61,13 +61,20 @@ export default function ProjectsPage() {
   );
 
   // Onboarding: detect new project creation during tour-2 and advance to tour-3
-  const prevProjectCountRef = useRef(projects?.length ?? 0);
+  // Init to null to skip false positives on first SWR resolution
+  const prevProjectCountRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!onboarding?.isActive || onboarding.step !== 'tour-2') return;
     if (!projects) return;
 
-    if (projects.length > prevProjectCountRef.current && projects.length > 0) {
+    // First resolution: just store the count, don't trigger
+    if (prevProjectCountRef.current === null) {
+      prevProjectCountRef.current = projects.length;
+      return;
+    }
+
+    if (projects.length > prevProjectCountRef.current) {
       const newestProject = [...projects].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];

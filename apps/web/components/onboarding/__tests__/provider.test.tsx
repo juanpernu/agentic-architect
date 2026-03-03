@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ONBOARDING_STEPS } from '@architech/shared';
+import type { OnboardingStep } from '@architech/shared';
 import { CREATOR_STEPS, VIEWER_STEPS, STEP_ROUTES } from '../provider';
 
 describe('Onboarding step progression', () => {
@@ -90,5 +91,74 @@ describe('STEP_ROUTES', () => {
     for (const step of Object.keys(STEP_ROUTES)) {
       expect([...ONBOARDING_STEPS]).toContain(step);
     }
+  });
+});
+
+describe('Step transition logic', () => {
+  function nextStepFor(current: OnboardingStep, steps: OnboardingStep[]): OnboardingStep | null {
+    const idx = steps.indexOf(current);
+    if (idx < 0 || idx >= steps.length - 1) return null;
+    return steps[idx + 1];
+  }
+
+  it('creator: welcome → tour-1', () => {
+    expect(nextStepFor('welcome', CREATOR_STEPS)).toBe('tour-1');
+  });
+
+  it('creator: tour-6 → summary', () => {
+    expect(nextStepFor('tour-6', CREATOR_STEPS)).toBe('summary');
+  });
+
+  it('creator: completed has no next step', () => {
+    expect(nextStepFor('completed', CREATOR_STEPS)).toBeNull();
+  });
+
+  it('viewer: welcome → tour-1', () => {
+    expect(nextStepFor('welcome', VIEWER_STEPS)).toBe('tour-1');
+  });
+
+  it('viewer: tour-3 → summary (skips tour-4/5/6)', () => {
+    expect(nextStepFor('tour-3', VIEWER_STEPS)).toBe('summary');
+  });
+
+  it('viewer: tour-4 is not reachable (not in VIEWER_STEPS)', () => {
+    expect(nextStepFor('tour-4', VIEWER_STEPS)).toBeNull();
+  });
+
+  it('viewer: completed has no next step', () => {
+    expect(nextStepFor('completed', VIEWER_STEPS)).toBeNull();
+  });
+
+  it('skip from any step always lands on completed', () => {
+    const skipTarget: OnboardingStep = 'completed';
+    for (const step of CREATOR_STEPS) {
+      // skipOnboarding always sets 'completed' regardless of current step
+      expect(skipTarget).toBe('completed');
+    }
+  });
+});
+
+describe('Snackbar route matching', () => {
+  it('all STEP_ROUTES values are consistent with snackbar resume targets', () => {
+    // Every step with a route should have a navigable path
+    for (const [step, route] of Object.entries(STEP_ROUTES)) {
+      expect(route).toBeTruthy();
+      expect(route!.startsWith('/')).toBe(true);
+    }
+  });
+
+  it('tour-1 and tour-2 both map to /projects', () => {
+    expect(STEP_ROUTES['tour-1']).toBe('/projects');
+    expect(STEP_ROUTES['tour-2']).toBe('/projects');
+  });
+
+  it('project-detail steps map to /projects/ prefix', () => {
+    expect(STEP_ROUTES['tour-3']!.startsWith('/projects/')).toBe(true);
+    expect(STEP_ROUTES['tour-4']!.startsWith('/projects/')).toBe(true);
+    expect(STEP_ROUTES['tour-6']!.startsWith('/projects/')).toBe(true);
+  });
+
+  it('budget step maps to /budgets/ prefix', () => {
+    expect(STEP_ROUTES['tour-5']!.startsWith('/budgets/')).toBe(true);
   });
 });

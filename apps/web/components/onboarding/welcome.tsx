@@ -68,7 +68,6 @@ export function OnboardingWelcome({ open, variant, onComplete, onSkip }: Onboard
         className="max-w-lg p-0 gap-0 border-0"
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         {/* Visually hidden title and description for accessibility */}
         <DialogTitle className="sr-only">Bienvenido a Agentect</DialogTitle>
@@ -150,15 +149,13 @@ export function OnboardingWelcome({ open, variant, onComplete, onSkip }: Onboard
             </Button>
           </div>
 
-          {/* Skip link on last slide */}
-          {isLast && (
-            <button
-              onClick={onSkip}
-              className="text-xs text-muted-foreground hover:text-foreground mt-4 transition-colors"
-            >
-              Omitir onboarding
-            </button>
-          )}
+          {/* Skip link — always visible (WCAG 2.1.2: always-available escape) */}
+          <button
+            onClick={onSkip}
+            className="text-xs text-muted-foreground hover:text-foreground mt-4 transition-colors"
+          >
+            Omitir onboarding
+          </button>
         </div>
       </DialogContent>
     </Dialog>

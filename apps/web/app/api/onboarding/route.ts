@@ -3,6 +3,7 @@ import { getAuthContext, unauthorized } from '@/lib/auth';
 import { getDb } from '@/lib/supabase';
 import { validateBody } from '@/lib/validate';
 import { apiError, dbError } from '@/lib/api-error';
+import { rateLimit } from '@/lib/rate-limit';
 import { onboardingUpdateSchema } from '@/lib/schemas/onboarding';
 
 export async function GET() {
@@ -32,16 +33,37 @@ export async function PATCH(req: Request) {
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
 
+  const rateLimited = rateLimit('billing', ctx.dbUserId);
+  if (rateLimited) return rateLimited;
+
   try {
     const result = await validateBody(onboardingUpdateSchema, req);
     if ('error' in result) return result.error;
 
     const db = getDb();
+
+    // Prevent regression: if onboarding is already completed, reject the update
+    const { data: current, error: selectError } = await db
+      .from('users')
+      .select('onboarding_step')
+      .eq('id', ctx.dbUserId)
+      .single();
+
+    if (selectError) return dbError(selectError, 'select', { route: '/api/onboarding' });
+
+    if (current.onboarding_step === 'completed' && result.data.step !== 'completed') {
+      return NextResponse.json(
+        { error: 'Onboarding already completed' },
+        { status: 409 }
+      );
+    }
+
     const updates: Record<string, unknown> = {
       onboarding_step: result.data.step,
     };
 
-    if (result.data.step === 'completed') {
+    // Use COALESCE-like logic: only set completed_at if not already set
+    if (result.data.step === 'completed' && !current.onboarding_step.startsWith('completed')) {
       updates.onboarding_completed_at = new Date().toISOString();
     }
 
