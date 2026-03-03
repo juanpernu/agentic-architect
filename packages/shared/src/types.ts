@@ -35,8 +35,24 @@ export interface User {
   email: string;
   avatar_url: string | null;
   is_active: boolean;
+  onboarding_step: string;
+  onboarding_completed_at: string | null;
   created_at: string;
 }
+
+export const ONBOARDING_STEPS = [
+  'welcome',
+  'tour-1',
+  'tour-2',
+  'tour-3',
+  'tour-4',
+  'tour-5',
+  'tour-6',
+  'summary',
+  'completed',
+] as const;
+
+export type OnboardingStep = typeof ONBOARDING_STEPS[number];
 
 export interface Project {
   id: string;

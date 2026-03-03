@@ -46,9 +46,10 @@ interface ProjectFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project?: Project;
+  onCreated?: (projectId: string) => void;
 }
 
-export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDialogProps) {
+export function ProjectFormDialog({ open, onOpenChange, project, onCreated }: ProjectFormDialogProps) {
   const { data: users = [] } = useSWR<OrgUser[]>(open ? '/api/users' : null, fetcher);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { errors, validate, clearErrors } = useFormValidation(projectSchema);
@@ -133,6 +134,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         throw new Error(errorBody.error ?? 'Error al guardar proyecto');
       }
 
+      const result = await response.json();
+
       sileo.success({
         title: project ? 'Proyecto actualizado con éxito' : 'Proyecto creado con éxito',
       });
@@ -144,6 +147,10 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       }
 
       onOpenChange(false);
+
+      if (!project && onCreated && result?.id) {
+        onCreated(result.id);
+      }
     } catch (error) {
       sileo.error({
         title: error instanceof Error ? error.message : 'Error al guardar proyecto',

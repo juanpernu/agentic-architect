@@ -18,3 +18,4 @@ export {
   type IncomeCreateInput, type IncomeUpdateInput,
   type ExpenseCreateInput, type ExpenseUpdateInput,
 } from './administration';
+export { onboardingUpdateSchema, type OnboardingUpdateInput } from './onboarding';

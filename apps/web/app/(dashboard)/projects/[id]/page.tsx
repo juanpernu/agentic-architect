@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
@@ -55,7 +55,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProjectFormDialog } from '@/components/project-form-dialog';
+import { CreateBudgetDialog } from '@/components/create-budget-dialog';
 import { VsBudgetTable } from '@/components/administration/vs-budget-table';
+import { useOnboarding } from '@/lib/use-onboarding';
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 6;
@@ -104,9 +106,12 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { isAdmin, isAdminOrSupervisor } = useCurrentUser();
+  const onboarding = useOnboarding();
   const projectId = params.id as string;
 
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateBudget, setShowCreateBudget] = useState(false);
+  const [budgetDismissed, setBudgetDismissed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [receiptToDelete, setReceiptToDelete] = useState<string | null>(null);
@@ -115,6 +120,18 @@ export default function ProjectDetailPage() {
   const [rubroFilter, setRubroFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Onboarding: derive budget dialog open state directly (no useEffect timing issues)
+  const isOnboardingTour4 = onboarding?.isActive && onboarding.step === 'tour-4';
+  // Dialog opens when: manually opened, OR (tour-4 AND not dismissed), OR (tour-4 AND provider CTA clicked)
+  const budgetDialogOpen = showCreateBudget || (!!isOnboardingTour4 && (!budgetDismissed || !!onboarding?.isInteracting));
+
+  // When provider tooltip CTA signals reopen (isInteracting=true), reset dismissed flag
+  useEffect(() => {
+    if (isOnboardingTour4 && onboarding?.isInteracting && budgetDismissed) {
+      setBudgetDismissed(false);
+    }
+  }, [isOnboardingTour4, onboarding?.isInteracting, budgetDismissed]);
 
   const { data: project, isLoading: isLoadingProject, error: projectError } = useSWR<ProjectDetail>(
     projectId ? `/api/projects/${projectId}` : null,
@@ -341,7 +358,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Stats cards row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6" data-onboarding="project-stats">
         {/* Budget card */}
         <div className="rounded-xl border border-border bg-card shadow-sm relative overflow-hidden group flex flex-col">
           <div className="p-6 flex-1">
@@ -701,6 +718,17 @@ export default function ProjectDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateBudgetDialog
+        open={budgetDialogOpen}
+        onOpenChange={(open) => {
+          setShowCreateBudget(open);
+          if (isOnboardingTour4) {
+            onboarding?.setInteracting(open);
+            if (!open) setBudgetDismissed(true);
+          }
+        }}
+      />
     </div>
   );
 }

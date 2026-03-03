@@ -105,16 +105,18 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
-      {showSkeleton ? (
-        <LoadingBudgetTable />
-      ) : (
-        <BudgetTable
-          budget={budgetForTable}
-          onPublish={handlePublish}
-          onEdit={handleEdit}
-          initialConfidence={confidenceParam ? parseFloat(confidenceParam) : undefined}
-        />
-      )}
+      <div data-onboarding="budget-editor">
+        {showSkeleton ? (
+          <LoadingBudgetTable />
+        ) : (
+          <BudgetTable
+            budget={budgetForTable}
+            onPublish={handlePublish}
+            onEdit={handleEdit}
+            initialConfidence={confidenceParam ? parseFloat(confidenceParam) : undefined}
+          />
+        )}
+      </div>
     </div>
   );
 }
