@@ -136,7 +136,7 @@ export function AdministrationPreview() {
         <div className="text-[8px] text-muted-foreground mb-1.5">Flujo de caja mensual</div>
         <div className="flex items-end gap-1 h-[52px]">
           {months.map((month, i) => (
-            <div key={i} className="flex-1 flex items-end gap-px">
+            <div key={i} className="flex-1 flex items-end gap-px h-full">
               <div
                 className="flex-1 rounded-t-sm bg-green-400/70 transition-all duration-500 ease-out"
                 style={{
