@@ -90,9 +90,12 @@ export function PlanGatePage({
 
 /* ── Mini-UI Preview Mockups ── */
 
-function MiniKpiCard({ label, value, color }: { label: string; value: string; color: string }) {
+function MiniKpiCard({ label, value, color, delay }: { label: string; value: string; color: string; delay: number }) {
   return (
-    <div className="flex-1 rounded-md border border-border/40 bg-background p-2">
+    <div
+      className="flex-1 rounded-md border border-border/40 bg-background p-2 animate-[fadeSlideUp_0.4s_ease-out_both]"
+      style={{ animationDelay: `${delay}ms` }}
+    >
       <div className="text-[8px] text-muted-foreground truncate">{label}</div>
       <div className={`text-[11px] font-bold ${color}`}>{value}</div>
     </div>
@@ -100,45 +103,62 @@ function MiniKpiCard({ label, value, color }: { label: string; value: string; co
 }
 
 export function AdministrationPreview() {
+  const months = [
+    { income: 65, expense: 45 },
+    { income: 50, expense: 55 },
+    { income: 70, expense: 40 },
+    { income: 80, expense: 60 },
+    { income: 55, expense: 50 },
+    { income: 90, expense: 65 },
+  ];
+
   return (
-    <div className="px-4 py-3 space-y-2.5">
-      {/* KPI row */}
-      <div className="flex gap-2">
-        <MiniKpiCard label="Ingresado" value="$2.4M" color="text-green-600" />
-        <MiniKpiCard label="Egresado" value="$1.8M" color="text-red-500" />
-        <MiniKpiCard label="Balance" value="$620K" color="text-blue-600" />
-      </div>
-      {/* Mini cashflow chart */}
-      <div className="rounded-md border border-border/40 bg-background p-2">
-        <div className="text-[8px] text-muted-foreground mb-1.5">Flujo de caja mensual</div>
-        <div className="flex items-end gap-1 h-[52px]">
-          {[
-            { income: 65, expense: 45 },
-            { income: 50, expense: 55 },
-            { income: 70, expense: 40 },
-            { income: 80, expense: 60 },
-            { income: 55, expense: 50 },
-            { income: 90, expense: 65 },
-          ].map((month, i) => (
-            <div key={i} className="flex-1 flex items-end gap-px">
-              <div
-                className="flex-1 rounded-t-sm bg-green-400/70"
-                style={{ height: `${month.income}%` }}
-              />
-              <div
-                className="flex-1 rounded-t-sm bg-red-400/70"
-                style={{ height: `${month.expense}%` }}
-              />
-            </div>
-          ))}
+    <>
+      <style>{`
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes growBar {
+          from { transform: scaleY(0); }
+          to { transform: scaleY(1); }
+        }
+      `}</style>
+      <div className="px-4 py-3 space-y-2.5">
+        {/* KPI row */}
+        <div className="flex gap-2">
+          <MiniKpiCard label="Ingresado" value="$2.4M" color="text-green-600" delay={100} />
+          <MiniKpiCard label="Egresado" value="$1.8M" color="text-red-500" delay={200} />
+          <MiniKpiCard label="Balance" value="$620K" color="text-blue-600" delay={300} />
         </div>
-        <div className="flex justify-between mt-1">
-          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((m) => (
-            <span key={m} className="text-[7px] text-muted-foreground/60 flex-1 text-center">{m}</span>
-          ))}
+        {/* Mini cashflow chart */}
+        <div
+          className="rounded-md border border-border/40 bg-background p-2 animate-[fadeSlideUp_0.4s_ease-out_both]"
+          style={{ animationDelay: '350ms' }}
+        >
+          <div className="text-[8px] text-muted-foreground mb-1.5">Flujo de caja mensual</div>
+          <div className="flex items-end gap-1 h-[52px]">
+            {months.map((month, i) => (
+              <div key={i} className="flex-1 flex items-end gap-px">
+                <div
+                  className="flex-1 rounded-t-sm bg-green-400/70 origin-bottom animate-[growBar_0.5s_ease-out_both]"
+                  style={{ height: `${month.income}%`, animationDelay: `${450 + i * 80}ms` }}
+                />
+                <div
+                  className="flex-1 rounded-t-sm bg-red-400/70 origin-bottom animate-[growBar_0.5s_ease-out_both]"
+                  style={{ height: `${month.expense}%`, animationDelay: `${490 + i * 80}ms` }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((m) => (
+              <span key={m} className="text-[7px] text-muted-foreground/60 flex-1 text-center">{m}</span>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -151,29 +171,39 @@ export function ReportsPreview() {
   ];
 
   return (
-    <div className="px-4 py-3 space-y-2.5">
-      {/* KPI row */}
-      <div className="flex gap-2">
-        <MiniKpiCard label="Total gastado" value="$1.8M" color="text-emerald-600" />
-        <MiniKpiCard label="Comprobantes" value="47" color="text-purple-600" />
-        <MiniKpiCard label="Mayor gasto" value="Obra Centro" color="text-blue-600" />
-      </div>
-      {/* Mini rubro bars */}
-      <div className="rounded-md border border-border/40 bg-background p-2 space-y-1.5">
-        <div className="text-[8px] text-muted-foreground mb-1">Gasto por rubro</div>
-        {rubros.map((rubro) => (
-          <div key={rubro.name} className="flex items-center gap-2">
-            <span className="text-[8px] text-muted-foreground w-14 truncate">{rubro.name}</span>
-            <div className="flex-1 h-2 rounded-full bg-muted/60 overflow-hidden">
-              <div
-                className={`h-full rounded-full ${rubro.color}/70`}
-                style={{ width: `${rubro.pct}%` }}
-              />
+    <>
+      <style>{`
+        @keyframes growWidth {
+          from { width: 0; }
+        }
+      `}</style>
+      <div className="px-4 py-3 space-y-2.5">
+        {/* KPI row */}
+        <div className="flex gap-2">
+          <MiniKpiCard label="Total gastado" value="$1.8M" color="text-emerald-600" delay={100} />
+          <MiniKpiCard label="Comprobantes" value="47" color="text-purple-600" delay={200} />
+          <MiniKpiCard label="Mayor gasto" value="Obra Centro" color="text-blue-600" delay={300} />
+        </div>
+        {/* Mini rubro bars */}
+        <div
+          className="rounded-md border border-border/40 bg-background p-2 space-y-1.5 animate-[fadeSlideUp_0.4s_ease-out_both]"
+          style={{ animationDelay: '350ms' }}
+        >
+          <div className="text-[8px] text-muted-foreground mb-1">Gasto por rubro</div>
+          {rubros.map((rubro, i) => (
+            <div key={rubro.name} className="flex items-center gap-2">
+              <span className="text-[8px] text-muted-foreground w-14 truncate">{rubro.name}</span>
+              <div className="flex-1 h-2 rounded-full bg-muted/60 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${rubro.color}/70 animate-[growWidth_0.6s_ease-out_both]`}
+                  style={{ width: `${rubro.pct}%`, animationDelay: `${500 + i * 100}ms` }}
+                />
+              </div>
+              <span className="text-[8px] font-medium text-muted-foreground w-6 text-right">{rubro.pct}%</span>
             </div>
-            <span className="text-[8px] font-medium text-muted-foreground w-6 text-right">{rubro.pct}%</span>
-          </div>
         ))}
       </div>
     </div>
+    </>
   );
 }
