@@ -130,7 +130,7 @@ export function IncomeFormDialog({ open, onOpenChange, income, onSaved }: Income
               : 'Registra un nuevo ingreso asociado a una obra'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto -mx-6 px-6">
           <div className="border border-border rounded-xl p-4 bg-muted/30 space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

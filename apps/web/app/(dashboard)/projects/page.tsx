@@ -123,23 +123,21 @@ export default function ProjectsPage() {
       {isLoading && <LoadingCards count={6} />}
 
       {!isLoading && filteredProjects?.length === 0 && (
-        <EmptyState
-          icon={Building2}
-          title="No hay proyectos"
-          description={
-            searchQuery || statusFilter !== 'all'
-              ? 'No se encontraron proyectos con los filtros seleccionados'
-              : 'Comienza creando tu primer proyecto'
-          }
-          action={
-            !searchQuery && statusFilter === 'all' && isAdminOrSupervisor ? (
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Crear Proyecto
-              </Button>
-            ) : undefined
-          }
-        />
+        !searchQuery && statusFilter === 'all' && isAdminOrSupervisor && canCreateProject ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <CreateProjectCard />
+          </div>
+        ) : (
+          <EmptyState
+            icon={Building2}
+            title="No hay proyectos"
+            description={
+              searchQuery || statusFilter !== 'all'
+                ? 'No se encontraron proyectos con los filtros seleccionados'
+                : 'No tenés proyectos asignados'
+            }
+          />
+        )
       )}
 
       {!isLoading && filteredProjects && filteredProjects.length > 0 && (
