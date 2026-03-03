@@ -11,6 +11,7 @@ import { OnboardingWelcome } from './welcome';
 import { OnboardingSummary } from './summary';
 import { OnboardingOverlay } from './overlay';
 import { OnboardingTooltip } from './tooltip';
+import { OnboardingSnackbar } from './snackbar';
 import type { OnboardingStep } from '@architech/shared';
 
 interface OnboardingState {
@@ -87,6 +88,10 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   }, [persistStep, router]);
 
   const isActive = step !== 'completed' && isHydrated;
+
+  const expectedRoute = STEP_ROUTES[step];
+  const isOnExpectedRoute = !expectedRoute || pathname.startsWith(expectedRoute);
+  const showSnackbar = isActive && !isOnExpectedRoute && step !== 'welcome' && step !== 'summary';
 
   const contextValue = useMemo(
     () => ({
@@ -279,6 +284,20 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         variant={variant}
         onComplete={completeOnboarding}
       />
+
+      {showSnackbar && (
+        <OnboardingSnackbar
+          onResume={() => {
+            if (step === 'tour-1' || step === 'tour-2') router.push('/projects');
+            else if (step === 'tour-3' || step === 'tour-4' || step === 'tour-6') {
+              if (projectId) router.push(`/projects/${projectId}`);
+              else router.push('/projects');
+            }
+            else if (step === 'tour-5') router.push('/budgets');
+          }}
+          onDismiss={skipOnboarding}
+        />
+      )}
     </OnboardingContext.Provider>
   );
 }
