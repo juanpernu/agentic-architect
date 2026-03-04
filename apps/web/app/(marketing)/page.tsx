@@ -4,9 +4,9 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Agentect — Sabé cuánto ganás en cada obra',
   description:
-    'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para estudios de arquitectura argentinos.',
+    'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para profesionales de la construcción.',
   openGraph: {
-    title: 'Agentect — Gestión de obras para estudios que quieren crecer',
+    title: 'Agentect — Control financiero de obras para profesionales de la construcción',
     description:
       'Reemplazá Excel con presupuestos integrados y control de rentabilidad obra por obra.',
     type: 'website',
@@ -86,7 +86,7 @@ export default function LandingPage() {
           <p className="text-lg sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
             Agentect reemplaza tus planillas de Excel con presupuestos integrados,
             seguimiento de gastos por rubro y control de rentabilidad en tiempo real.
-            Diseñado para estudios de arquitectura que quieren crecer.
+            Diseñado para profesionales de la construcción que quieren tener sus obras en orden.
           </p>
 
           {/* CTAs */}
@@ -122,10 +122,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="text-center mb-10 md:mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
-              El problema que todo estudio conoce
+              El problema que todo constructor conoce
             </h2>
             <p className="text-muted-foreground">
-              Presupuestás en Excel, cargás gastos a mano, y al final de la obra no sabés si ganaste o perdiste.
+              Presupuestás en Excel, cargás gastos a mano, y al final de la obra no sabés exactamente cuánto ganaste.
             </p>
           </div>
 
@@ -150,7 +150,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-muted-foreground">
                     <TrendingDown className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
-                    <span>Recién al cerrar la obra descubrís que perdiste plata.</span>
+                    <span>Recién al cerrar la obra sabés exactamente cuánto ganaste.</span>
                   </li>
                 </ul>
                 <div className="h-32 bg-muted rounded-lg border-2 border-dashed flex items-center justify-center">
@@ -201,7 +201,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-8">
           <div className="text-center mb-10 md:mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
-              Todo lo que necesitás para controlar tus obras
+              Todo lo que necesitás para el control financiero de tus obras
             </h2>
           </div>
           <div className="grid lg:grid-cols-3 gap-8">
@@ -213,7 +213,7 @@ export default function LandingPage() {
               </div>
               <CardTitle className="text-lg sm:text-xl mb-2">Armá presupuestos profesionales</CardTitle>
               <CardDescription className="mb-4 sm:mb-6">
-                Editor integrado con rubros, ítems, unidades y costos. Publicá versiones y compartí con tu cliente.
+                Editor integrado con rubros, ítems, unidades y costos. Publicá versiones, exportá a PDF y envialo a tu cliente.
               </CardDescription>
 
               {/* Budget editor mockup */}
@@ -255,7 +255,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex gap-2">
                   <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-gray-300" />Presupuestado</Badge>
-                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-400" />Costo</Badge>
+                  <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-400" />Preventivo</Badge>
                   <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" />Gasto Real</Badge>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function LandingPage() {
                     Cada peso asociado a su obra
                   </CardTitle>
                   <CardDescription className="mt-1 sm:mt-2">
-                    Ingresos, egresos y comprobantes centralizados por proyecto. Sabé al instante cuánto va cada obra.
+                    Ingresos, egresos y facturas centralizados por proyecto. Sabé al instante el estado financiero de cada obra.
                   </CardDescription>
                 </div>
               </div>
@@ -377,8 +377,8 @@ export default function LandingPage() {
                 Cargá los gastos de tu obra en segundos
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Sacale una foto al comprobante y Agentect extrae proveedor, monto,
-                CUIT y fecha automáticamente. Vos solo confirmás.
+                Sacale una foto a la factura de compra y Agentect extrae proveedor, monto,
+                CUIT y fecha automáticamente. Vos asignás a qué obra corresponde y confirmás.
               </p>
             </div>
 
@@ -481,7 +481,7 @@ export default function LandingPage() {
               </div>
               <p className="text-sm text-muted-foreground mb-4">Para empezar</p>
               <ul className="space-y-2 mb-4">
-                {['1 proyecto', '20 comprobantes por proyecto', '1 usuario', 'Sin reportes'].map((f) => (
+                {['1 proyecto', '20 facturas por proyecto', '1 usuario', 'Sin reportes'].map((f) => (
                   <li key={f} className="flex items-center gap-3 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                     {f}
@@ -510,7 +510,7 @@ export default function LandingPage() {
               <p className="text-sm text-muted-foreground mb-1">Para equipos en crecimiento</p>
               <p className="text-xs text-muted-foreground mb-4">+ $8.000/usuario/mes</p>
               <ul className="space-y-2 mb-4">
-                {['20 proyectos', 'Comprobantes ilimitados', 'Reportes de gastos', 'Seats flexibles'].map((f) => (
+                {['20 proyectos', 'Facturas ilimitadas', 'Reportes de gastos', 'Seats flexibles'].map((f) => (
                   <li key={f} className="flex items-center gap-3 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     {f}
@@ -533,7 +533,7 @@ export default function LandingPage() {
               </div>
               <p className="text-sm text-gray-300 mb-5">Para grandes organizaciones</p>
               <div className="space-y-3 mb-6">
-                {['Proyectos ilimitados', 'Comprobantes ilimitados', 'Reportes de gastos', 'Usuarios ilimitados', 'Soporte prioritario'].map((f) => (
+                {['Proyectos ilimitados', 'Facturas ilimitadas', 'Reportes de gastos', 'Usuarios ilimitados', 'Soporte prioritario'].map((f) => (
                   <div key={f} className="flex items-center gap-3 text-sm text-gray-200">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                     <span>{f}</span>
