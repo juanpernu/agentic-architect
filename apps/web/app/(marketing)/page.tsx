@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Presupuestos integrados, seguimiento de gastos por rubro y control de rentabilidad en tiempo real. Diseñado para profesionales de la construcción.',
   openGraph: {
-    title: 'Agentect — Control financiero de obras para profesionales de la construcción',
+    title: 'Agentect — Control financiero de obras de construcción',
     description:
       'Reemplazá Excel con presupuestos integrados y control de rentabilidad obra por obra.',
     type: 'website',
@@ -150,7 +150,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-muted-foreground">
                     <TrendingDown className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
-                    <span>Recién al cerrar la obra sabés exactamente cuánto ganaste.</span>
+                    <span>Terminás la obra sin saber cuánto quedó de ganancia real.</span>
                   </li>
                 </ul>
                 <div className="h-32 bg-muted rounded-lg border-2 border-dashed flex items-center justify-center">
@@ -466,7 +466,7 @@ export default function LandingPage() {
               Elegí el plan que acompañe tu crecimiento
             </h2>
             <p className="text-lg text-muted-foreground">
-              Empezá gratis con un proyecto. Escalá cuando tu estudio lo necesite.
+              Empezá gratis con un proyecto. Escalá cuando lo necesites.
             </p>
           </div>
 
